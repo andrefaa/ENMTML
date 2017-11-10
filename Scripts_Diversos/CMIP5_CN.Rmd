@@ -1,0 +1,172 @@
+---
+title: "CMIP5"
+author: "Caroline Nobrega"
+date: "Thursday, September 2, 2014"
+output: html_document
+---
+
+Fonte dos dados:
+  http://pcmdi9.llnl.gov/esgf-web-fe/
+
+
+Variáveis:
+  tas,air_temperature,K
+  ts,surface_temperature,K
+  pr,precipitation_flux,kg m-2 s-1
+  evspsbl, water_evaporation_flux, kg m-2 s-1
+
+Parametros usados para baixar os dados:
+  Project: CMIP5
+  Realm: atmos
+  Time Frequency: mon
+  Experiment: amip, rcp45 e rcp85
+  Ensemble: r1i1p1
+
+```{r, echo=FALSE}
+
+rm(list = ls())  
+
+downloadcmip5 <- function (mod, var){ 
+setwd ( paste("C:\\IPAM\\Datasets\\CMIP5\\cf_IPCC\\", var, sep="") )
+surl<-read.table( paste("C:\\IPAM\\Datasets\\CMIP5\\cf_IPCC\\", mod, ".txt", sep="") ) #rcp45, amip
+varnames<-read.table("C:\\IPAM\\Datasets\\CMIP5\\cf_IPCC\\variables.txt", sep=",")
+
+pos<-grep(paste(var,"_", sep=""), surl[,1]) #tas, pr, ts
+#pos<-pos[c(1,11,12,13,19,20,21,26,39,41,42,110,111,112)] #pr
+#pos<-pos[c(1,3,4,5,6,7,8,9,10,11,12,13,14,19,20,21,22,23,24,26,27,28,29,39,41,42,43,44,45)] #tas
+
+baixados<-list.files(path = paste("C:\\IPAM\\Datasets\\CMIP5\\cf_IPCC\\", var, sep=""), pattern = ".nc")
+for (i in 1:length(pos)) {
+  url<-surl[pos[i],2]
+  poss<-grep(surl[pos[i],1], baixados)
+  if (length(poss)==0){
+  system(paste('"c:/Program Files (x86)\\Google\\Chrome\\Application/chrome.exe"',url), wait = FALSE)}
+  }
+}
+
+a<-c("s") # Baixar arquivos? s/n
+
+if (a=="s"){
+downloadcmip5(mod="amip",var="ts") ## mod= "rcp45", "amip"; var= "evspsbl","ts", "tas", "pr"
+}
+```
+
+Para fazer os gráficos de alguns locais predefinidos
+
+```{r, fig.width = 7, fig.height = 4, echo=FALSE}
+library("maptools"); library("raster"); library("ggplot2"); library ("dismo"); library("doBy"); library("ggplot2"); library("reshape")
+rm(list = ls())
+
+vars<-data.frame(codigo=c("tas","ts","pr"), nome_completo=c("Air Temperature (k)", "Surface Temperature (k)", "Precipitation Flux (kg m-2 s-1)"))
+
+fun_a <- function(x) { summary( lm(x[1:(length(names(x))/2)] ~ x[((length(names(x))/2)+1):length(names(x))]) )$coefficients[1,1] }
+fun_b <- function(x) { summary( lm(x[1:(length(names(x))/2)] ~ x[((length(names(x))/2)+1):length(names(x))]) )$coefficients[2,1] }
+fun_r2 <- function(x) { summary( lm(x[1:(length(names(x))/2)] ~ x[((length(names(x))/2)+1):length(names(x))]) )$r.squared }
+
+for (h in 1:nrow(vars)) { #!!!arrumar
+mod="rcp45"; var= vars$codigo[h]
+
+print(vars$nome_completo[h])
+
+setwd(paste("C:\\IPAM\\CMIP5\\cf_IPCC\\",vars$codigo[h],sep=""))
+f.names<-list.files(pattern=".nc")
+
+gcm<-unique(substr(f.names, 9,15))
+
+for(i in 1:length(gcm)){ print(paste(gcm[i]," - RCP45", sep=""))
+#rm(amip,rcp45)
+  pos<-grep("amip_", list.files(pattern=gcm[i]))
+  amip<-rotate(brick(list.files(pattern=gcm[i])[min(pos)], var= as.character(vars$codigo[h])) ) 
+    if (length(pos)>1){ 
+      for(j in 2:length(pos)){
+      a<-rotate(brick(list.files(pattern=gcm[i])[pos[j]], var= as.character(vars$codigo[h])) )    
+      amip<-stack(amip,a) } }
+  
+  pos<-grep("rcp45_", list.files(pattern=gcm[i]))
+  rcp45<-rotate(brick(list.files(pattern=gcm[i])[min(pos)], var= as.character(vars$codigo[h])) ) 
+    if (length(pos)>1){ 
+      for(j in 2:length(pos)){
+      a<-rotate(brick(list.files(pattern=gcm[i])[pos[j]], var= as.character(vars$codigo[h])) )    
+      rcp45<-stack(rcp45,a) } }
+  
+  ######################################
+  # Gráficos de Pontos predeterminados #
+  ######################################
+  
+  points<- data.frame(long=c(-60.034942, -46.637871, -0.081686, 116.400892),lat=c(-3.05744,-23.578616, 51.519670, 39.918875), local=c("manaus","saopaulo","londres","china") )
+                
+    r_amip <-extract(amip, points[,c(1,2)])
+    r_rcp45 <-extract(rcp45, points[,c(1,2)])
+    
+    res1<-data.frame(base="amip", names=substr(names(amip), 2,8), yr=as.numeric(substr(names(amip), 2,5)),month=as.numeric(substr(names(amip), 7,8)), manaus=r_amip[1,], saopaulo=r_amip[2,], londres=r_amip[3,], china=r_amip[4,])
+    res2<-data.frame(base="rcp45", names=substr(names(rcp45), 2,8), yr=as.numeric(substr(names(rcp45), 2,5)),month=as.numeric(substr(names(rcp45), 7,8)), manaus=r_rcp45[1,], saopaulo=r_rcp45[2,], londres=r_rcp45[3,], china=r_rcp45[4,])
+    
+  res3<-summaryBy(manaus+saopaulo+londres+china~month, res1, keep.names=T,FUN=mean)
+  res1<-res1[res1$yr%in% c((min(res2$yr)-4):(max(res1$yr))),]
+  res2<-res2[res2$yr%in% c((min(res2$yr)):(max(res1$yr)+4)),]
+  
+  res3<- cbind(data.frame(base="mean_amip", names= res1[res1$yr==max(res1$yr),c("names")], yr=res1[res1$yr==max(res1$yr),c("yr")]), res3)
+    
+  res<-rbind(res1,res2,res3)
+  res_m <- melt(res,id=c("base","names","yr","month"))
+   
+  p<- ggplot(data=res_m, aes(x=names, y=value, group=base, colour=base) ) 
+  print(p  + geom_line(size = 1.4) + geom_point(size = 2) + facet_grid(variable~., scales = "free_y")+ theme_bw()  + labs(list(colour=gcm[i], y = as.character(vars$nome_completo[h]), x = "" )) ) 
+  
+
+  ##############################################
+  # Mapas de ajustes para cada modelo climático#
+  ##############################################
+  mask <- readShapePoly("C:\\Laboratorio\\Imagens\\base_cartografica\\mundo_santartida.shp")
+ 
+  amip<-amip[[min(grep(min(res2$yr), names(amip))):length(names(amip))]]
+  rcp45<-rcp45[[1:max(grep(max(res1$yr),names(rcp45)))]]
+
+  s <- stack(amip, rcp45)
+
+  res_a <- calc(s, fun_a)
+  res_b <- calc(s, fun_b)
+  res_r2 <- calc(s, fun_r2)
+  res_a<-mask(res_a,mask)
+  res_b<-mask(res_b,mask)
+  res_r2<-mask(res_r2,mask)
+
+ # plot(res_a, main =paste("a (", gcm[i], ")", sep="")) #plot(mask, bg="transparent", add=TRUE);  # plot(res_b, main =paste("b (", gcm[i], ")", sep=""))
+  plot(res_r2, main =paste("r2 (", gcm[i], ")", sep=""))
+# plot(points$long,points$lat, bg="black", add=TRUE) #ggobi_display_save_picture(path = fig_path(".png"))
+
+ # writeRaster(res_a, paste(gcm[i] ,"a.tif",sep='') , format="GTiff", overwrite=TRUE, NAflag=-9999)
+#  writeRaster(res_b, paste(gcm[i] ,"b.tif",sep='') , format="GTiff", overwrite=TRUE, NAflag=-9999)
+#  writeRaster(res_r2, paste(gcm[i] ,"r2.tif",sep='') , format="GTiff", overwrite=TRUE, NAflag=-9999)
+
+  ##############################################
+  # Seasonal Decomposition of Time Series#
+  ##############################################
+
+a<-ts(r_amip[1,], frequency = 12, start = c(as.numeric(substr(names(amip), 2,5))[1], 1))
+print(plot(stl(a, "per"),  main = paste(gcm[i]," - AMIP", sep="")))
+
+s<-ifelse(length(r_amip[1,])>length(r_rcp45[1,]),length(r_rcp45[1,]),length(r_amip[1,]))
+b<-ts(r_rcp45[1,1:s], frequency = 12, start = c(as.numeric(substr(names(rcp45), 2,5))[1], 1)) #length(r_amip[1,])
+print(plot(stl(b, "per"),  main = paste(gcm[i]," - RCP45", sep="")))
+  
+
+ 
+
+}
+
+}
+
+```
+
+Esses modelos futuros apesar de aparentemente apresentarem diferentes ajustes, são coerentes com relação as predições futuras?
+
+
+
+
+
+```{r, echo=FALSE}
+#Para baixar os arquivos do site precisa criar um login uma senha
+
+
+```

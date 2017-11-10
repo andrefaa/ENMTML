@@ -1,0 +1,22 @@
+DEBUG SCRIPT ENM_THEMETALAND
+
+v5.2a
+-Corrigido um bug que causava os modelos não rodarem MSDM devido ao mau posicionamento do objeto "project"
+-MSDM+Project foi movido para dentro dos algoritmos
+-Algoritmos agora podem ser rodados com Project+MSDM
+*Esperar o teste alfa e caso corra tudo certo remover os objetos "project" que estão fora dos algoritmos
+
+Guidelines futuros:
+-Incluir erros com a função stop()
+-Incluir warnings com a função warning()
+
+v6.0
+-Ínicio do processo de "clusterização", pasta com scripts TML, modificados/criados para rodar junto à função
+-Inclusão da transferabilidade(bandas latitudinais e aleatório); ambas só rodam inicialmente com MaxentS
+-Correção do sistema MSDM
+-Ocorrencias Treino e Teste agora são salvas em um único arquivo xls
+-Não é necessário mais escolher um diretório para salvar o modelo, ele já é criado automaticamente um ramo acima do diretório das variáveis ambientais
+-A função salva um txt na pasta de resultados com os parâmetros do modelo
+-É necessário que a pasta Scripts_for_ENM_TheMetaland esteja em C: , se não for o caso a função retorna um erro
+-Debug geral e correções de erros por toda a função
+-Adicionado SVM.CLS,SVM.REG,RF e GLM na análise de transferabilidade
