@@ -54,7 +54,7 @@ ENS_Posterior <- function(RecordsData,
       Thr<-threshold(Eval[[k]])[Threshold]
       names(Thr) <- Threshold
       Validation<-SUMMRES(Eval, 1, Thr)
-      Validation <- cbind(rep(Alg[k],nrow(Validation)),Validation)
+      Validation <- cbind(rep(Algorithm[k],nrow(Validation)),Validation)
       colnames(Validation)[1] <- "Algorithm"
       ValidALL[[k]] <- Validation
     }

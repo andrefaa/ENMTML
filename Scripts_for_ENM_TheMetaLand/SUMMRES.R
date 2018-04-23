@@ -5,13 +5,14 @@ SUMMRES<-function(Eval, N, Thr){
   TSS <- sapply(Eval, function(x) max(x@TPR + x@TNR) - 1)
   summres <- data.frame(matrix(0, N, 4))
   for (i in 1:N) {
+    Pos <- which(Eval[[i]]@t == Thr[i])
     summres[i, ] <- cbind(Eval[[i]]@auc,
-                          Eval[[i]]@TPR[which(Eval[[i]]@t == Thr[i])],
-                          Eval[[i]]@TNR[which(Eval[[i]]@t == Thr[i])],
-                          Eval[[i]]@kappa[which(Eval[[i]]@t == Thr[i])])
+                          Eval[[i]]@TPR[Pos],
+                          Eval[[i]]@TNR[Pos],
+                          Eval[[i]]@kappa[Pos])
   }
   colnames(summres) <- c("AUC", "TPR", "TNR", "Kappa")
-  summres <- cbind(Thr, TSS, summres)
+  summres <- cbind(THR=as.numeric(Thr), TSS=TSS, summres)
   res <- data.frame(matrix(round(colMeans(summres), 4), 1, 6))
   colnames(res) <- colnames(summres)
   return(res)

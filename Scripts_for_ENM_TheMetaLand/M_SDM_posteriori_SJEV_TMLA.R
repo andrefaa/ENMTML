@@ -1,7 +1,7 @@
 #written by Santiago Velazco
 
 MSDM_Posterior <- function(RecordsData,
-                           Threshold=Thresh,
+                           Threshold=Thr,
                            cutoff=c('MaxMin','Pres','LowerQ','MCP','MCPBuffer'),
                            PredictType=ENS,
                            DirSave=NULL,
@@ -23,15 +23,6 @@ MSDM_Posterior <- function(RecordsData,
   foldCat <- paste(DirSave,"BIN",sep="/")
   for(i in 1:length(foldCat)){
     dir.create(foldCat[i])
-  }
-  
-  #Create Threshold Names
-  ThrN <- NULL
-  if('no_omission'%in%Threshold){
-    ThrN <- c(ThrN,"LPT")
-  }
-  if('spec_sens'%in%Threshold){
-    ThrN <- c(ThrN,"MAX")
   }
   
   # Vector with species names
@@ -58,12 +49,7 @@ MSDM_Posterior <- function(RecordsData,
   for(s in 1:length(SpNames)){
     print(paste(s, "from", length(SpNames),":", SpNames[s]))
     # Read the raster of the species
-    if(any(PredictType%in%c("Sup","PCASup"))){
-      AdeqLPT <- raster(RasterList[RasterList[,"sp"]==paste(SpNames[s],"LPT",sep="_"),'RasterList'])
-      AdeqMAX <- raster(RasterList[RasterList[,"sp"]==paste(SpNames[s],"MAX",sep="_"),'RasterList'])
-    }else{
-      Adeq <- raster(RasterList[RasterList[,"sp"]==SpNames[s],'RasterList'])
-    }
+    Adeq <- raster(RasterList[RasterList[,"sp"]==SpNames[s],'RasterList'])
 
     # Extract values for one species and calculate the threshold
     SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
@@ -72,24 +58,6 @@ MSDM_Posterior <- function(RecordsData,
     Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                      PredPoint[PredPoint$PresAbse == 0, 2])
     Thr <- unlist(c(threshold(Eval))[Threshold])
-    
-    if(any(PredictType%in%c("Sup","PCASup"))){
-      # Extract values for one species and calculate the threshold
-      SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
-      PredPointLPT <- extract(AdeqLPT, SpData[, c("x", "y")])
-      PredPointMAX <- extract(AdeqMAX, SpData[, c("x", "y")])
-      
-      PredPointLPT <- data.frame(PresAbse = SpData[, "PresAbse"], PredPointLPT)
-      PredPointMAX <- data.frame(PresAbse = SpData[, "PresAbse"], PredPointMAX)
-      
-      EvalLPT <- dismo::evaluate(PredPointLPT[PredPointLPT$PresAbse == 1, 2],
-                                 PredPointLPT[PredPointLPT$PresAbse == 0, 2])
-      EvalMAX <- dismo::evaluate(PredPointMAX[PredPointMAX$PresAbse == 1, 2],
-                                 PredPointMAX[PredPointMAX$PresAbse == 0, 2])
-      
-      ThrLPT <- unlist(c(threshold(EvalLPT))[Threshold])
-      ThrMAX <- unlist(c(threshold(EvalMAX))[Threshold])
-    }
     
     #### Cutoff MCP----
     if(cutoff=="MCP"){
@@ -100,13 +68,11 @@ MSDM_Posterior <- function(RecordsData,
                   format = "GTiff",
                   NAflag = -9999,
                   overwrite = TRUE)
-      for(m in 1:length(Thr)){
-        Mask <- (Adeq>Thr[m])
-        writeRaster(Adeq, paste(foldCat, paste(SpNames[s],"_",ThrN[m],'.tif', sep = ""), sep = "/"),
+        Mask <- Adeq>Thr
+        writeRaster(Mask, paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
                     format = "GTiff",
                     NAflag = -9999,
                     overwrite = TRUE)
-      }
     }
     if(cutoff=="MCPBuffer"){
       hull <- convHull(SpData[SpData[,"PresAbse"]==1, c("x", "y")], lonlat=TRUE)
@@ -135,13 +101,11 @@ MSDM_Posterior <- function(RecordsData,
                   format = "GTiff",
                   NAflag = -9999,
                   overwrite = TRUE)
-      for(m in 1:length(Thr)){
-        Mask <- (Adeq>Thr[m])
-        writeRaster(Adeq, paste(foldCat, paste(SpNames[s],"_",ThrN[m],'.tif', sep = ""), sep = "/"),
+        Mask <- (Adeq>Thr)
+        writeRaster(Mask, paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
                     format = "GTiff",
                     NAflag = -9999,
                     overwrite = TRUE)
-      }
     }
     
     if(cutoff%in%c("MaxMin","LowerQ","Pres")){
@@ -152,8 +116,7 @@ MSDM_Posterior <- function(RecordsData,
       crs(pts1) <- crs(Adeq)
       
       # Raster with areas equal or grater than the threshold
-      for(m in 1:length(Thr)){
-        AdeqBin <- Adeq >= Thr[m]
+        AdeqBin <- Adeq >= as.numeric(Thr)
         AdeqBin[AdeqBin[] == 0] <- NA
         # A "SpatialPolygonsDataFrame" which each adequability patch is a feature
         AdeqBin2 <- rasterToPolygons(AdeqBin, fun=NULL, n=8, na.rm=TRUE, digits=12, dissolve=TRUE)
@@ -172,7 +135,7 @@ MSDM_Posterior <- function(RecordsData,
           Msk <- rasterize(polypoint,Adeq,background=0)
           Msk[is.na(Adeq[])] <- NA
           Mask2[Msk!=1] <- 0
-          Mask <- Mask2>=Thr[m]
+          Mask <- Mask2>=Thr
           
           writeRaster(Mask2,
                       paste(DirSave, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
@@ -180,7 +143,7 @@ MSDM_Posterior <- function(RecordsData,
                       NAflag = -9999,
                       overwrite = TRUE)
           writeRaster(Mask,
-                      paste(foldCat, paste(SpNames[s],"_",ThrN[m],'.tif', sep = ""), sep = "/"),
+                      paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
                       format = "GTiff",
                       NAflag = -9999,
                       overwrite = TRUE)
@@ -262,7 +225,7 @@ MSDM_Posterior <- function(RecordsData,
         final<-fist<=CUT
         final[final==0] <- NA
         Mask2 <- Adeq
-        Mask <- (Adeq>=Thr[m])
+        Mask <- Adeq>=as.numeric(Thr)
         Mask[Mask==1] <- 0
         Mask[!is.na(final[])] <- 1
         Mask2[Mask!=1] <- 0
@@ -273,11 +236,10 @@ MSDM_Posterior <- function(RecordsData,
                     NAflag = -9999,
                     overwrite = TRUE)
         writeRaster(Mask,
-                    paste(foldCat, paste(SpNames[s],"_",ThrN[m],'.tif', sep = ""), sep = "/"),
+                    paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
                     format = "GTiff",
                     NAflag = -9999,
                     overwrite = TRUE)
-        }
       }
     }
   }

@@ -5,55 +5,56 @@ STANDAR <- function(x){
 }
 
 # Function for summary of models performance------
-SUMMRES<-function(Eval, N, Thr){
-  res <- data.frame(matrix(0, N, 6))
-    for(h in 1:length(Thr)){
-    summres <- data.frame(matrix(0, N, 5))
-      for (i in 1:N) {
-        summres[i, ] <- cbind(Eval[[i]]@auc,
-                            Eval[[i]]@TPR[which(Eval[[i]]@t == Thr[h])],
-                            Eval[[i]]@TNR[which(Eval[[i]]@t == Thr[h])],
-                            Eval[[i]]@kappa[which(Eval[[i]]@t == Thr[h])],
-                            ((Eval[[i]]@TPR[which(Eval[[i]]@t == Thr[h])] + Eval[[i]]@TNR[which(Eval[[i]]@t == Thr[h])]) - 1))
-      }
-    summres <- cbind(Thr[h], summres)
-    summres <- data.frame(matrix(round(colMeans(summres), 5), 1, 6))
-    res[h,] <- summres
-    }
-  Nom <- NULL
-  if("no_omission"%in%names(Thr)){
-    Nom <- c(Nom,"LPT")
-  }
-  if("spec_sens"%in%names(Thr)){
-    Nom <- c(Nom,"MAX")
-  }
-  res <- cbind(Nom,res)
-  colnames(res) <- c("TYPE","THR","AUC", "TPR", "TNR", "Kappa","TSS")
-  return(res)
-}
+# SUMMRES<-function(Eval, N, Thr){
+#   res <- data.frame(matrix(0, N, 6))
+#     for(h in 1:length(Thr)){
+#     summres <- data.frame(matrix(0, N, 5))
+#       for (i in 1:N) {
+#         summres[i, ] <- cbind(Eval[[i]]@auc,
+#                             Eval[[i]]@TPR[which(Eval[[i]]@t == Thr[h])],
+#                             Eval[[i]]@TNR[which(Eval[[i]]@t == Thr[h])],
+#                             Eval[[i]]@kappa[which(Eval[[i]]@t == Thr[h])],
+#                             ((Eval[[i]]@TPR[which(Eval[[i]]@t == Thr[h])] + Eval[[i]]@TNR[which(Eval[[i]]@t == Thr[h])]) - 1))
+#       }
+#     summres <- cbind(Thr[h], summres)
+#     summres <- data.frame(matrix(round(colMeans(summres), 5), 1, 6))
+#     res[h,] <- summres
+#     }
+#   Nom <- NULL
+#   if("no_omission"%in%names(Thr)){
+#     Nom <- c(Nom,"LPT")
+#   }
+#   if("spec_sens"%in%names(Thr)){
+#     Nom <- c(Nom,"MAX")
+#   }
+#   res <- cbind(Nom,res)
+#   colnames(res) <- c("TYPE","THR","AUC", "TPR", "TNR", "Kappa","TSS")
+#   return(res)
+# }
 
-SUMMRES_ENS<-function(Eval, Thr){
-  res <- data.frame(matrix(0, length(Thr), 5))
-  for(h in 1:length(Thr)){
-    res[h,] <- cbind(Eval@auc,
-                        Eval@TPR[which(Eval@t == Thr[[h]])],
-                        Eval@TNR[which(Eval@t == Thr[[h]])],
-                        Eval@kappa[which(Eval@t == Thr[[h]])],
-                        ((Eval@TPR[which(Eval@t == Thr[[h]])] + Eval@TNR[which(Eval@t == Thr[[h]])]) - 1))
-    }
-    colnames(res) <- c("AUC", "TPR", "TNR", "Kappa","TSS")
-    TYPE <- NULL
-    if("no_omission"%in%names(Thr)){
-      TYPE <- c(TYPE,"LPT")
-    }
-    if("spec_sens"%in%names(Thr)){
-      TYPE <- c(TYPE,"MAX")
-    }
-    THR <- unlist(Thr)
-    names(THR) <- NULL
-    res <- cbind(TYPE, THR, res)
-  return(res)
-}
+# SUMMRES_ENS<-function(Eval, Thr){
+#   res <- data.frame(matrix(0, length(Thr), 5))
+#   for(h in 1:length(Thr)){
+#     res[h,] <- cbind(Eval@auc,
+#                         Eval@TPR[which(Eval@t == Thr[[h]])],
+#                         Eval@TNR[which(Eval@t == Thr[[h]])],
+#                         Eval@kappa[which(Eval@t == Thr[[h]])],
+#                         ((Eval@TPR[which(Eval@t == Thr[[h]])] + Eval@TNR[which(Eval@t == Thr[[h]])]) - 1))
+#     }
+#     colnames(res) <- c("AUC", "TPR", "TNR", "Kappa","TSS")
+#     TYPE <- NULL
+#     if("no_omission"%in%names(Thr)){
+#       TYPE <- c(TYPE,"LPT")
+#     }
+#     if("spec_sens"%in%names(Thr)){
+#       TYPE <- c(TYPE,"MAX")
+#     }
+#     THR <- unlist(Thr)
+#     names(THR) <- NULL
+#     res <- cbind(TYPE, THR, res)
+#   return(res)
+# }
+
 
 
 

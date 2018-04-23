@@ -3,7 +3,7 @@
 # Read carefully the Initialization and function parameters and the messages that appear on the console
 # Developers: Paulo De Marco Junior & Andre Andrade
 
-Bootstrap_Moran_e_MESS_TMLA <- function(Env,RecordsData,DirO,repl){
+Bootstrap_Moran_e_MESS_TMLA <- function(Env,RecordsData,DirO){
   
   #Function Parameters:
   #env:environmental variables stack
@@ -17,11 +17,7 @@ Bootstrap_Moran_e_MESS_TMLA <- function(Env,RecordsData,DirO,repl){
   
   # Lists for validation-----
   assign(paste("Bootstrap_Moran_MESS", sep=""),list())
-  if(is.null(repl)==F){
-     VALNAME <- paste('Bootstrap_Moran_MESS','_',sep="",repl,'.txt' )
-  }else{
-    VALNAME <- paste('Bootstrap_Moran_MESS.txt')
-  }
+  VALNAME <- paste('Bootstrap_Moran_MESS.txt')
   
   #Calculate Moran's I
   Moran<-Moran_for_Bootstrap_TMLA(occTR=occTR,pc1=Env[[1]])

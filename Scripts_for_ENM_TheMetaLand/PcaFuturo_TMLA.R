@@ -3,7 +3,11 @@ PCAFuturo<-function(Env,
                     DirP,
                     Save=''){
 
-  #1.Realizar a PCA das variaveis no presente
+  #0.Create PCA Folder
+  DirPCA <- file.path(Dir,"PCA")
+  dir.create(DirPCA)
+  
+  #1.Present PCA
   DF<-rasterToPoints(Env)
   DF<-na.omit(DF)
   PcaR<-DF[,-c(1:2)]
@@ -14,51 +18,46 @@ PCAFuturo<-function(Env,
   #Scale transform 
   DScale <- data.frame(apply(PcaR,2,scale))
   
-  # Realizar a PCA 
+  # PCA 
   DPca <- prcomp(DScale,retx=TRUE,center=F,scale=F)
 
-  #Salvar os coeficientes
+  #Coefficients
   Coef<-DPca$rotation
+  Coef2 <- data.frame(cbind(Variable=names(Env),Coef))
+  write.table(Coef2,file.path(DirPCA,"Coeficient.txt"),sep="\t",row.names=F)
   
-  #Porcentagem da variacaoo explicada
+  #Cummulative Variance
   NEixos<-length(summary(DPca)$importance[3,])
   CumVar<-summary(DPca)$importance[3,]
   VarEx<-data.frame(CumVar)
+  write.table(VarEx,file.path(DirPCA,"CumulativeVariance.txt"),sep="\t",row.names=F)
   
-  #Recuperar os loadings e transformar em um data.frame
+  #Save PCsthat account for 95% of total variability
   Eix<-as.data.frame(DPca$x)
   EixXY<-cbind(DF[,(1:2)],Eix)
   gridded(EixXY)<- ~x+y
   PCAPr<-stack(EixXY)
   PCA.95 <- PCAPr[[1:(sum(VarEx<=0.95)+1)]]
   if(Save=="Y"){
-    writeRaster(PCA.95,paste(Dir,names(PCA.95),sep="/"),bylayer=T,format="GTiff",overwrite=T)
+    writeRaster(PCA.95,paste(DirPCA,names(PCA.95),sep="/"),bylayer=T,format="GTiff",overwrite=T)
   }
   
-  #2.Projetar a PCA para variaveis do futuro
+  #2.Project PCA
   
   ProjEX <- unique(file_ext(list.files(DirP)))
   form <- c('bil','asc','txt','tif')
   ProjEX <- ProjEX[ProjEX%in%form]
   
-  if(ProjEX == 'bil'){
-    ProjT<-brick(stack(file.path(DirP,list.files(DirP,pattern='.bil'))))
+  if(any(ProjEX == c('asc', 'bil', 'tif'))){
+    ProjT<-brick(stack(file.path(DirP,list.files(DirP,paste0('\\.',ProjEX,'$')))))
   }
-  
-  if(ProjEX == 'asc'){
-    ProjT<-brick(stack(file.path(DirP,list.files(DirP,pattern='.asc'))))
-  }
-  
+
   if(ProjEX == 'txt'){
     ProjT<-read.table(file.path(DirP,list.files(DirP,pattern='.txt'),h=T))
     gridded(ProjT)<- ~x+y
     ProjT<-brick(stack(ProjT))
   }
-  
-  if(ProjEX == 'tif'){
-    ProjT<-brick(stack(file.path(DirP,list.files(DirP,pattern='.tif'))))
-  }
-  
+
   ProjE<-rasterToPoints(ProjT)
   ProjE<-na.omit(ProjE)
   ProjER<-ProjE[,-c(1:2)]
@@ -72,9 +71,11 @@ PCAFuturo<-function(Env,
   PCAFut<-stack(PCAFut)
   names(PCAFut) <- names(PCAPr)
   PCAFut.95 <- PCAFut[[1:nlayers(PCA.95)]]
+  DirPCAF <- file.path(DirP,"PCA")
+  dir.create(DirPCAF)
 
   if(Save=="Y"){
-    writeRaster(PCAFut.95,paste(DirP,names(PCAFut.95),sep="/"),bylayer=T,format="GTiff",overwrite=T)
+    writeRaster(PCAFut.95,paste(DirPCAF,names(PCAFut.95),sep="/"),bylayer=T,format="GTiff",overwrite=T)
   }
   return(PCAFut.95)
 }

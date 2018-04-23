@@ -1,12 +1,14 @@
 #Written by Andre Andrade
 
 BandsPartition_TMLA <- function(evnVariables,
-                                   RecordsData,
-                                   N,
-                                   pseudoabsencesMethod = PabM,
-                                   PrAbRatio = PabR,
-                                   DirSave = DirB,
-                                   type=TipoMoran){
+                                RecordsData,
+                                N,
+                                pseudoabsencesMethod = PabM,
+                                PrAbRatio = PabR,
+                                DirSave = DirB,
+                                DirM=DirM,
+                                MRst=MRst,
+                                type=TipoMoran){
 
   #Parameters
     #evnVariables: Predictors
@@ -25,7 +27,7 @@ BandsPartition_TMLA <- function(evnVariables,
   
   grid <- seq(2,20,2)
   
-  #Start species loop
+  #Start species loop----
   for(x in 1:length(RecordsData)){
     opt <- NULL
     print(names(RecordsData)[x])
@@ -174,6 +176,14 @@ BandsPartition_TMLA <- function(evnVariables,
         absences <- list()
         for (i in 1:2) {
           set.seed(x)
+          if(MRst=="Y"){
+            SpMask <- raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
+            pseudo.mask[[i]] <- pseudo.mask[[i]]*SpMask
+            if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[x]]))){
+              warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences") 
+              stop("Please try again with another restriction type or without restricting the extent")
+            }
+          }
           absences.0 <- randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
@@ -216,6 +226,14 @@ BandsPartition_TMLA <- function(evnVariables,
         absences <- list()
         for (i in 1:2) {
           set.seed(x)
+          if(MRst=="Y"){
+            SpMask <- raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
+            pseudo.mask[[i]] <- pseudo.mask[[i]]*SpMask
+            if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[x]]))){
+              warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences") 
+              stop("Please try again with another restriction type or without restricting the extent")
+            }
+          }
           absences.0 <- randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
