@@ -10,17 +10,17 @@ Please follow the "installation" instructions
 
 ## What I can do with ENM_The_MetaLand?  
 There are a couple of pre and post-processing available in the function, here is a list of what is currently available:  
-**1.** PCA on environmental variables  
-**2.** Project to other time/spatial locations (PCA included!) 
-**3.** Automatically restrict the extent before model fitting
-**4.** Specify an user defined dataset for evaluation 
-**5.** Control Presence/Pseudo-absence Ratio  
-**6.** Different pseudo-absence allocation methods  
-**7.** Different data-partition methods for model evaluation (random or geographically structured)  
-**8.** Nine different algorithms  
-**9.** Create presence-absence maps (from dismo Thresholds)
-**10.** Incorporate effects from spatial distribution (M-SDM)  
-**11.** Create Ensemble from the different algorithms  
+**1.** PCA on environmental variables⋅⋅  
+**2.** Project to other time/spatial locations (PCA included!)⋅⋅ 
+**3.** Automatically restrict the extent before model fitting⋅⋅
+**4.** Specify an user defined dataset for evaluation⋅⋅ 
+**5.** Control Presence/Pseudo-absence Ratio⋅⋅  
+**6.** Different pseudo-absence allocation methods⋅⋅ 
+**7.** Different data-partition methods for model evaluation (random or geographically structured)⋅⋅  
+**8.** Nine different algorithms⋅⋅
+**9.** Create presence-absence maps (from dismo Thresholds)⋅⋅
+**10.** Incorporate effects from spatial distribution (M-SDM)⋅⋅  
+**11.** Create Ensemble from the different algorithms⋅⋅  
 
 
 ## How to run ENM_TheMetaLand?  
