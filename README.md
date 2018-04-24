@@ -1,13 +1,13 @@
-# ENM_TheMetaLand
+    # ENM_TheMetaLand
 
 Welcome! This is the R Script from TheMetaLand Lab to create ENMs  
 Overall, there is a main script (ENM_TheMetaLand) and a group of auxiliary functions (Scripts_for_ENM_TheMetaLand)  
 Please follow the "installation" instructions
 
 ## IMPORTANT PRE-SET
-1.Type in your R Console Sys.getenv("HOME")
-2.Find this directory
-3.Place the file .Renviron that is in this repository in this directory!
+1.Type in your R Console Sys.getenv("HOME")   
+2.Find this directory   
+3.Place the file .Renviron that is in this repository in this directory!    
 
 IF you fail to do this, you will experience problems loading the packages due to hitting the limit of DLLs
 
