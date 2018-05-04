@@ -1,8 +1,15 @@
-# ENM_TheMetaLand
+   # ENM_TheMetaLand
 
 Welcome! This is the R Script from TheMetaLand Lab to create ENMs  
 Overall, there is a main script (ENM_TheMetaLand) and a group of auxiliary functions (Scripts_for_ENM_TheMetaLand)  
 Please follow the "installation" instructions
+
+## IMPORTANT PRE-SET
+1.Type in your R Console Sys.getenv("HOME")   
+2.Find this directory   
+3.Place the file .Renviron that is in this repository in this directory!    
+
+IF you fail to do this, you will experience problems loading the packages due to hitting the limit of DLLs
 
 ## Installation  
 1.Copy the folder "Scripts_for_ENM_TheMetaLand" to "C:" in your computer (**Attention: MAC users will have issues here!**)  
@@ -89,12 +96,12 @@ Pay attention and make your choices accordingly. There are specific valid awnser
 
 ## Where are my results?  
 One level above the folder of your environmental variables will be created a **Result** folder, inside you will find a folder for each algorithm and a folder for Ensemble (ENS) and projections (FUT), if you chose to do so.  
-There are also four (4) txt files:
- **N_Unique_OCC:** Number of unique occurrences by species
- **Info_Modelling:** Information of the modelling parameters  
- **Occ_filter:** Filtered occurrence with data used in the modelling (without the excluded species)  
- **Validation_Partition:** Information of the evaluation of partial models (e.g. while projecting the model onto the 30% left for test) 
- **Thresholds_Complete:** Information about the thresholds used to create the presence-absence maps (Presence-absence maps are created from the Threshold of complete models)
+There are also four (4) txt files:     
+ **N_Unique_OCC:** Number of unique occurrences by species     
+ **Info_Modelling:** Information of the modelling parameters       
+ **Occ_filter:** Filtered occurrence with data used in the modelling (without the excluded species)        
+ **Validation_Partition:** Information of the evaluation of partial models (e.g. while projecting the model onto the 30% left for test)       
+ **Thresholds_Complete:** Information about the thresholds used to create the presence-absence maps (Presence-absence maps are created from the Threshold of complete models)    
 
 ## Last but not least  
 There are no defaults! We believe every ENM experiment should be carefully planned and that every decision matters! There are some recommended parameters and literature on which those were based, but they were not included as a default option for the modelling routine.  
