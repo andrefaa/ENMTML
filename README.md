@@ -51,7 +51,8 @@ The function has several input arguments, specify all of them as your desires.
   + **boot:** Random bootstrap partition (e.g. 70 training - 30% test)  
   + **cross:** Random partition in k-fold  
   + **band:** Geographic partition structured as bands (latitudinal or longitudinal)  
-  + **check:** Geographic partition structured as a checkerboard  
+  + **check:** Geographic partition structured as a checkerboard
+* **SavePart:** Save .tif files of the partitions? (Y/N)    
 * **Alg:** List of available algorithms  
   + **BIO:** Bioclim  
   + **MXS:** Maxent Simple[only linear and quadratic features] (MaxNet)  
