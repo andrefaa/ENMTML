@@ -153,7 +153,7 @@ FitENM_TMLA <- function(RecordsData,
   VALNAMEII <- paste('Thresholds_Complete.txt' )
   
   
-  # Backqround point for Maxent_new algorithm
+  # Backqround point for Maxent_new algorithm----
   if (is.null(DirMask) == FALSE) {
      if ((any(Algorithm == "MXD") || any(Algorithm == "MXS"))) {
        RecordsDataM <- split(RecordsData,f=RecordsData$sp)
@@ -335,7 +335,10 @@ FitENM_TMLA <- function(RecordsData,
       for (i in 1:N) {
         PAtrainM[[i]] <- SpDataTM[SpDataTM[, "Partition"] == i, ]
         PAtestM[[i]] <- SpDataTM[SpDataTM[, "Partition"] != i, ]
-      } 
+      }
+      if(Part%in%c("boot","cross")){
+        PAtestM <- PAtest
+      }
     }
 
     #BIOCLIM (BIO)----- 

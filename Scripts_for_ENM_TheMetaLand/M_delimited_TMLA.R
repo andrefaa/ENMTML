@@ -22,6 +22,13 @@ M_delimited <- function(var,
    Dir_M<-file.path(Dir,Dir_M)
   }
   
+  #Check if GeoMasks already exist----
+  if(all(paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif"))){
+    print("GeoMasks Already Exist! Using already-created restrictions! ")
+    return(Dir_M)
+  }
+  
+  #Extent Restriction----
   if (method == 'buffer') {
       if (is.null(BufferDistanceKm) == T) {
         print('Please define a source of buffer in km:')

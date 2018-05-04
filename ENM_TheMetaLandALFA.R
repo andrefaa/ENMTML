@@ -293,6 +293,12 @@ ENMs_TheMetaLand<-function(Dir,
       MSDM <- "N"
     }
   
+    #3.4.Aviso caso NMin<NPreditores
+  if(NMin<nlayers(envT)){
+    warning("The minimum number of occurrences is smaller than the number of predictors.
+            This may cause some issues while fitting certain algorithms!")
+  }
+  
   
 #4.Occurrence Data ----
   
@@ -699,30 +705,40 @@ ENMs_TheMetaLand<-function(Dir,
               DirCons<-file.path(Dir,DirCons)
             }
             
-            Model <- lapply(occTR, function(x) bioclim(envT, x[,c("x","y")]))
-            pseudo.mask <- lapply(Model, function(x) dismo::predict(x, envT, ext=extent(envT[[1]])))
-            pseudo.mask <- lapply(pseudo.mask, function(x) round(x, 5))
-            pseudo.mask <-lapply(pseudo.mask, function(x) (x-minValue(x))/
-                                (maxValue(x)-minValue(x)))
-            pseudo.mask <-lapply(pseudo.mask, function(x) (1-x)>=0.99) #environmental constrain
-            writeRaster(stack(pseudo.mask),paste(DirCons,names(pseudo.mask),sep="/"),bylayer=T,format="GTiff",overwrite=T)
-            for(i in 1:length(pseudo.mask)){
-              pseudo.mask[[i]][which(pseudo.mask[[i]][,]==FALSE)] <- NA
+            #Check for Environmental Constrain Existence
+            EnvMsk <- "N"
+            if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+              print("Environmental constrain already exists! Using already-created masks!")
+              EnvMsk <- "Y"
             }
             
-            if(Proj=="Y"&& Tst=="Y"){
-              pseudo.maskP <- EnvF[[1]][[1]]
-            }else{
-              pseudo.maskP <- pseudo.mask
-            }
-  
             absencesTR <- list()
             absencesTS <- list()
+            
             for (i in 1:length(occTR)) {
               set.seed(i)
+              if(EnvMsk=="N"){
+                Model <- bioclim(envT, occTR[[i]][,c("x","y")])
+                pseudo.mask <- dismo::predict(Model, envT, ext=extent(envT[[1]]))
+                pseudo.mask <- round(pseudo.mask, 5)
+                pseudo.mask <- (pseudo.mask-minValue(pseudo.mask))/
+                                    (maxValue(pseudo.mask)-minValue(pseudo.mask))
+                pseudo.mask <-(1-pseudo.mask)>=0.99
+                writeRaster(pseudo.mask,paste(DirCons,names(pseudo.mask),sep="/"),format="GTiff",overwrite=T)
+                pseudo.mask[which(pseudo.mask[,]==FALSE)] <- NA
+              }else{
+                pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
+              }
+            
+              if(Proj=="Y"&& Tst=="Y"){
+                pseudo.maskP <- EnvF[[1]][[1]]
+              }else{
+                pseudo.maskP <- pseudo.mask
+              }
+
               if(MRst=="Y"){
                 SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
-                SpMask <- pseudo.mask[[i]]*SpMask
+                SpMask <- pseudo.mask*SpMask
                 if(sum(is.na(SpMask[])==F)<(PabR*nrow(occTR[[i]]))){
                   warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences") 
                   stop("Please try again with another restriction type or without restricting the extent")
@@ -736,7 +752,7 @@ ENMs_TheMetaLand<-function(Dir,
                 absencesTR.0 <- randomPoints(SpMask, (1 / PabR)*nrow(occTR[[i]]),ext = extent(SpMask),prob = FALSE)
                 absencesTS.0 <- randomPoints(SpMaskP, (1 / PabR)*nrow(occTS[[i]]),ext = extent(SpMask),prob = FALSE)
               }else{
-              absencesTR.0 <- randomPoints(pseudo.mask[[i]], (1 / PabR)*nrow(occTR[[i]]),
+              absencesTR.0 <- randomPoints(pseudo.mask, (1 / PabR)*nrow(occTR[[i]]),
                                          ext = extent(pseudo.mask[[i]]),
                                          prob = FALSE)
               if(Tst=="Y"){
@@ -744,7 +760,7 @@ ENMs_TheMetaLand<-function(Dir,
                                              ext = extent(pseudo.mask[[i]]),
                                              prob = FALSE)                
               }else{
-                absencesTS.0 <- randomPoints(pseudo.maskP[[i]], (1 / PabR)*nrow(occTS[[i]]),
+                absencesTS.0 <- randomPoints(pseudo.maskP, (1 / PabR)*nrow(occTS[[i]]),
                                            ext = extent(pseudo.mask[[i]]),
                                            prob = FALSE)
               }
@@ -926,6 +942,6 @@ ENMs_TheMetaLand<-function(Dir,
 }
 
 
-ENMs_TheMetaLand(Dir="C:\\OneDrive\\WorkshopENM_Ingrid\\Env\\WC",
+ENMs_TheMetaLand(Dir="C:\\OneDrive\\WorkshopENM_Ingrid\\Env\\CANESM2Solo",
                  Sp="Species",x="Long",y="Lat",NMin=10,PCA="N",Proj="N",Tst="N",MRst="Y",PabR=1,PabM="const",
-                 Part="check",SavePart="N",Alg=c("MXS","GAU","SVM","RDF"),Thr="spec_sens",MSDM="N",ENS=c("Sup"))
+                 Part="boot",SavePart="N",Alg=c("MXS","GAU","SVM","RDF"),Thr="spec_sens",MSDM="N",ENS=c("Sup"))
