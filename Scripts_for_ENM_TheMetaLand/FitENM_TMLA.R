@@ -302,7 +302,9 @@ FitENM_TMLA <- function(RecordsData,
       VariablesT <- Variables
       VarColT <- VarCol
       SpDataT <- SpData
-      SpDataTM <- SpDataM
+      if ((any(Algorithm == "MXD") | any(Algorithm == "MXS"))) {
+        SpDataTM <- SpDataM
+      }
     }
     
     #Define N due to Partition Method
