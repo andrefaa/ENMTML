@@ -5,10 +5,10 @@ Overall, there is a main script (ENM_TheMetaLand) and a group of auxiliary funct
 Please follow the "installation" instructions
 
 ## Installation
-1.install.packages("devtools")
-2.library(devtools)
-3.install_github("andrefaa/ENM_TheMetaLand")
-4.library(ENM_TheMetaLand)
+**1.** install.packages("devtools")  
+**2.** library(devtools)  
+**3.** install_github("andrefaa/ENM_TheMetaLand")  
+**4.** library(ENM_TheMetaLand)  
 
 ## Run
 ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",Tst="",MRst="",PabR=,PabM="",
