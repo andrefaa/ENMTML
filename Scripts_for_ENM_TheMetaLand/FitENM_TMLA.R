@@ -15,7 +15,8 @@ FitENM_TMLA <- function(RecordsData,
                    DirProj=NULL,
                    per=NULL,
                    repl=NULL,
-                   Save="N") {
+                   Save="N",
+                   SaveFinal=SaveFinal) {
   
   Ti <- Sys.time()
   options(warn = -1)
@@ -65,17 +66,17 @@ FitENM_TMLA <- function(RecordsData,
     }
     
     #Partitions directories
-    if(Save=="Y"){
-      ensPart <- paste(ensF,"PART",sep="/")
-      for(i in 1:length(ensPart)){
-        dir.create(ensPart[i])
-      }
-      #Binary directories
-      ensCat <- paste(ensPart,"BIN",sep="/")
-      for(i in 1:length(ensCat)){
-        dir.create(ensCat[i])
-      }
-    }
+    # if(Save=="Y"){
+    #   ensPart <- paste(ensF,"PART",sep="/")
+    #   for(i in 1:length(ensPart)){
+    #     dir.create(ensPart[i])
+    #   }
+    #   #Binary directories
+    #   ensCat <- paste(ensPart,"BIN",sep="/")
+    #   for(i in 1:length(ensCat)){
+    #     dir.create(ensCat[i])
+    #   }
+    # }
   }
   
   #Projection directories
@@ -118,16 +119,10 @@ FitENM_TMLA <- function(RecordsData,
   }
   
   # Species names
-  SpNames <- as.character(unique(RecordsData[, "sp"]))
-  if(is.null(repl)==F){
-    SpNames2 <- substr(SpNames,1,nchar(SpNames)-2)
-  }else{
-    SpNames2 <- SpNames
-  }
-  print(paste("Total species to be modeled", length(SpNames)))
+  print(paste("Total species to be modeled", length(spN)))
   
-  # Extent to predict the models
-    e <- extent(Variables)
+  # # Extent to predict the models
+  #   e <- extent(Variables)
   
   # Number of partition
     N <- as.numeric(max(RecordsData[, "Partition"]))
@@ -164,7 +159,7 @@ FitENM_TMLA <- function(RecordsData,
        }
        
        RecordsDataM <- RecordsDataMt
-       names(RecordsDataM) <- SpNames
+       names(RecordsDataM) <- spN
        rm(RecordsDataMt)
        
        for(i in 1:length(names(RecordsDataM))){
@@ -211,7 +206,7 @@ FitENM_TMLA <- function(RecordsData,
       }
 
       RecordsDataM <- RecordsDataMt
-      names(RecordsDataM) <- SpNames
+      names(RecordsDataM) <- spN
       rm(RecordsDataMt)
 
       for(i in names(RecordsDataM)){
@@ -259,8 +254,8 @@ FitENM_TMLA <- function(RecordsData,
   }
 
   # Construction of models LOOP-----
-  for(s in 1:length(SpNames)){
-    print(paste(s, SpNames[s], Sys.time()))
+  for(s in 1:length(spN)){
+    print(paste(s, spN[s], Sys.time()))
     
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
@@ -276,9 +271,9 @@ FitENM_TMLA <- function(RecordsData,
     }
 
     # Ocurrences filtter by species and splited by partition----
-    SpData <- RecordsData[RecordsData[, "sp"] == SpNames[s], ]
+    SpData <- RecordsData[RecordsData[, "sp"] == spN[s], ]
     if ((any(Algorithm == "MXD") | any(Algorithm == "MXS"))) {
-      SpDataM <- RecordsDataM[RecordsDataM[, "sp"] == SpNames[s], ]
+      SpDataM <- RecordsDataM[RecordsDataM[, "sp"] == spN[s], ]
     }
     
     #Include MSDM----
@@ -287,7 +282,7 @@ FitENM_TMLA <- function(RecordsData,
         MSDM <- stack(file.path(DirMSDM,list.files(DirMSDM,pattern=".tif")))
         names(MSDM) <- c("Lat","Long")
       }else{
-        MSDM <- raster(file.path(DirMSDM,paste(SpNames[s],".tif",sep="")))
+        MSDM <- raster(file.path(DirMSDM,paste(spN[s],".tif",sep="")))
         names(MSDM) <- "MSDM"
       }
       SpDataT <- cbind(SpData,extract(MSDM,SpData[c("x","y")]))
@@ -357,9 +352,8 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["BIO"]][[i]] <- STANDAR(predict(Model[[i]], VariablesT))
-          PredPoint <- extract(RastPart[["BIO"]][[i]], PAtest[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          RastPart[["BIO"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarCol])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BIO"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -389,23 +383,24 @@ FitENM_TMLA <- function(RecordsData,
       #Save Partition Predictions
       if(Save=="Y"){
         for(i in 1:N){
+          PartRas <- STANDAR(predict(Model[[i]], VariablesT))
           if(N!=1){
-            writeRaster(RastPart[["BIO"]][[i]],paste(grep("BIO",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+            writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             for(p in 1:length(Thr)){
-              writeRaster(RastPart[["BIO"]][[i]]>=Thr[p], 
-                          paste(grep("BIO",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas>=Thr[p], 
+                          paste(grep("BIO",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
           }else{
-            writeRaster(RastPart[["BIO"]][[i]],paste(grep("BIO",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+            writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             for(p in 1:length(Thr)){
-              writeRaster(RastPart[["BIO"]][[i]]>=Thr[p], 
-                          paste(grep("BIO",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+              writeRaster(PartRas>=Thr[p], 
+                          paste(grep("BIO",PartCat,value=T), '/',paste0(spN[s],repl),".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
@@ -416,8 +411,7 @@ FitENM_TMLA <- function(RecordsData,
       # Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-        ListRaster[["BIO"]] <- STANDAR(predict(Model, VariablesT))
-        PredPoint <- extract(ListRaster[["BIO"]], SpDataT[, c("x", "y")])
+        PredPoint <- predict(Model, SpDataT[, VarCol])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                          PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -425,6 +419,9 @@ FitENM_TMLA <- function(RecordsData,
         names(Thr) <- Threshold
         # Validation<-SUMMRES(Eval, 1, Thr)
         Summary_BIO[[s]] <- data.frame(Sp=spN[s], Algorithm="BIO", Threshold=Thr)
+        if(SaveFinal=="Y"){
+          ListRaster[["BIO"]] <- STANDAR(predict(Model, VariablesT))
+        }
         if(is.null(Fut)==F){
           for(k in 1:length(VariablesP)){
             ListFut[[ProjN[k]]][["BIO"]] <- predict(VariablesP[[k]], Model)
@@ -480,7 +477,6 @@ FitENM_TMLA <- function(RecordsData,
     #MAXENT DEFAULT (MXD) ----
     if(any(Algorithm == 'MXD')){
       Model <- list()
-      
       #MXD model
       for (i in 1:N) {
         dataPr <- PAtrainM[[i]]
@@ -493,9 +489,10 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["MXD"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
-          PredPoint <- extract(RastPart[["MXD"]][[i]], PAtestM[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], PredPoint)
+          # RastPart[["MXD"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
+          RastPart[["MXD"]][[i]] <- c(predict(Model[[i]], PAtestM[[i]][, VarCol], clamp=F, type="cloglog"))
+          # PredPoint <- extract(RastPart[["MXD"]][[i]], PAtestM[[i]][, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["MXD"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -525,23 +522,24 @@ FitENM_TMLA <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
-              writeRaster(RastPart[["MXD"]][[i]],paste(grep("MXD",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["MXD"]][[i]]>=Thr[p], 
-                            paste(grep("MXD",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MXD",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(RastPart[["MXD"]][[i]],paste(grep("MXD",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["MXD"]][[i]]>=Thr[p], 
-                            paste(grep("MXD",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MXD",PartCat,value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -553,9 +551,7 @@ FitENM_TMLA <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- maxnet(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
                             maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
-          
-          ListRaster[["MXD"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
-          PredPoint <- extract(ListRaster[["MXD"]], SpDataTM[, c("x", "y")])
+          PredPoint <- c(predict(Model, SpDataTM[, VarCol], clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                            PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -563,6 +559,9 @@ FitENM_TMLA <- function(RecordsData,
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
           Summary_MXD[[s]] <- data.frame(Sp = spN[s], Algorithm = "MXD", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["MXD"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+          }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["MXD"]] <- predict(VariablesP[[k]], Model,clamp=F, type="cloglog")
@@ -593,7 +592,7 @@ FitENM_TMLA <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXD"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #BIO threshold
+          #MXD threshold
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- rep(Threshold,N)
           
@@ -629,9 +628,8 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["MXS"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
-          PredPoint <- extract(RastPart[["MXS"]][[i]], PAtestM[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], PredPoint)
+          RastPart[["MXS"]][[i]] <- c(predict(Model[[i]],PAtestM[[i]][, VarCol],clamp=F, type="cloglog"))
+          PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["MXS"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -659,23 +657,24 @@ FitENM_TMLA <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
-              writeRaster(RastPart[["MXS"]][[i]],paste(grep("MXS",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["MXS"]][[i]]>=Thr[p], 
-                            paste(grep("MXS",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MXS",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(RastPart[["MXS"]][[i]],paste(grep("MXS",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["MXS"]][[i]]>=Thr[p], 
-                            paste(grep("MXS",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MXS",PartCat,value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -687,8 +686,7 @@ FitENM_TMLA <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
                             maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
-          ListRaster[["MXS"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
-          PredPoint <- extract(ListRaster[["MXS"]], SpDataTM[, c("x", "y")])
+          PredPoint <- c(predict(Model, SpDataTM[, VarCol], clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                            PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -696,6 +694,9 @@ FitENM_TMLA <- function(RecordsData,
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
           Summary_MXS[[s]] <- data.frame(Sp = spN[s], Algorithm = "MXS", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["MXS"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+          }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["MXS"]] <- predict(VariablesP[[k]], Model,clamp=F, type="cloglog")
@@ -726,7 +727,7 @@ FitENM_TMLA <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXS"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #BIO threshold
+          #MXS threshold
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- rep(Threshold,N)
           
@@ -756,10 +757,15 @@ FitENM_TMLA <- function(RecordsData,
       Fmula <- as.formula(Fmula)
       #MLK model
       for (i in 1:N) {
-        dataPr <- PAtrain[[i]][, c("x", "y")]
-        Model[[i]] <- maxlike(Fmula, stack(VariablesT), dataPr,
-                              link=c("logit"),
-                              hessian = TRUE, removeDuplicates=FALSE)
+        # dataPr <- PAtrain[[i]][, c("x", "y")]
+        x <- PAtrain[[i]][PAtrain[[i]][,"PresAbse"]==1, VarCol]
+        z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarCol]
+        # Model[[i]] <- maxlike(Fmula, stack(vars), dataPr,
+        #                       link=c("logit"),savedata=T,
+        #                       hessian = TRUE, removeDuplicates=FALSE)
+        Model[[i]] <- maxlike(Fmula,x=x,z=z,
+                             link=c("logit"),
+                             hessian = TRUE, removeDuplicates=FALSE)
       }
       
       #Evaluate Model
@@ -767,9 +773,8 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["MLK"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]]))
-          PredPoint <- extract(RastPart[["MLK"]][[i]], PAtest[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          RastPart[["MLK"]][[i]] <- c(predict(Model[[i]], PAtest[[i]][, VarCol]))
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MLK"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -797,23 +802,24 @@ FitENM_TMLA <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
             if(N!=1){
-              writeRaster(RastPart[["MLK"]][[i]],paste(grep("MLK",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["MLK"]][[i]]>=Thr[p], 
-                            paste(grep("MLK",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MLK",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(RastPart[["MLK"]][[i]],paste(grep("MLK",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["MLK"]][[i]]>=Thr[p], 
-                            paste(grep("MLK",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MLK",PartCat,value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -823,12 +829,12 @@ FitENM_TMLA <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- maxlike(Fmula, stack(VariablesT), SpDataT[, c("x","y")],
-                           link=c("logit"),
-                           hessian = TRUE, removeDuplicates=FALSE)
-          
-          ListRaster[["MLK"]]<- STANDAR(predict(VariablesT, Model))
-          PredPoint <- extract(ListRaster[["MLK"]], SpDataT[, c("x", "y")])
+          x <- SpDataT[SpDataT[,"PresAbse"]==1, VarCol]
+          z <- SpDataT[SpDataT[,"PresAbse"]==0, VarCol]
+          Model <- maxlike(Fmula,x=x,z=z,
+                                link=c("logit"),
+                                hessian = TRUE, removeDuplicates=FALSE)
+          PredPoint <- predict(Model, SpDataT[, VarCol])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -836,6 +842,9 @@ FitENM_TMLA <- function(RecordsData,
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
           Summary_MLK[[s]] <- data.frame(Sp = spN[s], Algorithm = "MLK", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["MLK"]]<- STANDAR(predict(VariablesT, Model))
+          }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["MLK"]] <- predict(VariablesP[[k]], Model)
@@ -897,7 +906,7 @@ FitENM_TMLA <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][, c("PresAbse", VarColT)]
         set.seed(0)
-        Model[[i]] <- ksvm(Fmula,data = dataPr,kernel = "rbfdot",C = 1, prob.model=T)
+        Model[[i]] <- ksvm(Fmula,data = dataPr,type="C-svc",kernel = "rbfdot",C = 1, prob.model=T)
       }
       
       #SVM evaluation
@@ -905,9 +914,8 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["SVM"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]]))
-          PredPoint <- extract(RastPart[["SVM"]][[i]], PAtest[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          RastPart[["SVM"]][[i]] <- as.numeric(kernlab::predict(object=Model[[i]], newdata=PAtest[[i]][, VarCol],type="probabilities")[,2])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["SVM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -936,23 +944,24 @@ FitENM_TMLA <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
             if(N!=1){
-              writeRaster(RastPart[["SVM"]][[i]],paste(grep("SVM",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["SVM"]][[i]]>=Thr[p], 
-                            paste(grep("SVM",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("SVM",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(RastPart[["SVM"]][[i]],paste(grep("SVM",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+              writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["SVM"]][[i]]>=Thr[p], 
-                            paste(grep("SVM",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("SVM",PartCat,value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -962,13 +971,9 @@ FitENM_TMLA <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          # if(is.null(repl)){
-          #   SpDataT <- SpDataT[SpDataT$Partition==1,]
-          # }
-          Model <- ksvm(Fmula,data = SpDataT[,c("PresAbse", VarColT)],
+          Model <- ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
                         kernel = "rbfdot",C = 1, prob.model=T)
-          ListRaster[["SVM"]] <- STANDAR(predict(VariablesT,Model))
-          PredPoint <- extract(ListRaster[["SVM"]], SpDataT[, c("x", "y")])
+          PredPoint <- as.numeric(kernlab::predict(object=Model, newdata=SpDataT[, VarCol],type="probabilities")[,2])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -976,6 +981,9 @@ FitENM_TMLA <- function(RecordsData,
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
           Summary_SVM[[s]] <- data.frame(Sp = spN[s], Algorithm = "SVM", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["SVM"]] <- STANDAR(predict(VariablesT,Model))
+          }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["SVM"]] <- predict(VariablesP[[k]], Model)
@@ -1043,9 +1051,8 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["RDF"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]]))
-          PredPoint <- extract(RastPart[["RDF"]][[i]], PAtest[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarCol]))
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["RDF"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -1074,23 +1081,24 @@ FitENM_TMLA <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
             if(N!=1){
-              writeRaster(RastPart[["RDF"]][[i]],paste(grep("RDF",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["RDF"]][[i]]>=Thr[p], 
-                            paste(grep("RDF",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("RDF",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(RastPart[["RDF"]][[i]],paste(grep("RDF",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+              writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["RDF"]][[i]]>=Thr[p], 
-                            paste(grep("RDF",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("RDF",PartCat,value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -1103,8 +1111,7 @@ FitENM_TMLA <- function(RecordsData,
           set.seed(0)
           Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
                           stepFactor=2, ntreeTry=500, doBest=T, plot = F)    
-          ListRaster[["RDF"]] <- STANDAR(predict(VariablesT,Model))
-          PredPoint <- extract(ListRaster[["RDF"]], SpDataT[, c("x", "y")])
+          PredPoint <- predict(Model, SpDataT[, VarCol])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1112,6 +1119,9 @@ FitENM_TMLA <- function(RecordsData,
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
           Summary_RDF[[s]] <- data.frame(Sp = spN[s], Algorithm = "RDF", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["RDF"]] <- STANDAR(predict(VariablesT,Model))
+          }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["RDF"]] <- predict(VariablesP[[k]], Model)
@@ -1142,7 +1152,7 @@ FitENM_TMLA <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["RDF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #BIO threshold
+          #RDF threshold
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- rep(Threshold,N)
           
@@ -1170,11 +1180,11 @@ FitENM_TMLA <- function(RecordsData,
       Fmula <- paste("s(", VarColT,", k=3)", sep="")
       Fmula <- paste("PresAbse", paste(Fmula, collapse = " + "), sep = " ~ ")
       Fmula <- as.formula(Fmula)
+      
       #GAM model
-        
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][, c("PresAbse", VarColT)]
-        Model[[i]] <- gam(Fmula, data = dataPr, optimizer = c("outer", "newton"), 
+        Model[[i]] <- mgcv::gam(Fmula, data = dataPr, optimizer = c("outer", "newton"), 
                           select = T, family = binomial)
         }
       #GAM evaluation
@@ -1182,9 +1192,8 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["GAM"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]]))
-          PredPoint <- extract(RastPart[["GAM"]][[i]], PAtest[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          RastPart[["GAM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarCol],type="response"))
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GAM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -1213,23 +1222,24 @@ FitENM_TMLA <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]],type="response"))
             if(N!=1){
-              writeRaster(RastPart[["GAM"]][[i]],paste(grep("GAM",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["GAM"]][[i]]>=Thr[p], 
-                            paste(grep("GAM",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("GAM",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(RastPart[["GAM"]][[i]],paste(grep("GAM",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+              writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["GAM"]][[i]]>=Thr[p], 
-                            paste(grep("GAM",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("GAM",PartCat,value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -1241,8 +1251,7 @@ FitENM_TMLA <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- gam(Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
                        select = T, family = binomial)
-          ListRaster[["GAM"]] <- STANDAR(predict(VariablesT,Model))
-          PredPoint <- extract(ListRaster[["GAM"]], SpDataT[, c("x", "y")])
+          PredPoint <- c(predict(Model, SpDataT[, VarCol],type="response"))
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1250,6 +1259,9 @@ FitENM_TMLA <- function(RecordsData,
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
           Summary_GAM[[s]] <- data.frame(Sp = spN[s], Algorithm = "GAM", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["GAM"]] <- STANDAR(predict(VariablesT,Model,type="response"))
+          }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["GAM"]] <- predict(VariablesP[[k]], Model)
@@ -1319,9 +1331,8 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["GLM"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]]))
-          PredPoint <- extract(RastPart[["GLM"]][[i]], PAtest[[i]][, c("x", "y")])
-          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          RastPart[["GLM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarCol],type="response"))
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GLM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           #Boyce Index
@@ -1352,23 +1363,24 @@ FitENM_TMLA <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]],type="response"))
             if(N!=1){
-              writeRaster(RastPart[["GLM"]][[i]],paste(grep("GLM",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["GLM"]][[i]]>=Thr[p], 
-                            paste(grep("GLM",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("GLM",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(RastPart[["GLM"]][[i]],paste(grep("GLM",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+              writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               for(p in 1:length(Thr)){
-                writeRaster(RastPart[["GLM"]][[i]]>=Thr[p], 
-                            paste(grep("GLM",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("GLM",PartCat,value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -1379,8 +1391,7 @@ FitENM_TMLA <- function(RecordsData,
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family = binomial)
-          ListRaster[["GLM"]] <- STANDAR(predict(VariablesT,Model))
-          PredPoint <- extract(ListRaster[["GLM"]], SpDataT[, c("x", "y")])
+          PredPoint <- c(predict(Model, SpDataT[, VarCol],type="response"))
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1388,6 +1399,9 @@ FitENM_TMLA <- function(RecordsData,
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
           Summary_GLM[[s]] <- data.frame(Sp = spN[s], Algorithm = "GLM", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["GLM"]] <- STANDAR(predict(VariablesT,Model,type="response"))
+          }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["GLM"]] <- predict(VariablesP[[k]], Model)
@@ -1418,7 +1432,7 @@ FitENM_TMLA <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GLM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #BIO threshold
+          #GLM threshold
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- rep(Threshold,N)
           
@@ -1454,9 +1468,9 @@ FitENM_TMLA <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       for (i in 1:N) {
-        RastPart[["GAU"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]]))
-        PredPoint <- extract(RastPart[["GAU"]][[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+        RastPart[["GAU"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarCol])
+        RastPart[["GAU"]][[i]] <- as.vector(RastPart[["GAU"]][[i]][,"posterior mode"])
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GAU"]][[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
                               PredPoint[PredPoint$PresAbse == 0,2])
         #Boyce Index
@@ -1485,23 +1499,24 @@ FitENM_TMLA <- function(RecordsData,
       #Save Partition Predictions
       if(Save=="Y"){
         for(i in 1:N){
+          PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
           if(N!=1){
-            writeRaster(RastPart[["GAU"]][[i]],paste(grep("GAU",foldPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
+            writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             for(p in 1:length(Thr)){
-              writeRaster(RastPart[["GAU"]][[i]]>=Thr[p], 
-                          paste(grep("GAU",PartCat,value=T), '/',SpNames[s],"_",i,".tif", sep=""),
+              writeRaster(PartRas>=Thr[p], 
+                          paste(grep("GAU",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
           }else{
-            writeRaster(RastPart[["GAU"]][[i]],paste(grep("GAU",foldPart,value=T),"/",SpNames[s],".tif", sep=""),
+            writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             for(p in 1:length(Thr)){
-              writeRaster(RastPart[["GAU"]][[i]]>=Thr[p], 
-                          paste(grep("GAU",PartCat,value=T), '/',SpNames[s],".tif", sep=""),
+              writeRaster(PartRas>=Thr[p], 
+                          paste(grep("GAU",PartCat,value=T), '/',spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
@@ -1512,9 +1527,7 @@ FitENM_TMLA <- function(RecordsData,
       #Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
-        ListRaster[["GAU"]] <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
-                                                           CI = 0.95, maxn = NULL)$posterior.mode)
-        PredPoint <- extract(ListRaster[["GAU"]], SpDataT[, c("x", "y")])
+        PredPoint <- predict(Model, SpData[, VarCol])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1522,6 +1535,10 @@ FitENM_TMLA <- function(RecordsData,
         names(Thr) <- Threshold
         # Validation<-SUMMRES(Eval, 1, Thr)
         Summary_GAU[[s]] <- data.frame(Sp = spN[s], Algorithm = "GAU", Threshold=Thr)
+        if(SaveFinal=="Y"){
+          ListRaster[["GAU"]] <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
+                                                             CI = 0.95, maxn = NULL)$posterior.mode)
+        }
         if(is.null(Fut)==F){
           for(k in 1:length(VariablesP)){
             ListFut[[ProjN[k]]][["GAU"]] <- predict.graf.raster(Model, VariablesP[[k]], type = "response", 
@@ -1593,35 +1610,37 @@ FitENM_TMLA <- function(RecordsData,
     
     #Save final models
     if(per!=1 && repl==1 || per==1 || N!=1){
-      if((is.null(Fut)==F && Tst=="Y")==F){
-        for(i in 1:length(ListRaster)){
-          writeRaster(round(ListRaster[[i]], 4), 
-                      paste(folders[i], '/',spN[s],".tif", sep=""),
-                      format='GTiff',
-                      overwrite=TRUE)
-          Thr <- SpThr[SpThr$Algorithm==names(ListRaster[i]), 'Threshold']
-          writeRaster(ListRaster[[i]]>=Thr, 
-                      paste(foldCat[i], '/',spN[s],".tif", sep=""),
-                      format='GTiff',
-                      overwrite=TRUE)
-        }
-      }
-      
-      #Save Projections
-      if(is.null(Fut)==F){
-        for(p in 1:length(ListFut)){
-          for(o in 1:length(ListFut[[p]])){
-            Thr <- SpThr[SpThr$Algorithm==names(ListFut[[p]])[o], 'Threshold']
-              writeRaster(ListFut[[p]][[o]]>=Thr, 
-                          file.path(ModFut[p],Algorithm[o],"BIN",paste(spN[s],sep="_")),
-                          format='GTiff',
-                          overwrite=TRUE)
-            writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],Algorithm[o],spN[s]),
-                        format='GTiff',overwrite=TRUE)
+      if(SaveFinal=="Y"){
+        if((is.null(Fut)==F && Tst=="Y")==F){
+          for(i in 1:length(ListRaster)){
+            writeRaster(round(ListRaster[[i]], 4), 
+                        paste(folders[i], '/',spN[s],".tif", sep=""),
+                        format='GTiff',
+                        overwrite=TRUE)
+            Thr <- SpThr[SpThr$Algorithm==names(ListRaster[i]), 'Threshold']
+            writeRaster(ListRaster[[i]]>=Thr, 
+                        paste(foldCat[i], '/',spN[s],".tif", sep=""),
+                        format='GTiff',
+                        overwrite=TRUE)
           }
         }
       }
-    }
+        
+        #Save Projections
+        if(is.null(Fut)==F){
+          for(p in 1:length(ListFut)){
+            for(o in 1:length(ListFut[[p]])){
+              Thr <- SpThr[SpThr$Algorithm==names(ListFut[[p]])[o], 'Threshold']
+                writeRaster(ListFut[[p]][[o]]>=Thr, 
+                            file.path(ModFut[p],Algorithm[o],"BIN",paste(spN[s],sep="_")),
+                            format='GTiff',
+                            overwrite=TRUE)
+              writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],Algorithm[o],spN[s]),
+                          format='GTiff',overwrite=TRUE)
+            }
+          }
+        }
+      }
     
     #Adjust invasion cenario for ensemble
     if((is.null(Fut)==F && Tst=="Y")){
@@ -1632,20 +1651,22 @@ FitENM_TMLA <- function(RecordsData,
     if(any(PredictType=="Mean")){
       
       #Partial Models Ensemble
-      Final <- do.call(Map, c(c,RastPart))
-      if(length(Final)>1){
-        Final <- lapply(Final,function(x) brick(stack(x)))
-        Final <- lapply(Final, function(x) STANDAR(round(mean(x),4)))
-      }else{
-        Final <- STANDAR(round(mean(brick(unlist(Final))),4))
-      }
+      Final <- do.call(Map, c(rbind,RastPart))
+      Final <- lapply(Final, function (x) colMeans(x))
+      
+      # if(length(Final)>1){
+      #   Final <- lapply(Final,function(x) brick(stack(x)))
+      #   Final <- lapply(Final, function(x) STANDAR(round(mean(x),4)))
+      # }else{
+      #   Final <- STANDAR(round(mean(brick(unlist(Final))),4))
+      # }
       
       # Threshold
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -1671,62 +1692,64 @@ FitENM_TMLA <- function(RecordsData,
       }
       
       #Save Partition Predictions
-      if(Save=="Y"){
-        for(i in 1:N){
-          if(N!=1){
-            writeRaster(Final[[i]],paste(grep("\\bMean\\b",ensPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-              writeRaster(Final[[i]]>=Thr, 
-                          paste(grep("\\bMean\\b",ensCat,value=T), '/',SpNames[s],"_",i,"_",".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-          }else{
-            writeRaster(Final[[i]],paste(grep("\\bMean\\b",ensPart,value=T),"/",SpNames[s],".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-              writeRaster(Final[[i]]>=Thr, 
-                          paste(grep("\\bMean\\b",ensCat,value=T), '/',SpNames[s],"_",".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-          }
-        }
-      }
+      # if(Save=="Y"){
+      #   for(i in 1:N){
+      #     if(N!=1){
+      #       writeRaster(Final[[i]],paste(grep("\\bMean\\b",ensPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #         writeRaster(Final[[i]]>=Thr, 
+      #                     paste(grep("\\bMean\\b",ensCat,value=T), '/',spN[s],"_",i,"_",".tif", sep=""),
+      #                     format='GTiff',
+      #                     overwrite=TRUE)
+      #     }else{
+      #       writeRaster(Final[[i]],paste(grep("\\bMean\\b",ensPart,value=T),"/",spN[s],".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #         writeRaster(Final[[i]]>=Thr, 
+      #                     paste(grep("\\bMean\\b",ensCat,value=T), '/',spN[s],"_",".tif", sep=""),
+      #                     format='GTiff',
+      #                     overwrite=TRUE)
+      #     }
+      #   }
+      # }
       
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        Final <- brick(ListRaster)
-        Final <- STANDAR(round(mean(Final),4))
-        PredPoint <- extract(Final, SpDataT[, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
-        Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2]))
-        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
-        names(Thr) <- Threshold
-        
-        Summary_Mean[[s]] <- data.frame(Sp=spN[s], Algorithm="MEA", Threshold=Thr)
-        
-        writeRaster(Final, 
-                    paste(DirMean, '/',spN[s],".tif", sep=""),
-                    format='GTiff',
-                    overwrite=TRUE)
-          writeRaster(Final>=as.numeric(Thr), 
-                      paste(DirMeanCat, '/',spN[s],"_",".tif", sep=""),
+        if(SaveFinal=="Y"){
+          Final <- brick(ListRaster)
+          Final <- STANDAR(round(mean(Final),4))
+          PredPoint <- extract(Final, SpDataT[, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          
+          Summary_Mean[[s]] <- data.frame(Sp=spN[s], Algorithm="MEA", Threshold=Thr)
+          
+          writeRaster(Final, 
+                      paste(DirMean, '/',spN[s],".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
+            writeRaster(Final>=as.numeric(Thr), 
+                        paste(DirMeanCat, '/',spN[s],"_",".tif", sep=""),
+                        format='GTiff',
+                        overwrite=TRUE)
+        }
         
-          #Future Projection
+        #Future Projection
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
             Final <- brick(ListFut[[p]])
             Final <- STANDAR(round(mean(Final),4))
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","Mean",SpNames2[s]),
+                        file.path(ModFut[p],"ENS","Mean",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
               writeRaster(Final>=as.numeric(Thr), 
-                          file.path(ModFut[p],"ENS","Mean","BIN",paste(SpNames2[s],sep="_")),
+                          file.path(ModFut[p],"ENS","Mean","BIN",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
           }
@@ -1745,20 +1768,22 @@ FitENM_TMLA <- function(RecordsData,
       W <- names(ListRaster)%in%Best
       
       #Partial Models
-      Final <- do.call(Map, c(c,RastPart))
-      if(length(Final)>1){
-        Final <- lapply(Final,function(x) brick(stack(x[W])))
-        Final <- lapply(Final, function(x) STANDAR(round(mean(x),4)))
-      }else{
-        Final <- STANDAR(round(mean(brick(unlist(Final)[W])),4))
-      }
+      Final <- do.call(Map, c(rbind,RastPart[W]))
+      Final <- lapply(Final, function (x) colMeans(x))
+      
+      # if(length(Final)>1){
+      #   Final <- lapply(Final,function(x) brick(stack(x[W])))
+      #   Final <- lapply(Final, function(x) STANDAR(round(mean(x),4)))
+      # }else{
+      #   Final <- STANDAR(round(mean(brick(unlist(Final)[W])),4))
+      # }
       
       # Threshold
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -1784,50 +1809,52 @@ FitENM_TMLA <- function(RecordsData,
       }
       
       #Save Partition Predictions
-      if(Save=="Y"){
-        for(i in 1:N){
-          if(N!=1){
-            writeRaster(Final[[i]],paste(grep("\\bSup\\b",ensPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-              writeRaster(Final[[i]]>=Thr, 
-                          paste(grep("\\bSup\\b",ensCat,value=T), '/',SpNames[s],"_",i,"_",".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-          }else{
-            writeRaster(Final[[i]],paste(grep("\\bSup\\b",ensPart,value=T),"/",SpNames[s],".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-              writeRaster(Final[[i]]>=Thr, 
-                          paste(grep("\\bSup\\b",ensCat,value=T), '/',SpNames[s],"_",".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-          }
-        }
-      }
+      # if(Save=="Y"){
+      #   for(i in 1:N){
+      #     if(N!=1){
+      #       writeRaster(Final[[i]],paste(grep("\\bSup\\b",ensPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #         writeRaster(Final[[i]]>=Thr, 
+      #                     paste(grep("\\bSup\\b",ensCat,value=T), '/',spN[s],"_",i,"_",".tif", sep=""),
+      #                     format='GTiff',
+      #                     overwrite=TRUE)
+      #     }else{
+      #       writeRaster(Final[[i]],paste(grep("\\bSup\\b",ensPart,value=T),"/",spN[s],".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #         writeRaster(Final[[i]]>=Thr, 
+      #                     paste(grep("\\bSup\\b",ensCat,value=T), '/',spN[s],"_",".tif", sep=""),
+      #                     format='GTiff',
+      #                     overwrite=TRUE)
+      #     }
+      #   }
+      # }
       
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        Final <- brick(ListRaster[W])
-        Final <- STANDAR(round(mean(Final),4))
-        PredPoint <- extract(Final, SpDataT[, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
-        Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2]))
-        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
-        names(Thr) <- Threshold
-        
-        Summary_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="SUP", Threshold=Thr)
-        
-        writeRaster(Final, 
-                    paste(DirSup, '/',paste(spN[s],sep="_"),".tif", sep=""),
-                    format='GTiff',
-                    overwrite=TRUE)
-        writeRaster(Final>=as.numeric(Thr), 
-                    paste(DirSupCat, '/',spN[s],"_",".tif", sep=""),
-                    format='GTiff',
-                    overwrite=TRUE)
-        
+        if(SaveFinal=="Y"){
+          Final <- brick(ListRaster[W])
+          Final <- STANDAR(round(mean(Final),4))
+          PredPoint <- extract(Final, SpDataT[, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          
+          Summary_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="SUP", Threshold=Thr)
+          
+          writeRaster(Final, 
+                      paste(DirSup, '/',paste(spN[s],sep="_"),".tif", sep=""),
+                      format='GTiff',
+                      overwrite=TRUE)
+          writeRaster(Final>=as.numeric(Thr), 
+                      paste(DirSupCat, '/',spN[s],"_",".tif", sep=""),
+                      format='GTiff',
+                      overwrite=TRUE)
+        }
+
         #Future Projection
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
@@ -1835,11 +1862,11 @@ FitENM_TMLA <- function(RecordsData,
             Final <- STANDAR(round(mean(Final),4))
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","Sup",paste(SpNames2[s],sep="_")),
+                        file.path(ModFut[p],"ENS","Sup",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"ENS","Sup","BIN",paste(SpNames2[s],sep="_")),
+                        file.path(ModFut[p],"ENS","Sup","BIN",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
           }
@@ -1852,21 +1879,25 @@ FitENM_TMLA <- function(RecordsData,
 
       
       #Partial Models Ensemble
-      Final <- do.call(Map, c(c,RastPart))
-      if(length(Final)>1){
-        Final <- lapply(Final,function(x) brick(stack(x)))
-        Final <- lapply(Final,function(x) PCA_ENS_TMLA(x))
-      }else{
-        Final <- brick(unlist(Final))
-        Final <- PCA_ENS_TMLA(Final)
-      }
+      Final <- do.call(Map, c(cbind,RastPart))
+      Final <- lapply(Final, function (x) as.numeric(princomp(x)$scores[,1])*-1)
+      Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      
+      
+      # if(length(Final)>1){
+      #   Final <- lapply(Final,function(x) brick(stack(x)))
+      #   Final <- lapply(Final,function(x) PCA_ENS_TMLA(x))
+      # }else{
+      #   Final <- brick(unlist(Final))
+      #   Final <- PCA_ENS_TMLA(Final)
+      # }
       
       # Threshold
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -1892,50 +1923,52 @@ FitENM_TMLA <- function(RecordsData,
       }
       
       #Save Partition Predictions
-      if(Save=="Y"){
-        for(i in 1:N){
-          if(N!=1){
-            writeRaster(Final[[i]],paste(grep("\\bPCA\\b",ensPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-              writeRaster(Final[[i]]>=Thr, 
-                          paste(grep("\\bPCA\\b",ensCat,value=T), '/',SpNames[s],"_",i,"_",".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-          }else{
-            writeRaster(Final[[i]],paste(grep("\\bPCA\\b",ensPart,value=T),"/",SpNames[s],".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-              writeRaster(Final[[i]]>=Thr, 
-                          paste(grep("\\bPCA\\b",ensCat,value=T), '/',SpNames[s],"_",".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-          }
-        }
-      }
+      # if(Save=="Y"){
+      #   for(i in 1:N){
+      #     if(N!=1){
+      #       writeRaster(Final[[i]],paste(grep("\\bPCA\\b",ensPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #         writeRaster(Final[[i]]>=Thr, 
+      #                     paste(grep("\\bPCA\\b",ensCat,value=T), '/',spN[s],"_",i,"_",".tif", sep=""),
+      #                     format='GTiff',
+      #                     overwrite=TRUE)
+      #     }else{
+      #       writeRaster(Final[[i]],paste(grep("\\bPCA\\b",ensPart,value=T),"/",spN[s],".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #         writeRaster(Final[[i]]>=Thr, 
+      #                     paste(grep("\\bPCA\\b",ensCat,value=T), '/',spN[s],"_",".tif", sep=""),
+      #                     format='GTiff',
+      #                     overwrite=TRUE)
+      #     }
+      #   }
+      # }
       
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        Final <- brick(ListRaster)
-        Final <- PCA_ENS_TMLA(Final)
-        PredPoint <- extract(Final, SpDataT[, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
-        Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2]))
-        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
-        names(Thr) <- Threshold
-        
-        Summary_PCA[[s]] <- data.frame(Sp=spN[s], Algorithm="PCA", Threshold=Thr)
-        
-        writeRaster(Final, 
-                    paste(DirPCA, '/',spN[s],".tif", sep=""),
-                    format='GTiff',
-                    overwrite=TRUE)
-          writeRaster(Final>=as.numeric(Thr), 
-                      paste(DirPCACat, '/',spN[s],"_",".tif", sep=""),
+        if(SaveFinal=="Y"){
+          Final <- brick(ListRaster)
+          Final <- PCA_ENS_TMLA(Final)
+          PredPoint <- extract(Final, SpDataT[, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          
+          Summary_PCA[[s]] <- data.frame(Sp=spN[s], Algorithm="PCA", Threshold=Thr)
+          
+          writeRaster(Final, 
+                      paste(DirPCA, '/',spN[s],".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
-        
+            writeRaster(Final>=as.numeric(Thr), 
+                        paste(DirPCACat, '/',spN[s],"_",".tif", sep=""),
+                        format='GTiff',
+                        overwrite=TRUE)
+        }
+
         #Future Projection
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
@@ -1943,11 +1976,11 @@ FitENM_TMLA <- function(RecordsData,
             Final <- PCA_ENS_TMLA(Final)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","PCA",SpNames2[s]),
+                        file.path(ModFut[p],"ENS","PCA",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
               writeRaster(Final>=as.numeric(Thr), 
-                          file.path(ModFut[p],"ENS","PCA","BIN",paste(SpNames2[s],sep="_")),
+                          file.path(ModFut[p],"ENS","PCA","BIN",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
           }
@@ -1968,21 +2001,24 @@ FitENM_TMLA <- function(RecordsData,
       W <- names(ListRaster)%in%Best
       
       #Partial Models
-      Final <- do.call(Map, c(c,RastPart))
-      if(length(Final)>1){
-        Final <- lapply(Final,function(x) brick(stack(x[W])))
-        Final <- lapply(Final, function(x) PCA_ENS_TMLA(x))
-      }else{
-        Final <- brick(unlist(Final)[W])
-        Final <- PCA_ENS_TMLA(Final)
-      }
+      Final <- do.call(Map, c(cbind,RastPart[W]))
+      Final <- lapply(Final, function (x) as.numeric(princomp(x)$scores[,1])*-1)
+      Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      
+      # if(length(Final)>1){
+      #   Final <- lapply(Final,function(x) brick(stack(x[W])))
+      #   Final <- lapply(Final, function(x) PCA_ENS_TMLA(x))
+      # }else{
+      #   Final <- brick(unlist(Final)[W])
+      #   Final <- PCA_ENS_TMLA(Final)
+      # }
       
       # Threshold
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -2008,49 +2044,51 @@ FitENM_TMLA <- function(RecordsData,
       }
       
       #Save Partition Predictions
-      if(Save=="Y"){
-        for(i in 1:N){
-          if(N!=1){
-            writeRaster(Final[[i]],paste(grep("\\bPCA_Sup\\b",ensPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-            writeRaster(Final[[i]]>=Thr, 
-                        paste(grep("\\bPCA_Sup\\b",ensCat,value=T), '/',SpNames[s],"_",i,"_",".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-          }else{
-            writeRaster(Final[[i]],paste(grep("\\bPCA_Sup\\b",ensPart,value=T),"/",SpNames[s],".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-            writeRaster(Final[[i]]>=Thr, 
-                        paste(grep("\\bPCA_Sup\\b",ensCat,value=T), '/',SpNames[s],"_",".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-          }
-        }
-      }
+      # if(Save=="Y"){
+      #   for(i in 1:N){
+      #     if(N!=1){
+      #       writeRaster(Final[[i]],paste(grep("\\bPCA_Sup\\b",ensPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #       writeRaster(Final[[i]]>=Thr, 
+      #                   paste(grep("\\bPCA_Sup\\b",ensCat,value=T), '/',spN[s],"_",i,"_",".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #     }else{
+      #       writeRaster(Final[[i]],paste(grep("\\bPCA_Sup\\b",ensPart,value=T),"/",spN[s],".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #       writeRaster(Final[[i]]>=Thr, 
+      #                   paste(grep("\\bPCA_Sup\\b",ensCat,value=T), '/',spN[s],"_",".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #     }
+      #   }
+      # }
       
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        Final <- brick(ListRaster[W])
-        Final <- PCA_ENS_TMLA(Final)
-        PredPoint <- extract(Final, SpDataT[, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
-        Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2]))
-        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
-        names(Thr) <- Threshold
-        
-        Summary_PCA_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="PCS", Threshold=Thr)
-  
-        writeRaster(Final, 
-                    paste(DirPCA_Sup, '/',spN[s],"_",".tif", sep=""),
-                    format='GTiff',
-                    overwrite=TRUE)
-        writeRaster(Final>=as.numeric(Thr), 
-                    paste(DirPCA_SupCat, '/',spN[s],"_",".tif", sep=""),
-                    format='GTiff',
-                    overwrite=TRUE)
+        if(SaveFinal=="Y"){
+          Final <- brick(ListRaster[W])
+          Final <- PCA_ENS_TMLA(Final)
+          PredPoint <- extract(Final, SpDataT[, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          
+          Summary_PCA_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="PCS", Threshold=Thr)
+    
+          writeRaster(Final, 
+                      paste(DirPCA_Sup, '/',spN[s],"_",".tif", sep=""),
+                      format='GTiff',
+                      overwrite=TRUE)
+          writeRaster(Final>=as.numeric(Thr), 
+                      paste(DirPCA_SupCat, '/',spN[s],"_",".tif", sep=""),
+                      format='GTiff',
+                      overwrite=TRUE)
+        }
         
         #Future Projection
         if(is.null(Fut)==F && Tst!="Y"){
@@ -2059,11 +2097,11 @@ FitENM_TMLA <- function(RecordsData,
             Final <- PCA_ENS_TMLA(Final)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","PCA_Sup",paste(SpNames2[s],sep="_")),
+                        file.path(ModFut[p],"ENS","PCA_Sup",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"ENS","PCA_Sup","BIN",paste(SpNames2[s],sep="_")),
+                        file.path(ModFut[p],"ENS","PCA_Sup","BIN",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
           }
@@ -2077,36 +2115,42 @@ FitENM_TMLA <- function(RecordsData,
       SpValidation <- result[result$Sp==spN[s],]
       
       #Partial Models
-      Final <- do.call(Map, c(c,RastPart))
-      if(length(Final)>1){
-        Final <- lapply(Final,function(x) brick(stack(x)))
-        for(i in 1:length(Final)){
-          for(k in Algorithm){
-            FinalSp <- Final[[i]][[k]]
-            FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
-            Final[[i]][[k]] <- FinalSp
-          }
-        }
-        Final <- lapply(Final, function(x) PCA_ENS_TMLA(x))
-      }else{
-        Final <- brick(unlist(Final))
-        if(Tst=="Y"){
-          names(Final) <- Algorithm
-        }
-        for(k in Algorithm){
-          FinalSp <- Final[[k]]
-          FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
-          Final[[k]] <- FinalSp
-        }
-        Final <- PCA_ENS_TMLA(Final)
+      Final <- do.call(Map, c(cbind,RastPart))
+      for (j in 1:length(Final)){
+        Final[[j]] <- t(apply(Final[[j]], 1, function(x) ifelse(x < SpValidation[,"THR"], 0, x)))
       }
+      Final <- lapply(Final, function (x) as.numeric(princomp(x)$scores[,1])*-1)
+      Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      
+      # if(length(Final)>1){
+      #   Final <- lapply(Final,function(x) brick(stack(x)))
+      #   for(i in 1:length(Final)){
+      #     for(k in Algorithm){
+      #       FinalSp <- Final[[i]][[k]]
+      #       FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
+      #       Final[[i]][[k]] <- FinalSp
+      #     }
+      #   }
+      #   Final <- lapply(Final, function(x) PCA_ENS_TMLA(x))
+      # }else{
+      #   Final <- brick(unlist(Final))
+      #   if(Tst=="Y"){
+      #     names(Final) <- Algorithm
+      #   }
+      #   for(k in Algorithm){
+      #     FinalSp <- Final[[k]]
+      #     FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
+      #     Final[[k]] <- FinalSp
+      #   }
+      #   Final <- PCA_ENS_TMLA(Final)
+      # }
 
       # Threshold
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -2132,55 +2176,57 @@ FitENM_TMLA <- function(RecordsData,
       }
       
       #Save Partition Predictions
-      if(Save=="Y"){
-        for(i in 1:N){
-          if(N!=1){
-            writeRaster(Final[[i]],paste(grep("\\bPCA_Thr\\b",ensPart,value=T),"/",SpNames[s],"_",i,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-            writeRaster(Final[[i]]>=Thr, 
-                        paste(grep("\\bPCA_Thr\\b",ensCat,value=T), '/',SpNames[s],"_",i,"_",".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-          }else{
-            writeRaster(Final[[i]],paste(grep("\\bPCA_Thr\\b",ensPart,value=T),"/",SpNames[s],".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-            writeRaster(Final[[i]]>=Thr, 
-                        paste(grep("\\bPCA_Thr\\b",ensCat,value=T), '/',SpNames[s],"_",".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-          }
-        }
-      }
+      # if(Save=="Y"){
+      #   for(i in 1:N){
+      #     if(N!=1){
+      #       writeRaster(Final[[i]],paste(grep("\\bPCA_Thr\\b",ensPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #       writeRaster(Final[[i]]>=Thr, 
+      #                   paste(grep("\\bPCA_Thr\\b",ensCat,value=T), '/',spN[s],"_",i,"_",".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #     }else{
+      #       writeRaster(Final[[i]],paste(grep("\\bPCA_Thr\\b",ensPart,value=T),"/",spN[s],".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #       writeRaster(Final[[i]]>=Thr, 
+      #                   paste(grep("\\bPCA_Thr\\b",ensCat,value=T), '/',spN[s],"_",".tif", sep=""),
+      #                   format='GTiff',
+      #                   overwrite=TRUE)
+      #     }
+      #   }
+      # }
       
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        Final <- brick(ListRaster)
-        for(k in Algorithm){
-          FinalSp <- Final[[k]]
-          FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
-          Final[[k]] <- FinalSp
-        }
-        Final <- PCA_ENS_TMLA(Final)
-        PredPoint <- extract(Final, SpDataT[, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
-        Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2]))
-        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
-        names(Thr) <- Threshold
-        
-        Summary_PCA_Thr[[s]] <- data.frame(Sp=spN[s], Algorithm="PCT", Threshold=Thr)
-        
-        writeRaster(Final, 
-                    paste(DirPCA_Thr, '/',paste(spN[s],sep="_"),".tif", sep=""),
-                    format='GTiff',
-                    overwrite=TRUE)
-        writeRaster(Final>=unlist(Thr), 
-                      paste(DirPCA_ThrCat, '/',spN[s],"_",".tif", sep=""),
+        if(SaveFinal=="Y"){
+          Final <- brick(ListRaster)
+          for(k in Algorithm){
+            FinalSp <- Final[[k]]
+            FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
+            Final[[k]] <- FinalSp
+          }
+          Final <- PCA_ENS_TMLA(Final)
+          PredPoint <- extract(Final, SpDataT[, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          
+          Summary_PCA_Thr[[s]] <- data.frame(Sp=spN[s], Algorithm="PCT", Threshold=Thr)
+          
+          writeRaster(Final, 
+                      paste(DirPCA_Thr, '/',paste(spN[s],sep="_"),".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
-          
+          writeRaster(Final>=unlist(Thr), 
+                        paste(DirPCA_ThrCat, '/',spN[s],"_",".tif", sep=""),
+                        format='GTiff',
+                        overwrite=TRUE)
+        }
+        
         #Future Projection
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
@@ -2200,11 +2246,11 @@ FitENM_TMLA <- function(RecordsData,
               Final <- PCA_ENS_TMLA(Final)
   
               writeRaster(Final, 
-                          file.path(ModFut[p],"ENS","PCA_Thr",paste(SpNames2[s],sep="_")),
+                          file.path(ModFut[p],"ENS","PCA_Thr",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
                 writeRaster(Final>=unlist(Thr), 
-                            file.path(ModFut[p],"ENS","PCA_Thr","BIN",paste(SpNames2[s],sep="_")),
+                            file.path(ModFut[p],"ENS","PCA_Thr","BIN",paste(spN[s],sep="_")),
                             format='GTiff',
                             overwrite=TRUE)
             }
@@ -2246,7 +2292,7 @@ FitENM_TMLA <- function(RecordsData,
        paste("PA Mask:" , DirMask),
        paste("MSDM:" , DirMSDM),
        paste("Resultados em:" , DirSave),
-       paste('No_species:',length(SpNames)),
+       paste('No_species:',length(spN)),
        paste("Threshold:",Threshold),
        matrix(spN))
   lapply(InfoModeling, write, 
