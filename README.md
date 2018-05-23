@@ -4,9 +4,17 @@ Welcome! This is the R Script from TheMetaLand Lab to create ENMs
 Overall, there is a main script (ENM_TheMetaLand) and a group of auxiliary functions (Scripts_for_ENM_TheMetaLand)  
 Please follow the "installation" instructions
 
-## Installation [Temporary]
-1.Copy the folder "Scripts_for_ENM_TheMetaLand" to "C:" in your computer (**Attention: MAC users will have issues here!**)  
-2.DONE!
+## Installation
+1.install.packages("devtools")
+2.library(devtools)
+3.install_github("andrefaa/ENM_TheMetaLand")
+4.library(ENM_TheMetaLand)
+
+## Run
+ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",Tst="",MRst="",PabR=,PabM="",
+                  Part="",SavePart="N",SaveFinal="Y",Alg=c(),Thr="",MSDM="",ENS=c())
+
+**See possible input options below**
 
 ## What I can do with ENM_The_MetaLand?  
 There are a couple of pre and post-processing available in the function, here is a list of what is currently available:  
