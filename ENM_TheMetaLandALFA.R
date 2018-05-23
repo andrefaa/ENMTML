@@ -13,6 +13,7 @@ ENMs_TheMetaLand<-function(Dir,
                            PabM,
                            Part,
                            SavePart="N",
+                           SaveFinal="Y",
                            Alg,
                            Thr,
                            MSDM,
@@ -163,18 +164,14 @@ ENMs_TheMetaLand<-function(Dir,
   ipak(c("raster","sp","dismo","kernlab","randomForest","rgdal","gam",
          "maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
-         "rgeos", "foreach", "doParallel","ecospat"))
+         "rgeos", "foreach", "doParallel","data.table","devtools"))
    
-  # ipak(c("raster","sp","dismo","kernlab","randomForest","rgdal","MASS","ade4","gam",
-  #        "mvtnorm","progress","maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
-  #        "RStoolbox","flexclust","ape","tools","modEvA","XML","SDMTools","SpatialEpi",
-  #        "rgeos", "foreach", "doParallel", "tools","ecospat"))
-  
 #2.Load Auxiliary Functions ----
   
   if (file.exists("C:\\Scripts_for_ENM_TheMetaLand")==F){
     stop("Place the folder 'Scripts_for_ENM_TheMetaLand' in C:")
   }
+  # install_github("andrefaa/ENM_TheMetaLand",subdir="Scripts_for_ENM_TheMetaLand")
   source("C:\\Scripts_for_ENM_TheMetaLand\\PCA_env_TMLA.R")
   source("C:\\Scripts_for_ENM_TheMetaLand\\PCA_ENS_TMLA.R")
   source("C:\\Scripts_for_ENM_TheMetaLand\\Occ_Unicas_TMLA.R")
@@ -194,6 +191,7 @@ ENMs_TheMetaLand<-function(Dir,
   source("C:\\Scripts_for_ENM_TheMetaLand\\Bootstrap_Moran_e_MESS_TMLA.R")
   source("C:\\Scripts_for_ENM_TheMetaLand\\M_delimited_TMLA.R")
   source("C:\\Scripts_for_ENM_TheMetaLand\\Validation2_0_TMLA.R")
+  source("C:\\Scripts_for_ENM_TheMetaLand\\ecospat_boyce_TMLA.R")
   
 #3.Predictors ----
   options(warn=1)
@@ -294,10 +292,10 @@ ENMs_TheMetaLand<-function(Dir,
     }
   
     #3.4.Aviso caso NMin<NPreditores
-  if(NMin<nlayers(envT)){
-    warning("The minimum number of occurrences is smaller than the number of predictors.
-            This may cause some issues while fitting certain algorithms!")
-  }
+    if(NMin<nlayers(envT)){
+      warning("The minimum number of occurrences is smaller than the number of predictors.
+              This may cause some issues while fitting certain algorithms!")
+    }
   
   
 #4.Occurrence Data ----
@@ -516,7 +514,8 @@ ENMs_TheMetaLand<-function(Dir,
       
       #6.5. Fit ENM for Geographical Partition
       FitENM_TMLA(RecordsData=occT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
-                  Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,repl=NULL,per=NULL)
+                  Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
+                  SaveFinal=SaveFinal,repl=NULL,per=NULL)
     }
     
 #7.Random Partition----
@@ -560,7 +559,7 @@ ENMs_TheMetaLand<-function(Dir,
           cat("Select the number of replicates (>=1):")
           rep <- as.integer(readLines(n = 1))
         }
-        cat("Select the percentage of occurrences used for fitting the model(0-1):")
+        cat("Select the proportion of occurrences used for fitting the model(0-1):")
         per<-as.numeric(readLines(n = 1))
         while(is.na(per)||per<=0 || per>1){
           warning("Please Select a valid partition of data (0-1)")
@@ -724,7 +723,7 @@ ENMs_TheMetaLand<-function(Dir,
                 pseudo.mask <- (pseudo.mask-minValue(pseudo.mask))/
                                     (maxValue(pseudo.mask)-minValue(pseudo.mask))
                 pseudo.mask <-(1-pseudo.mask)>=0.99
-                writeRaster(pseudo.mask,paste(DirCons,names(pseudo.mask),sep="/"),format="GTiff",overwrite=T)
+                writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
                 pseudo.mask[which(pseudo.mask[,]==FALSE)] <- NA
               }else{
                 pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
@@ -793,17 +792,9 @@ ENMs_TheMetaLand<-function(Dir,
           absencesTR <- ldply(absencesTR,data.frame,.id=NULL)
           occTS <- ldply(occTS,data.frame,.id=NULL)
           absencesTS <- ldply(absencesTS,data.frame,.id=NULL)
-          occT <- rbind(occTR,absencesTR,occTS,absencesTS)
+          occINPUT <- rbind(occTR,absencesTR,occTS,absencesTS)
           cols = c("x","y","Partition","PresAbse");    
-          occT[,cols] = apply(occT[,cols], 2, function(x) as.numeric(as.character(x)))
-          if(rep!=1){
-            occT[,"sp"] <- paste(occT[,"sp"],k,sep="_")
-            occINPUT <- occT
-          }else{
-            occINPUT <- occT
-          }
-          
-          # occINPUT <- ldply(occINPUT,data.frame,.id=NULL)
+          occINPUT[,cols] = apply(occINPUT[,cols], 2, function(x) as.numeric(as.character(x)))
           
       #7.5. Define Projection----
         if(Proj=="Y"){
@@ -814,7 +805,7 @@ ENMs_TheMetaLand<-function(Dir,
       
       #7.6. Calculate Moran & MESS----
       if(per!=1 || Part=="cross"){
-        Bootstrap_Moran_e_MESS_TMLA(Env=envT,RecordsData=occINPUT,DirO=DirR)
+        Bootstrap_Moran_e_MESS_TMLA(Env=envT,RecordsData=occINPUT,DirO=DirR,repl=k)
       }
           
       #7.7. SavePart Fix----
@@ -832,7 +823,8 @@ ENMs_TheMetaLand<-function(Dir,
           
       #7.9. Run FitENM----
         FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
-                    Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,per=per,repl=k)
+                    Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
+                    SaveFinal=SaveFinal,per=per,repl=k)
         
       #7.10. Create Occurrence Table for Replicates----
         if(rep!=1 || Part=="cross"){
@@ -942,6 +934,6 @@ ENMs_TheMetaLand<-function(Dir,
 }
 
 
-ENMs_TheMetaLand(Dir="C:\\OneDrive\\WorkshopENM_Ingrid\\Env\\CANESM2Solo",
+ENMs_TheMetaLand(Dir="C:\\OneDrive\\WorkshopENM_Ingrid\\Env\\CANESM2Solo\\PCA",
                  Sp="Species",x="Long",y="Lat",NMin=10,PCA="N",Proj="N",Tst="N",MRst="Y",PabR=1,PabM="const",
-                 Part="boot",SavePart="N",Alg=c("MXS","GAU","SVM","RDF"),Thr="spec_sens",MSDM="N",ENS=c("Sup"))
+                 Part="boot",SavePart="Y",SaveFinal="Y",Alg=c("BIO","MLK","GLM","GAM","MXD","MXS","GAU","SVM","RDF"),Thr="spec_sens",MSDM="N",ENS=c("Sup"))
