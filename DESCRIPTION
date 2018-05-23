@@ -1,9 +1,9 @@
-Package: anRpackage
+Package: ENMTheMetaLand
 Type: Package
-Title: What the package does (short line)
+Title: Function to fit Ecological Niche Models, including several pre- and post-processing methods
 Version: 1.0
 Date: 2018-05-23
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Author: Andre Andrade & Santiago Velazco
+Maintainer: Andre Andrade <andrefaandrade@gmail.com>
+Description: Fit ENMs.....
+License: Free
