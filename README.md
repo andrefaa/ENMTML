@@ -8,7 +8,7 @@ Please follow the "installation" instructions
 **1.** install.packages("devtools")  
 **2.** library(devtools)  
 **3.** install_github("andrefaa/ENM_TheMetaLand")  
-**4.** library(ENM_TheMetaLand)  
+**4.** library(ENMTheMetaLand)  
 
 ## Run
 ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",Tst="",MRst="",PabR=,PabM="",
