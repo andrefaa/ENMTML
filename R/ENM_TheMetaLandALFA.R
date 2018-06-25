@@ -752,15 +752,15 @@ ENMs_TheMetaLand<-function(Dir,
                 absencesTS.0 <- randomPoints(SpMaskP, (1 / PabR)*nrow(occTS[[i]]),ext = extent(SpMask),prob = FALSE)
               }else{
               absencesTR.0 <- randomPoints(pseudo.mask, (1 / PabR)*nrow(occTR[[i]]),
-                                         ext = extent(pseudo.mask[[i]]),
+                                         ext = extent(pseudo.mask),
                                          prob = FALSE)
               if(Tst=="Y"){
                 absencesTS.0 <- randomPoints(pseudo.maskP, (1 / PabR)*nrow(occTS[[i]]),
-                                             ext = extent(pseudo.mask[[i]]),
+                                             ext = extent(pseudo.mask),
                                              prob = FALSE)                
               }else{
                 absencesTS.0 <- randomPoints(pseudo.maskP, (1 / PabR)*nrow(occTS[[i]]),
-                                           ext = extent(pseudo.mask[[i]]),
+                                           ext = extent(pseudo.mask),
                                            prob = FALSE)
               }
               }
