@@ -1838,14 +1838,16 @@ FitENM_TMLA <- function(RecordsData,
           print("Pos-Final")
           Final <- brick(ListRaster[W])
           Final <- STANDAR(round(mean(Final),4))
+          Final
+          SpDataT[, c("x", "y")]
+          Sys.sleep(5)
           print("Pos-Final")
           PredPoint <- extract(Final, SpDataT[, c("x", "y")])
           print("Pos-Extract")
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
-          print("Pos-Eval")
-          Thr<-threshold(Eval)[Threshold]
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           
           Summary_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="SUP", Threshold=Thr)
