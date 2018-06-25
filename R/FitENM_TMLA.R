@@ -1770,7 +1770,7 @@ FitENM_TMLA <- function(RecordsData,
       #Partial Models
       Final <- do.call(Map, c(rbind,RastPart[W]))
       Final <- lapply(Final, function (x) colMeans(x))
-      
+      print("Pre-Evaluation")
       # if(length(Final)>1){
       #   Final <- lapply(Final,function(x) brick(stack(x[W])))
       #   Final <- lapply(Final, function(x) STANDAR(round(mean(x),4)))
@@ -1786,6 +1786,7 @@ FitENM_TMLA <- function(RecordsData,
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
+        print("Pre-Boyce")
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
       
@@ -1846,11 +1847,11 @@ FitENM_TMLA <- function(RecordsData,
           Summary_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="SUP", Threshold=Thr)
           
           writeRaster(Final, 
-                      paste(DirSup, '/',paste(spN[s],sep="_"),".tif", sep=""),
+                      paste(DirSup, '/',spN[s],".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
           writeRaster(Final>=as.numeric(Thr), 
-                      paste(DirSupCat, '/',spN[s],"_",".tif", sep=""),
+                      paste(DirSupCat, '/',spN[s],".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
         }
