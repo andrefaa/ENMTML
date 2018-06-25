@@ -1792,10 +1792,10 @@ FitENM_TMLA <- function(RecordsData,
       
       Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
       names(Thr) <- rep(Threshold,N)
-      
+      print("Pos-Boyce")
       #Evaluation 2.0
       res20 <- Validation2_0(as.list(Eval),Thr,PredPoint,as.list(Final),N)
-      
+      print("Pos-Val20")
       #SUP result
       Boyce <- mean(unlist(Boyce))
       Jac <- mean(unlist(res20[names(res20)=="JAC"]))
@@ -1835,8 +1835,10 @@ FitENM_TMLA <- function(RecordsData,
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         if(SaveFinal=="Y"){
+          print("Pos-Final")
           Final <- brick(ListRaster[W])
           Final <- STANDAR(round(mean(Final),4))
+          print("Pos-Final")
           PredPoint <- extract(Final, SpDataT[, c("x", "y")])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],

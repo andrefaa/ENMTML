@@ -914,6 +914,19 @@ ENMs_TheMetaLand<-function(Dir,
           MSDM_Posterior(RecordsData=occINPUT,Threshold=Thr,cutoff=Q0,PredictType=ENS,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
+      }else{
+        Q1 <- "N"
+        DirT <- file.path(DirR,Alg)
+        DirPost <- "MSDMPosterior"
+        DirPost <- file.path(DirT,DirPost)
+        for(i in DirPost){
+          dir.create(i)
+        }
+        for(i in 1:length(DirPost)){
+          print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
+          MSDM_Posterior(RecordsData=occINPUT,Threshold=Thr,cutoff=Q0,PredictType=ENS,
+                         DirSave=DirPost[i],DirRaster=DirT[i])
+        }
       }
       if(Q1=="N" ||!("ENS"%in%list.files(DirR))){
         
