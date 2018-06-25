@@ -1838,8 +1838,9 @@ FitENM_TMLA <- function(RecordsData,
           print("Pos-Final")
           Final <- brick(ListRaster[W])
           Final <- STANDAR(round(mean(Final),4))
-          Final
-          SpDataT[, c("x", "y")]
+          print(str(Final))
+          print(Final)
+          print(SpDataT[, c("x", "y")])
           Sys.sleep(5)
           print("Pos-Final")
           PredPoint <- extract(Final, SpDataT[, c("x", "y")])
