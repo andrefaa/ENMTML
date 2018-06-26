@@ -1831,8 +1831,8 @@ FitENM_TMLA <- function(RecordsData,
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         if(SaveFinal=="Y"){
-          Final <- brick(stack(ListRaster[W]))
-          Final <- STANDAR(round(mean(Final),4))
+          Final <- brick(ListRaster[W])
+          Final <- mean(Final)
           PredPoint <- raster::extract(Final, SpDataT[, c("x", "y")])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
