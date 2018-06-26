@@ -58,7 +58,7 @@ MSDM_Posterior <- function(RecordsData,
     Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                      PredPoint[PredPoint$PresAbse == 0, 2])
     Thr <- unlist(c(threshold(Eval))[Threshold])
-    print("First Extract")
+
     #### Cutoff MCP----
     if(cutoff=="MCP"){
       hull <- convHull(SpData[SpData[,"PresAbse"]==1, c("x", "y")], lonlat=TRUE)
@@ -122,17 +122,15 @@ MSDM_Posterior <- function(RecordsData,
         AdeqBin2 <- rasterToPolygons(AdeqBin, fun=NULL, n=8, na.rm=TRUE, digits=12, dissolve=TRUE)
         AdeqBin2 <- disaggregate(AdeqBin2)
         AdeqBin2$layer <- NULL
-        print("RasterToPolygons...OK")
         # Individualize each patch with a number
         AdeqBin2$ID <- 1:length(AdeqBin2)
         # create a data.frame wiht coordinate and patch number
         AdeqPoints <- rasterToPoints(AdeqBin)[,1:2]
-        print("RasterToPoints...OK")
         AdeqPoints <- cbind(AdeqPoints, ID=extract(AdeqBin2, AdeqPoints)[,'ID'])
-        print("Cbind Extract...OK")
         # Find the patches that contain presences records
+        newList <- list("AdeqBin2" = AdeqBin2, "pts1" = pts1)
+        return(newList)
         polypoint<-intersect(AdeqBin2,pts1)
-        print("Intersect...OK")
         if(cutoff=="Pres"){
           Mask2 <- Adeq
           Msk <- rasterize(polypoint,Adeq,background=0)
@@ -177,7 +175,6 @@ MSDM_Posterior <- function(RecordsData,
         DistBetweenPoly0 <- expand.grid(npatch1, npatch2)
         DistBetweenPoly0$Distance <- NA
         DistBetweenPoly0 <- as.matrix(DistBetweenPoly0)
-        print("Distance...OK")
         # Euclidean Distance between patches wiht and without presences 
         for(i in 1:nrow(DistBetweenPoly0)){
           comb <- (DistBetweenPoly0[i,1:2])
@@ -204,7 +201,7 @@ MSDM_Posterior <- function(RecordsData,
         # Adding value of distance patches to cells
         AdeqBin2$Eucldist <- 0
         AdeqBin2$Eucldist[!AdeqBin2$ID%in%filter1] <- round(DistBetweenPoly, 4)
-        print("Second Distance....Ok")
+
         # CUTOFF------
         if(cutoff=='MaxMin'){
         # Cutoff based on the maximum value of the minimum distance
