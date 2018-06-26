@@ -50,6 +50,9 @@ MSDM_Posterior <- function(RecordsData,
     print(paste(s, "from", length(SpNames),":", SpNames[s]))
     # Read the raster of the species
     Adeq <- raster(RasterList[RasterList[,"sp"]==SpNames[s],'RasterList'])
+    if(is.na(crs(Adeq))){
+      crs(Adeq) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+    }
 
     # Extract values for one species and calculate the threshold
     SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
