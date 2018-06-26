@@ -131,8 +131,6 @@ MSDM_Posterior <- function(RecordsData,
         AdeqPoints <- rasterToPoints(AdeqBin)[,1:2]
         AdeqPoints <- cbind(AdeqPoints, ID=extract(AdeqBin2, AdeqPoints)[,'ID'])
         # Find the patches that contain presences records
-        newList <- list("AdeqBin2" = AdeqBin2, "pts1" = pts1)
-        return(newList)
         polypoint<-intersect(AdeqBin2,pts1)
         if(cutoff=="Pres"){
           Mask2 <- Adeq
