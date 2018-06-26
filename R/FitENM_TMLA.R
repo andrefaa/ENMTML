@@ -331,7 +331,7 @@ FitENM_TMLA <- function(RecordsData,
       PAtestM <- list()
       for (i in 1:N) {
         PAtrainM[[i]] <- SpDataTM[SpDataTM[, "Partition"] == i, ]
-        PAtestM[[i]] <- SpDataTM[SpDataTM[, "Partition"] != i, ]
+        PAtestM[[i]] <- SpDataT[SpDataT[, "Partition"] != i, ]
       }
       if(Part%in%c("boot","cross")){
         PAtestM <- PAtest
