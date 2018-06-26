@@ -1527,7 +1527,7 @@ FitENM_TMLA <- function(RecordsData,
       #Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
-        PredPoint <- predict(Model, SpData[, VarColT])
+        PredPoint <- predict(Model, SpDataT[, VarColT])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2]))
