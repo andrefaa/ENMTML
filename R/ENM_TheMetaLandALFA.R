@@ -825,7 +825,7 @@ ENMs_TheMetaLand<-function(Dir,
         FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                     Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                     SaveFinal=SaveFinal,per=per,repl=k)
-        return(ras)
+        
       #7.10. Create Occurrence Table for Replicates----
         if(rep!=1 || Part=="cross"){
           occTREINO[[k]] <- occINPUT[occINPUT$Partition==1,]
