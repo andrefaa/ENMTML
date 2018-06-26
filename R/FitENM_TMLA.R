@@ -490,7 +490,7 @@ FitENM_TMLA <- function(RecordsData,
         Boyce <- list()
         for (i in 1:N) {
           # RastPart[["MXD"]][[i]] <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
-          RastPart[["MXD"]][[i]] <- c(predict(Model[[i]], PAtestM[[i]][, VarCol], clamp=F, type="cloglog"))
+          RastPart[["MXD"]][[i]] <- c(predict(Model[[i]], PAtestM[[i]][, VarColT], clamp=F, type="cloglog"))
           # PredPoint <- extract(RastPart[["MXD"]][[i]], PAtestM[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["MXD"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -551,7 +551,7 @@ FitENM_TMLA <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- maxnet(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
                             maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
-          PredPoint <- c(predict(Model, SpDataTM[, VarCol], clamp=F, type="cloglog"))
+          PredPoint <- c(predict(Model, SpDataTM[, VarColT], clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                            PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -628,7 +628,7 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["MXS"]][[i]] <- c(predict(Model[[i]],PAtestM[[i]][, VarCol],clamp=F, type="cloglog"))
+          RastPart[["MXS"]][[i]] <- c(predict(Model[[i]],PAtestM[[i]][, VarColT],clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["MXS"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -686,7 +686,7 @@ FitENM_TMLA <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
                             maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
-          PredPoint <- c(predict(Model, SpDataTM[, VarCol], clamp=F, type="cloglog"))
+          PredPoint <- c(predict(Model, SpDataTM[, VarColT], clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                            PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -758,8 +758,8 @@ FitENM_TMLA <- function(RecordsData,
       #MLK model
       for (i in 1:N) {
         # dataPr <- PAtrain[[i]][, c("x", "y")]
-        x <- PAtrain[[i]][PAtrain[[i]][,"PresAbse"]==1, VarCol]
-        z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarCol]
+        x <- PAtrain[[i]][PAtrain[[i]][,"PresAbse"]==1, VarColT]
+        z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
         # Model[[i]] <- maxlike(Fmula, stack(vars), dataPr,
         #                       link=c("logit"),savedata=T,
         #                       hessian = TRUE, removeDuplicates=FALSE)
@@ -773,7 +773,7 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["MLK"]][[i]] <- c(predict(Model[[i]], PAtest[[i]][, VarCol]))
+          RastPart[["MLK"]][[i]] <- c(predict(Model[[i]], PAtest[[i]][, VarColT]))
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MLK"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -829,12 +829,12 @@ FitENM_TMLA <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          x <- SpDataT[SpDataT[,"PresAbse"]==1, VarCol]
-          z <- SpDataT[SpDataT[,"PresAbse"]==0, VarCol]
+          x <- SpDataT[SpDataT[,"PresAbse"]==1, VarColT]
+          z <- SpDataT[SpDataT[,"PresAbse"]==0, VarColT]
           Model <- maxlike(Fmula,x=x,z=z,
                                 link=c("logit"),
                                 hessian = TRUE, removeDuplicates=FALSE)
-          PredPoint <- predict(Model, SpDataT[, VarCol])
+          PredPoint <- predict(Model, SpDataT[, VarColT])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -914,7 +914,7 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["SVM"]][[i]] <- as.numeric(kernlab::predict(object=Model[[i]], newdata=PAtest[[i]][, VarCol],type="probabilities")[,2])
+          RastPart[["SVM"]][[i]] <- as.numeric(kernlab::predict(object=Model[[i]], newdata=PAtest[[i]][, VarColT],type="probabilities")[,2])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["SVM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -973,7 +973,7 @@ FitENM_TMLA <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
                         kernel = "rbfdot",C = 1, prob.model=T)
-          PredPoint <- as.numeric(kernlab::predict(object=Model, newdata=SpDataT[, VarCol],type="probabilities")[,2])
+          PredPoint <- as.numeric(kernlab::predict(object=Model, newdata=SpDataT[, VarColT],type="probabilities")[,2])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1051,7 +1051,7 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarCol]))
+          RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT]))
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["RDF"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1111,7 +1111,7 @@ FitENM_TMLA <- function(RecordsData,
           set.seed(0)
           Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
                           stepFactor=2, ntreeTry=500, doBest=T, plot = F)    
-          PredPoint <- predict(Model, SpDataT[, VarCol])
+          PredPoint <- predict(Model, SpDataT[, VarColT])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1192,7 +1192,7 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["GAM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarCol],type="response"))
+          RastPart[["GAM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT],type="response"))
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GAM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1251,7 +1251,7 @@ FitENM_TMLA <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- gam(Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
                        select = T, family = binomial)
-          PredPoint <- c(predict(Model, SpDataT[, VarCol],type="response"))
+          PredPoint <- c(predict(Model, SpDataT[, VarColT],type="response"))
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1331,7 +1331,7 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["GLM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarCol],type="response"))
+          RastPart[["GLM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT],type="response"))
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GLM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1391,7 +1391,7 @@ FitENM_TMLA <- function(RecordsData,
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family = binomial)
-          PredPoint <- c(predict(Model, SpDataT[, VarCol],type="response"))
+          PredPoint <- c(predict(Model, SpDataT[, VarColT],type="response"))
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1468,7 +1468,7 @@ FitENM_TMLA <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       for (i in 1:N) {
-        RastPart[["GAU"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarCol])
+        RastPart[["GAU"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
         RastPart[["GAU"]][[i]] <- as.vector(RastPart[["GAU"]][[i]][,"posterior mode"])
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GAU"]][[i]])
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
@@ -1527,7 +1527,7 @@ FitENM_TMLA <- function(RecordsData,
       #Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
-        PredPoint <- predict(Model, SpData[, VarCol])
+        PredPoint <- predict(Model, SpData[, VarColT])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2]))
