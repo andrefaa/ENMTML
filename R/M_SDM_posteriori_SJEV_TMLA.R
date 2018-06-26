@@ -127,10 +127,12 @@ MSDM_Posterior <- function(RecordsData,
         AdeqBin2$ID <- 1:length(AdeqBin2)
         # create a data.frame wiht coordinate and patch number
         AdeqPoints <- rasterToPoints(AdeqBin)[,1:2]
+        print("RasterToPoints...OK")
         AdeqPoints <- cbind(AdeqPoints, ID=extract(AdeqBin2, AdeqPoints)[,'ID'])
+        print("Cbind Extract...OK")
         # Find the patches that contain presences records
         polypoint<-intersect(AdeqBin2,pts1)
-        print("Second Extract and Intersect")
+        print("Intersect...OK")
         if(cutoff=="Pres"){
           Mask2 <- Adeq
           Msk <- rasterize(polypoint,Adeq,background=0)
