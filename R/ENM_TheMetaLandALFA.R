@@ -822,7 +822,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
           
       #7.9. Run FitENM----
-        ras <- FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
+        FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                     Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                     SaveFinal=SaveFinal,per=per,repl=k)
         return(ras)
