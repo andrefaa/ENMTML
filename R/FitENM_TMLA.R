@@ -352,7 +352,7 @@ FitENM_TMLA <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["BIO"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarCol])
+          RastPart[["BIO"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BIO"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -411,7 +411,7 @@ FitENM_TMLA <- function(RecordsData,
       # Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-        PredPoint <- predict(Model, SpDataT[, VarCol])
+        PredPoint <- predict(Model, SpDataT[, VarColT])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                          PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -830,7 +830,7 @@ FitENM_TMLA <- function(RecordsData,
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           x <- SpDataT[SpDataT[,"PresAbse"]==1, VarColT]
-          z <- SpDataT[SpDataT[,"PresAbse"]==0, VarColT]
+          z <- SpDataTM[SpDataTM[,"PresAbse"]==0, VarColT]
           Model <- maxlike(Fmula,x=x,z=z,
                                 link=c("logit"),
                                 hessian = TRUE, removeDuplicates=FALSE)
