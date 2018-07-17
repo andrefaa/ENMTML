@@ -911,7 +911,7 @@ ENMs_TheMetaLand<-function(Dir,
         }
         for(i in 1:length(DirPost)){
           print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
-          MSDM_Posterior(RecordsData=occINPUT,Threshold=Thr,cutoff=Q0,PredictType=ENS,
+          MSDM_Posterior(RecordsData=occ_xy,Threshold=Thr,cutoff=Q0,PredictType=ENS,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
       }else{
@@ -924,7 +924,7 @@ ENMs_TheMetaLand<-function(Dir,
         }
         for(i in 1:length(DirPost)){
           print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
-          MSDM_Posterior(RecordsData=occINPUT,Threshold=Thr,cutoff=Q0,PredictType=ENS,
+          MSDM_Posterior(RecordsData=occ_xy,Threshold=Thr,cutoff=Q0,PredictType=ENS,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
       }
