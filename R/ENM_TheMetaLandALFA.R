@@ -382,9 +382,9 @@ ENMs_TheMetaLand<-function(Dir,
         if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
           warning("Partition Already Exist! Using pre-created partitions! ")
           setwd(DirB)
-          occT <- read.table(file.path(DirB,"OccBands.txt"),sep="\t",header=T)
-          occT[,4] <- as.numeric(occT[,4])
-          occT[,5] <- as.numeric(occT[,5])
+          occINPUT <- read.table(file.path(DirB,"OccBands.txt"),sep="\t",header=T)
+          occINPUT[,4] <- as.numeric(occINPUT[,4])
+          occINPUT[,5] <- as.numeric(occINPUT[,5])
         }else{
           if(PCA=="N"){
             envTT<-PCA_env_TMLA(envT,Dir)
@@ -413,11 +413,11 @@ ENMs_TheMetaLand<-function(Dir,
             DirM <- NULL
           }
           
-          occT <- BandsPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=bands,
+          occINPUT <- BandsPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=bands,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
                                       DirM=DirM,MRst=MRst,type=TipoMoran)
-          occT[,4] <- as.numeric(occT[,4])
-          occT[,5] <- as.numeric(occT[,5])
+          occINPUT[,4] <- as.numeric(occINPUT[,4])
+          occINPUT[,5] <- as.numeric(occINPUT[,5])
           rm(envTT)
         }
 
@@ -436,9 +436,9 @@ ENMs_TheMetaLand<-function(Dir,
         if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
           print("Partition Already Exist! Using pre-created partitions! ")
           setwd(DirB)
-          occT <- read.table(file.path(DirB,"OccBlocks.txt"),sep="\t",header=T)
-          occT[,4] <- as.numeric(occT[,4])
-          occT[,5] <- as.numeric(occT[,5])
+          occINPUT <- read.table(file.path(DirB,"OccBlocks.txt"),sep="\t",header=T)
+          occINPUT[,4] <- as.numeric(occINPUT[,4])
+          occINPUT[,5] <- as.numeric(occINPUT[,5])
         }else{
           if(PCA=="N"){
             envTT<-PCA_env_TMLA(envT,Dir)
@@ -467,12 +467,12 @@ ENMs_TheMetaLand<-function(Dir,
             DirM <- NULL
           }
           
-          occT <- BlockPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=blocks,
+          occINPUT <- BlockPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=blocks,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
                                       DirM = DirM,MRst=MRst,type=TipoMoran)
 
-          occT[,4] <- as.numeric(occT[,4])
-          occT[,5] <- as.numeric(occT[,5])
+          occINPUT[,4] <- as.numeric(occINPUT[,4])
+          occINPUT[,5] <- as.numeric(occINPUT[,5])
           rm(envTT)
         }
       }
@@ -513,7 +513,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #6.5. Fit ENM for Geographical Partition
-      FitENM_TMLA(RecordsData=occT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
+      FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                   Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                   SaveFinal=SaveFinal,repl=NULL,per=NULL)
     }
@@ -911,7 +911,7 @@ ENMs_TheMetaLand<-function(Dir,
         }
         for(i in 1:length(DirPost)){
           print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
-          MSDM_Posterior(RecordsData=occ_xy,Threshold=Thr,cutoff=Q0,PredictType=ENS,
+          MSDM_Posterior(RecordsData=occINPUT,Threshold=Thr,cutoff=Q0,PredictType=ENS,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
       }else{
@@ -924,7 +924,7 @@ ENMs_TheMetaLand<-function(Dir,
         }
         for(i in 1:length(DirPost)){
           print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
-          MSDM_Posterior(RecordsData=occ_xy,Threshold=Thr,cutoff=Q0,PredictType=ENS,
+          MSDM_Posterior(RecordsData=occINPUT,Threshold=Thr,cutoff=Q0,PredictType=ENS,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
       }
