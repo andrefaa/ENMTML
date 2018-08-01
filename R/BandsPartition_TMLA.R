@@ -128,7 +128,8 @@ BandsPartition_TMLA <- function(evnVariables,
               msk[,y] <- 1;
               print("Deu valor de 1 a y")
             }
-            msk[evnVariables[[1]]%in%NA]<-NA
+            print("saiu no for de y")
+            msk[][is.na(evnVariables[[1]][])]<-NA
             print("valores NA")
           }else{
             y1<-ncol(msk)-floor((axfin-msk@extent[1])/xres(msk))
