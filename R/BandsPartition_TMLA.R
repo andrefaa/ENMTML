@@ -102,7 +102,6 @@ BandsPartition_TMLA <- function(evnVariables,
     }
     
     resOpt[[x]] <- cbind(names(RecordsData)[x],Opt2)
-    print("Achou o ótimo!")
 
     #Create Bands Mask
     
@@ -110,7 +109,6 @@ BandsPartition_TMLA <- function(evnVariables,
       msk[!is.na(msk[,])] <- 0
 
       quad <- Opt2$Partition
-      print("Pre-Criacao da Mascara do Otimo!")
         
       for (segm in 1:quad){
         axfin <- min(RecordsData.s[,N])+((max(RecordsData.s[,N])-min(RecordsData.s[,N]))/quad)*segm
@@ -118,7 +116,7 @@ BandsPartition_TMLA <- function(evnVariables,
         
         RecordsData.s[RecordsData.s[,N]>=axin & RecordsData.s[,N]<=axfin, "Seg"] <- segm
         
-        if(N==1){
+        if(N%in%1){
           if (((segm/2)-round(segm/2))!=0){
             y1<-ncol(msk)-floor((axfin-msk@extent[1])/xres(msk))
             y0<-ncol(msk)-floor((axin-msk@extent[1])/xres(msk))
@@ -139,7 +137,7 @@ BandsPartition_TMLA <- function(evnVariables,
           }
         }
         
-        if(N==2){
+        if(N%in%2){
           if (((segm/2)-round(segm/2))!=0){
             y1<-nrow(msk)-floor((axfin-msk@extent[3])/yres(msk))
             y0<-nrow(msk)-floor((axin-msk@extent[3])/yres(msk))
@@ -160,7 +158,7 @@ BandsPartition_TMLA <- function(evnVariables,
           }
         }
       }
-      print("Criou a mascara correta!")
+
       RecordsData.s <- cbind(RecordsData.s,ifelse((RecordsData.s$Seg/2)%%1,1,2))
       RecordsData.s <- cbind(rep(names(RecordsData)[x],nrow(RecordsData.s)),RecordsData.s)
       colnames(RecordsData.s) <- c("sp","x","y","Seg","Partition")
