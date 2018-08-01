@@ -138,7 +138,7 @@ BandsPartition_TMLA <- function(evnVariables,
             for (y in y1:y0){
               msk[,y] <- 2;
             }
-            msk[evnVariables[[1]]%in%NA] <- NA
+            msk[][is.na(evnVariables[[1]][])]<-NA
           }
         }
         
@@ -150,7 +150,7 @@ BandsPartition_TMLA <- function(evnVariables,
             for (y in y1:y0){
               msk[y,] <- 1;
             }
-            msk[evnVariables[[1]]%in%NA]<-NA
+            msk[][is.na(evnVariables[[1]][])]<-NA
 
           }else{
             y1<-nrow(msk)-floor((axfin-msk@extent[3])/yres(msk))
@@ -159,7 +159,7 @@ BandsPartition_TMLA <- function(evnVariables,
             for (y in y1:y0){
               msk[y,] <- 2;
             }
-            msk[evnVariables[[1]]%in%NA]<-NA
+            msk[][is.na(evnVariables[[1]][])]<-NA
           }
         }
       }
