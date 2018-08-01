@@ -122,12 +122,14 @@ BandsPartition_TMLA <- function(evnVariables,
             print("entrou no if de segmentos")
             y1<-ncol(msk)-floor((axfin-msk@extent[1])/xres(msk))
             y0<-ncol(msk)-floor((axin-msk@extent[1])/xres(msk))
-            
+            print("y1 e y0 FOUND!")
             for (y in y1:y0){
+              print("entrou no for de y")
               msk[,y] <- 1;
+              print("Deu valor de 1 a y")
             }
             msk[evnVariables[[1]]%in%NA]<-NA
-            
+            print("valores NA")
           }else{
             y1<-ncol(msk)-floor((axfin-msk@extent[1])/xres(msk))
             y0<-ncol(msk)-floor((axin-msk@extent[1])/xres(msk))
