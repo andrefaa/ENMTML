@@ -115,9 +115,11 @@ BandsPartition_TMLA <- function(evnVariables,
         axin <- min(RecordsData.s[,N])+((max(RecordsData.s[,N])-min(RecordsData.s[,N]))/quad)*(segm-1)
         
         RecordsData.s[RecordsData.s[,N]>=axin & RecordsData.s[,N]<=axfin, "Seg"] <- segm
-        
+        print("axfin e axmin FOUND!")
         if(N%in%1){
+          print("entrou no if de sentido de bandas")
           if (((segm/2)-round(segm/2))!=0){
+            print("entrou no if de segmentos")
             y1<-ncol(msk)-floor((axfin-msk@extent[1])/xres(msk))
             y0<-ncol(msk)-floor((axin-msk@extent[1])/xres(msk))
             
