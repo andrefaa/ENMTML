@@ -75,26 +75,42 @@ BandsPartition_TMLA <- function(evnVariables,
     names(opt) <- names(res.t)
     
     # SELLECTION OF THE BEST NUMBER OF BANDS----
-    Opt <- opt
-    while (nrow(Opt) > 1) {
+    Opt2 <- opt
+    Dup <- !duplicated(Opt2[c("Imoran.Grid.P","Mess.Grid.P","Sd.Grid.P")])
+    Opt2 <- Opt2[Dup,]
+    
+    while (nrow(Opt2) > 1) {
       # I MORAN
-      if (nrow(Opt) == 1) break
-      Opt <- Opt[which(Opt$Moran <= summary(Opt$Moran)[2]),]
-      if (nrow(Opt) == 1) break
+      if (nrow(Opt2) == 1) break
+      Opt2 <- Opt2[which(Opt2$Moran <= summary(Opt2$Moran)[2]),]
+      if (nrow(Opt2) == 1) break
       # MESS
-      Opt <- opt[which(Opt$MESS >= summary(Opt$MESS)[5]),]
-      if (nrow(Opt) == 1) break
+      Opt2 <- Opt2[which(Opt2$MESS >= summary(Opt2$MESS)[5]),]
+      if (nrow(Opt2) == 1) break
       # SD
-       Opt <- Opt[which(Opt$Sd <= summary(Opt$Sd)[2]),]
+       Opt2 <- Opt2[which(Opt2$Sd <= summary(Opt2$Sd)[2]),]
+       
+       if(nrow(Opt2)==2) break
+       
+       if(unique(Opt2$Imoran.Grid.P) && unique(Opt2$Mess.Grid.P) && unique(Opt2$Sd.Grid.P)){
+         Opt2 <- Opt2[nrow(Opt2),]
+       }
     }
-    resOpt[[x]] <- cbind(names(RecordsData)[x],Opt)
+    
+    if(nrow(Opt2)>1){
+      Opt2 <- Opt2[nrow(Opt2),]
+    }
+    
+    resOpt[[x]] <- cbind(names(RecordsData)[x],Opt2)
+    print("Achou o ótimo!")
 
     #Create Bands Mask
     
       msk<-evnVariables[[1]]
       msk[!is.na(msk[,])] <- 0
 
-      quad <- Opt$Partition
+      quad <- Opt2$Partition
+      print("Pre-Criacao da Mascara do Otimo!")
         
       for (segm in 1:quad){
         axfin <- min(RecordsData.s[,N])+((max(RecordsData.s[,N])-min(RecordsData.s[,N]))/quad)*segm
@@ -144,13 +160,14 @@ BandsPartition_TMLA <- function(evnVariables,
           }
         }
       }
+      print("Criou a mascara correta!")
       RecordsData.s <- cbind(RecordsData.s,ifelse((RecordsData.s$Seg/2)%%1,1,2))
       RecordsData.s <- cbind(rep(names(RecordsData)[x],nrow(RecordsData.s)),RecordsData.s)
       colnames(RecordsData.s) <- c("sp","x","y","Seg","Partition")
       RecordsData.s <- RecordsData.s[,c("sp","x","y","Partition")]
       RecordsData.s <- cbind(RecordsData.s, rep(1,nrow(RecordsData.s)))
       colnames(RecordsData.s) <- c("sp","x","y","Partition","PresAbse")
-      
+      print("Criou a tabela!")
       msk[msk%in%0] <-  NA      #ASC with the ODD-EVEN quadrants
       writeRaster(msk,paste(DirSave,paste(names(RecordsData)[x],".tif",sep=""),sep="\\"),
                   format="GTiff",NAflag = -9999,overwrite=T)
