@@ -76,7 +76,7 @@ BandsPartition_TMLA <- function(evnVariables,
     
     # SELLECTION OF THE BEST NUMBER OF BANDS----
     Opt2 <- opt
-    Dup <- !duplicated(Opt2[c("Imoran.Grid.P","Mess.Grid.P","Sd.Grid.P")])
+    Dup <- !duplicated(Opt2[c("Moran","MESS","SD")])
     Opt2 <- Opt2[Dup,]
     
     while (nrow(Opt2) > 1) {
