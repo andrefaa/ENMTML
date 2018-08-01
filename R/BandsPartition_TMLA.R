@@ -115,22 +115,15 @@ BandsPartition_TMLA <- function(evnVariables,
         axin <- min(RecordsData.s[,N])+((max(RecordsData.s[,N])-min(RecordsData.s[,N]))/quad)*(segm-1)
         
         RecordsData.s[RecordsData.s[,N]>=axin & RecordsData.s[,N]<=axfin, "Seg"] <- segm
-        print("axfin e axmin FOUND!")
+        
         if(N%in%1){
-          print("entrou no if de sentido de bandas")
           if (((segm/2)-round(segm/2))!=0){
-            print("entrou no if de segmentos")
             y1<-ncol(msk)-floor((axfin-msk@extent[1])/xres(msk))
             y0<-ncol(msk)-floor((axin-msk@extent[1])/xres(msk))
-            print("y1 e y0 FOUND!")
             for (y in y1:y0){
-              print("entrou no for de y")
               msk[,y] <- 1;
-              print("Deu valor de 1 a y")
             }
-            print("saiu no for de y")
             msk[][is.na(evnVariables[[1]][])]<-NA
-            print("valores NA")
           }else{
             y1<-ncol(msk)-floor((axfin-msk@extent[1])/xres(msk))
             y0<-ncol(msk)-floor((axin-msk@extent[1])/xres(msk))
@@ -170,8 +163,7 @@ BandsPartition_TMLA <- function(evnVariables,
       RecordsData.s <- RecordsData.s[,c("sp","x","y","Partition")]
       RecordsData.s <- cbind(RecordsData.s, rep(1,nrow(RecordsData.s)))
       colnames(RecordsData.s) <- c("sp","x","y","Partition","PresAbse")
-      print("Criou a tabela!")
-      msk[msk%in%0] <-  NA      #ASC with the ODD-EVEN quadrants
+      msk[msk[]==0] <-  NA      #ASC with the ODD-EVEN quadrants
       writeRaster(msk,paste(DirSave,paste(names(RecordsData)[x],".tif",sep=""),sep="\\"),
                   format="GTiff",NAflag = -9999,overwrite=T)
       
