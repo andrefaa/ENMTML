@@ -685,7 +685,7 @@ ENMs_TheMetaLand<-function(Dir,
             absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(0,nrow(x))))
             absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x))))
             absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(0,nrow(x))))
-            if(is.null(k) && per==1){
+            if(is.null(k) && per==1 && Tst=="N"){
               for(i in 1:length(absencesTS)){
                 absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
               }
@@ -770,7 +770,7 @@ ENMs_TheMetaLand<-function(Dir,
             }
             absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
             absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
-            if(is.null(k) && per==1){
+            if(is.null(k) && per==1 && Tst=="N"){
               for(i in 1:length(absencesTS)){
                 absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
               }
