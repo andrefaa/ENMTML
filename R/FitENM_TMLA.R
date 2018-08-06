@@ -1632,7 +1632,7 @@ FitENM_TMLA <- function(RecordsData,
             for(o in 1:length(ListFut[[p]])){
               Thr <- SpThr[SpThr$Algorithm==names(ListFut[[p]])[o], 'Threshold']
                 writeRaster(ListFut[[p]][[o]]>=Thr, 
-                            file.path(ModFut[p],Algorithm[o],"BIN",paste(spN[s],sep="_")),
+                            file.path(ModFut[p],Algorithm[o],"BIN",paste0(spN[s],".tif")),
                             format='GTiff',
                             overwrite=TRUE)
               writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],Algorithm[o],spN[s]),
@@ -1733,7 +1733,7 @@ FitENM_TMLA <- function(RecordsData,
                       format='GTiff',
                       overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        paste(DirMeanCat, '/',spN[s],"_",".tif", sep=""),
+                        paste(DirMeanCat, '/',spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
         }
@@ -1742,7 +1742,7 @@ FitENM_TMLA <- function(RecordsData,
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
             Final <- brick(ListFut[[p]])
-            Final <- STANDAR(round(mean(Final),4))
+            Final <- calc(Final,mean)
             
             writeRaster(Final, 
                         file.path(ModFut[p],"ENS","Mean",spN[s]),
@@ -1856,7 +1856,7 @@ FitENM_TMLA <- function(RecordsData,
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
             Final <- brick(ListFut[[p]][W])
-            Final <- STANDAR(round(mean(Final),4))
+            Final <- calc(Final,mean)
             
             writeRaster(Final, 
                         file.path(ModFut[p],"ENS","Sup",paste(spN[s],sep="_")),
