@@ -394,6 +394,17 @@ FitENM_TMLA <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
             }
+          }
+          if(is.null(repl)==F){
+            writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                        format='GTiff',
+                        overwrite=TRUE)
+            for(p in 1:length(Thr)){
+              writeRaster(PartRas>=Thr[p], 
+                          paste(grep("BIO",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+            }
           }else{
             writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
                         format='GTiff',
@@ -533,6 +544,17 @@ FitENM_TMLA <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
               }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MXD",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
             }else{
               writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
@@ -665,6 +687,17 @@ FitENM_TMLA <- function(RecordsData,
               for(p in 1:length(Thr)){
                 writeRaster(PartRas>=Thr[p], 
                             paste(grep("MXS",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MXS",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -813,6 +846,17 @@ FitENM_TMLA <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
               }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MLK",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
             }else{
               writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
@@ -955,6 +999,17 @@ FitENM_TMLA <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
               }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("SVM",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
             }else{
               writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
@@ -1089,6 +1144,17 @@ FitENM_TMLA <- function(RecordsData,
               for(p in 1:length(Thr)){
                 writeRaster(PartRas>=Thr[p], 
                             paste(grep("RDF",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("RDF",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -1233,6 +1299,17 @@ FitENM_TMLA <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
               }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("GAM",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
             }else{
               writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
@@ -1374,6 +1451,17 @@ FitENM_TMLA <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
               }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("GLM",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
             }else{
               writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
@@ -1507,6 +1595,17 @@ FitENM_TMLA <- function(RecordsData,
             for(p in 1:length(Thr)){
               writeRaster(PartRas>=Thr[p], 
                           paste(grep("GAU",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+            }
+          }
+          if(is.null(repl)==F){
+            writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                        format='GTiff',
+                        overwrite=TRUE)
+            for(p in 1:length(Thr)){
+              writeRaster(PartRas>=Thr[p], 
+                          paste(grep("GAU",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
