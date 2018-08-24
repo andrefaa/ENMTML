@@ -127,8 +127,9 @@ M_delimited <- function(var,
         cl <- makeCluster(detectCores()-1)
         registerDoParallel(cl)
         foreach(i = 1:length(sp.Ecoregions), .packages = c("raster")) %dopar% {
-          EcoregionSp <- EcoregionsFile%in%sp.Ecoregions[[i]]
-          EcoregionSp[EcoregionSp[]==0] <- NA
+          EcoregionSp <-EcoregionsFile
+          EcoregionSp[!EcoregionSp[]%in%sp.Ecoregions[[i]]] <- NA
+          EcoregionSp <- EcoregionSp>0
           # EcoregionSp <- crop(EcoregionSp,extent(rasterToPoints(EcoregionSp)[,-3]))
           writeRaster(EcoregionSp,paste(Dir_M,paste(names(sp.Ecoregions[i]),".tif",sep=""),sep="/"),format="GTiff",overwrite=T)  
         }

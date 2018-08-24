@@ -194,7 +194,7 @@ ENMs_TheMetaLand<-function(Dir,
 #   source("C:\\Scripts_for_ENM_TheMetaLand\\ecospat_boyce_TMLA.R")
   
 #3.Predictors ----
-  options(warn=1)
+  options(warn=-1)
   setwd(Dir)
   
   env <- unique(file_ext(list.files()))
