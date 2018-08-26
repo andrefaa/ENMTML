@@ -664,7 +664,7 @@ ENMs_TheMetaLand<-function(Dir,
               if(MRst=="Y"){
                 SpMask <- raster(file.path(DirM,paste0(names(occTR)[s],".tif")))
                 SpMask <- pseudo.mask*SpMask
-                if(sum(is.na(SpMask[])==F)<(PabR*nrow(occTR[[i]]))){
+                if(sum(is.na(SpMask[])==F)<(PabR*nrow(occTR[[s]]))){
                   warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences") 
                   stop("Please try again with another restriction type or without restricting the extent")
                   
