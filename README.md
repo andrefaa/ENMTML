@@ -10,6 +10,10 @@ Please follow the "installation" instructions
 **3.** install_github("andrefaa/ENM_TheMetaLand")  
 **4.** library(ENMTheMetaLand)  
 
+**FOR NEW USERS**  
+**5.**install_github('GRaF', 'goldingn')  
+**6.**library(GRaF)
+
 ## Run
 ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",Tst="",MRst="",PabR=,PabM="",
                   Part="",SavePart="N",SaveFinal="Y",Alg=c(),Thr="",MSDM="",ENS=c())
