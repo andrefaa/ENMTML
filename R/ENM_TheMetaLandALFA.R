@@ -393,11 +393,9 @@ ENMs_TheMetaLand<-function(Dir,
           }else{
             DirM <- NULL
           }
-          Ti <- Sys.time()
           occINPUT <- BandsPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=bands,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
                                       DirM=DirM,MRst=MRst,type=TipoMoran)
-          Tf <- Sys.time()-Ti
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
           rm(envTT)
@@ -448,11 +446,9 @@ ENMs_TheMetaLand<-function(Dir,
           }else{
             DirM <- NULL
           }
-          Ti <- Sys.time()
           occINPUT <- BlockPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=blocks,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
                                       DirM = DirM,MRst=MRst,type=TipoMoran)
-          Tf <- Sys.time()-Ti
 
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
@@ -495,11 +491,9 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #6.5. Fit ENM for Geographical Partition
-      Ti <- Sys.time()
-      FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
+      FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                   Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                   SaveFinal=SaveFinal,repl=NULL,per=NULL)
-      Tf <- Sys.time()-Ti
     }
     
 #7.Random Partition----
@@ -806,11 +800,9 @@ ENMs_TheMetaLand<-function(Dir,
       }
           
       #7.9. Run FitENM----
-        Ti <- Sys.time()  
         FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                     Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                     SaveFinal=SaveFinal,per=per,repl=k)
-        Tf <- Sys.time()-Ti
         
       #7.10. Create Occurrence Table for Replicates----
         if(rep!=1 || Part=="cross"){
