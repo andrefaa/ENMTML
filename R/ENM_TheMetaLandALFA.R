@@ -166,32 +166,12 @@ ENMs_TheMetaLand<-function(Dir,
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools"))
    
-# #2.Load Auxiliary Functions ----
-#   
-#   if (file.exists("C:\\Scripts_for_ENM_TheMetaLand")==F){
-#     stop("Place the folder 'Scripts_for_ENM_TheMetaLand' in C:")
-#   }
-#   # install_github("andrefaa/ENM_TheMetaLand",subdir="Scripts_for_ENM_TheMetaLand")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\PCA_env_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\PCA_ENS_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\Occ_Unicas_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\BandsPartition_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\BlockPartition_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\Moran_for_Quadrants_Pair_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\SUMMRES_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\predict.graf.raster_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\FitENM_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\MSDM_Priori_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\AuxiliaryFuncENM_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\M_SDM_posteriori_SJEV_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\PCAFuturo_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\ENS_Posterior_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\maxnet2_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\Moran_for_Bootstrap_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\Bootstrap_Moran_e_MESS_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\M_delimited_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\Validation2_0_TMLA.R")
-#   source("C:\\Scripts_for_ENM_TheMetaLand\\ecospat_boyce_TMLA.R")
+# #2.Start Cluster & Adjust Algorithm Names----
+  cl <- makeCluster(detectCores()-1)
+  registerDoParallel(cl)
+  
+  Ord <- c("BIO","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU")
+  Alg <- Ord[Ord%in%Alg]
   
 #3.Predictors ----
   options(warn=-1)
@@ -316,6 +296,7 @@ ENMs_TheMetaLand<-function(Dir,
   occ_xy <- split(occ[,-1],f=occ$sp)
   spN<-names(occ_xy)
   
+  
     #4.1.Unique Occurrences----
     occA<-Occ_Unicas_TMLA(env=envT[[1]],occ.xy=occ_xy,DirO=DirR)
     occ <- occA[sapply(occA,function (x) nrow(x)>=NMin)]
@@ -412,10 +393,11 @@ ENMs_TheMetaLand<-function(Dir,
           }else{
             DirM <- NULL
           }
-          
+          Ti <- Sys.time()
           occINPUT <- BandsPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=bands,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
                                       DirM=DirM,MRst=MRst,type=TipoMoran)
+          Tf <- Sys.time()-Ti
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
           rm(envTT)
@@ -466,10 +448,11 @@ ENMs_TheMetaLand<-function(Dir,
           }else{
             DirM <- NULL
           }
-          
+          Ti <- Sys.time()
           occINPUT <- BlockPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=blocks,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
                                       DirM = DirM,MRst=MRst,type=TipoMoran)
+          Tf <- Sys.time()-Ti
 
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
@@ -492,7 +475,6 @@ ENMs_TheMetaLand<-function(Dir,
           dir.create(file.path(Dir,DirMSDM))
           DirMSDM<-file.path(Dir,DirMSDM)
         }
-        
         DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT,MSDM=MSDM,DirMSDM=DirMSDM)
       }
 
@@ -513,9 +495,11 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #6.5. Fit ENM for Geographical Partition
+      Ti <- Sys.time()
       FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                   Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                   SaveFinal=SaveFinal,repl=NULL,per=NULL)
+      Tf <- Sys.time()-Ti
     }
     
 #7.Random Partition----
@@ -822,9 +806,11 @@ ENMs_TheMetaLand<-function(Dir,
       }
           
       #7.9. Run FitENM----
-        FitENM_TMLA(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
+        Ti <- Sys.time()  
+        FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                     Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                     SaveFinal=SaveFinal,per=per,repl=k)
+        Tf <- Sys.time()-Ti
         
       #7.10. Create Occurrence Table for Replicates----
         if(rep!=1 || Part=="cross"){
@@ -947,6 +933,6 @@ ENMs_TheMetaLand<-function(Dir,
 }
 
 
-# ENMs_TheMetaLand(Dir="C:\\OneDrive\\WorkshopENM_Ingrid\\Env\\CANESM2Solo\\PCA",
-#                  Sp="Species",x="Long",y="Lat",NMin=10,PCA="N",Proj="N",Tst="N",MRst="Y",PabR=1,PabM="const",
-#                  Part="boot",SavePart="Y",SaveFinal="Y",Alg=c("BIO","MLK","GLM","GAM","MXD","MXS","GAU","SVM","RDF"),Thr="spec_sens",MSDM="N",ENS=c("Sup"))
+ENMs_TheMetaLand(Dir="C:/Users/decoa/OneDrive/WorkshopENM_Ingrid/Env/CANESM2Solo/PCA",
+                 Sp="Species",x="Long",y="Lat",NMin=10,PCA="N",Proj="Y",Tst="N",MRst="N",PabR=1,PabM="const",
+                 Part="boot",SavePart="N",SaveFinal="Y",Alg=c("BIO","MLK","GLM","GAM","MXS","GAU","SVM","RDF"),Thr="spec_sens",MSDM="N",ENS=c("Mean","Sup","PCA","PCA_Sup","PCA_Thr"))

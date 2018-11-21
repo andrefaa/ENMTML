@@ -37,12 +37,17 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   e<-extent(mask)
   
   # Loop for each species-----
-  ResultList <- list()
+  # ResultList <- rep(list(NULL),length(RecordsData))
   SpNames <- names(RecordsData)
-  BestGridList <- list()
+  # BestGridList <- rep(list(NULL),length(RecordsData))
+  
+  #Start Cluster
+  cl <- makeCluster(detectCores()-1)
+  registerDoParallel(cl)
   
   # LOOP----
-  for(s in 1:length(RecordsData)){
+  results <- foreach(s = 1:length(RecordsData), .packages = c("raster","modEvA","ape","dismo")) %dopar% {
+  # for(s in 1:length(RecordsData)){
   print(paste(s, SpNames[s]))
   # Extract coordinates----
   presences <- RecordsData[[s]]
@@ -382,17 +387,23 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     PresAbse <- rep(c(1, 0), sapply(list(presences, absences), nrow))
     result <- data.frame(Sp=SpNames[s], PresAbse, rbind(presences, absences), stringsAsFactors = F)
     result <- result[,c("Sp","x","y","Partition","PresAbse")]
+    
+    Opt2 <- data.frame(Sp=SpNames[s],Opt2)
 
   # Final data.frame result2----
-  ResultList[[s]]<- result
+    out <- list(ResultList= result,
+                BestGridList = Opt2)
+    return(out)
+  # ResultList<- result
   
-  BestGridList[[s]]<- Opt2
+  # BestGridList<- Opt2
   }
   
-  FinalResult <- ldply(ResultList)
+  FinalResult <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResultList"))))
+  FinalInfoGrid <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "BestGridList"))))
+  
   colnames(FinalResult) <- c("sp","x","y","Partition","PresAbse")
   write.table(FinalResult,paste(DirSave,"OccBlocks.txt",sep="\\"),sep="\t",row.names=F)
-  FinalInfoGrid <- ldply(BestGridList)
   write.table(FinalInfoGrid, paste(DirSave, "BestPartitions.txt", sep = '/'), sep="\t",
               col.names = T, row.names = F)
   

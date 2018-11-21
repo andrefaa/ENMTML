@@ -53,4 +53,11 @@
 -Fit_ENM>For PCA_Thr, occurrences in the test subset that are below the Threshold are transformed to 0! Previously, this analysis was made on all the cells of the Suitability rasters.
 -ENM_TheMetaLand>Due to being removed from CRAN and DLLs issues, package "ecospat" is no longer loaded; instead, we implemented a supplementary "ecospat_boyce_TMLA" function that is loaded as an auxiliary function
 -ENM_TheMetaLand>No longer need modifications to R.environ (N_MAX_DLLS), as package "ecospat" is no longer loaded
+
+###### 06/11/2018 ######
+-BlockPartition>Parallel Processing (~50% gain)
+-BandsPartition>Parallel Processing (~50% gain)
+-FitENM>Parallel Processing (>60% gain)
 #######################################
+
+

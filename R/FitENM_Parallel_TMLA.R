@@ -1,6 +1,6 @@
 ## Written by Santiago Velazco & Andre Andrade
 
-FitENM_TMLA <- function(RecordsData,
+FitENM_TMLA_Parallel <- function(RecordsData,
                    Variables,
                    Fut=NULL,
                    Part,
@@ -127,17 +127,17 @@ FitENM_TMLA <- function(RecordsData,
   # Number of partition
     N <- as.numeric(max(RecordsData[, "Partition"]))
       
-  # Lists for validation-----
-  for(i in 1:length(Algorithm)){
-    assign(paste("Validation_", Algorithm[i], sep=""),list())
-    assign(paste("Summary_", Algorithm[i], sep=""),list())
-  }
-  if(any(PredictType!="N")){
-    for(i in 1:length(PredictType)){
-      assign(paste("Validation_", PredictType[i], sep=""),list())
-    assign(paste("Summary_", PredictType[i], sep=""),list())
-    }
-  }  
+  # # Lists for validation-----
+  # for(i in 1:length(Algorithm)){
+  #   assign(paste("Validation_", Algorithm[i], sep=""),list())
+  #   assign(paste("Summary_", Algorithm[i], sep=""),list())
+  # }
+  # if(any(PredictType!="N")){
+  #   for(i in 1:length(PredictType)){
+  #     assign(paste("Validation_", PredictType[i], sep=""),list())
+  #   assign(paste("Summary_", PredictType[i], sep=""),list())
+  #   }
+  # }  
   
   #Txt of Final tables    
   if(is.null(repl)==F){
@@ -245,20 +245,34 @@ FitENM_TMLA <- function(RecordsData,
       cols <-  c("x","y","Partition","PresAbse",names(Variables))  
       RecordsDataM[,cols] = apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
     }
+   }
+  
+  
+  #Define N due to Partition Method
+  if(Part=="boot" || Part=="cross"){
+    N <- 1
+  }else{
+    N <- N
   }
   
-  # List of threshold
-  if (any(PredictType%in%c('Mean','Sup','PCA','PCASup','PCAThr'))) {
-    ThresholdPresent <- list()
-    THRNAME <- paste('Thresholds.txt', sep="")
-  }
-
   # Construction of models LOOP-----
-  for(s in 1:length(spN)){
+  results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
+                                                      "maxnet","maxlike","GRaF","ecospat","plyr","gam","RStoolbox"),
+                     .export=c("Validation2_0","SUMMRES","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA")) %dopar% {
+  #for(s in 1:length(spN)){
     print(paste(s, spN[s], Sys.time()))
     
+    #Results Lists                                       
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
+    
+    #Validation List
+    ListValidation <- as.list(Algorithm)
+    names(ListValidation) <- Algorithm
+    
+    #Summary List
+    ListSummary <- as.list(Algorithm)
+    names(ListSummary) <- Algorithm
     
     #Create lists for the future
     if(is.null(Fut)==F){
@@ -301,14 +315,7 @@ FitENM_TMLA <- function(RecordsData,
         SpDataTM <- SpDataM
       }
     }
-    
-    #Define N due to Partition Method
-    if(Part=="boot" || Part=="cross"){
-      N <- 1
-    }else{
-      N <- N
-    }
-    
+
     # List of models for partial models-----
     RastPart <- as.list(Algorithm)
     for(i in 1:length(RastPart)){
@@ -375,9 +382,9 @@ FitENM_TMLA <- function(RecordsData,
         Fcpb <- mean(unlist(res20["FCPB"]))
         Validation<-SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_BIO[[s]] <- data.frame(Sp=spN[s], Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["BIO"]] <- data.frame(Sp=spN[s], Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_BIO[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
       
       #Save Partition Predictions
@@ -429,9 +436,10 @@ FitENM_TMLA <- function(RecordsData,
         Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
         names(Thr) <- Threshold
         # Validation<-SUMMRES(Eval, 1, Thr)
-        Summary_BIO[[s]] <- data.frame(Sp=spN[s], Algorithm="BIO", Threshold=Thr)
+        ListSummary[["BIO"]] <- data.frame(Sp=spN[s], Algorithm="BIO", Threshold=Thr)
         if(SaveFinal=="Y"){
           ListRaster[["BIO"]] <- STANDAR(predict(Model, VariablesT))
+          names(ListRaster[["BIO"]]) <- spN[s]
         }
         if(is.null(Fut)==F){
           for(k in 1:length(VariablesP)){
@@ -477,9 +485,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_BIO[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_BIO[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -525,9 +533,9 @@ FitENM_TMLA <- function(RecordsData,
   
         Validation <- SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_MXD[[s]] <- data.frame(Sp=spN[s], Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["MXD"]] <- data.frame(Sp=spN[s], Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_MXD[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
         
         #Save Partition Predictions
@@ -580,9 +588,10 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
-          Summary_MXD[[s]] <- data.frame(Sp = spN[s], Algorithm = "MXD", Threshold=Thr)
+          ListSummary[["MXD"]] <- data.frame(Sp = spN[s], Algorithm = "MXD", Threshold=Thr)
           if(SaveFinal=="Y"){
             ListRaster[["MXD"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            names(ListRaster[["MXD"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
@@ -628,9 +637,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_MXD[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_MXD[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -672,9 +681,9 @@ FitENM_TMLA <- function(RecordsData,
         
         Validation <- SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_MXS[[s]] <- data.frame(Sp=spN[s], Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["MXS"]] <- data.frame(Sp=spN[s], Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_MXS[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
         #Save Partition Predictions
         if(Save=="Y"){
@@ -726,9 +735,10 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
-          Summary_MXS[[s]] <- data.frame(Sp = spN[s], Algorithm = "MXS", Threshold=Thr)
+          ListSummary[["MXS"]] <- data.frame(Sp = spN[s], Algorithm = "MXS", Threshold=Thr)
           if(SaveFinal=="Y"){
             ListRaster[["MXS"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            names(ListRaster[["MXS"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
@@ -774,9 +784,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_MXS[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_MXS[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -828,9 +838,9 @@ FitENM_TMLA <- function(RecordsData,
         
         Validation <- SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_MLK[[s]] <- data.frame(Sp=spN[s], Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["MLK"]] <- data.frame(Sp=spN[s], Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_MLK[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
         #Save Partition Predictions
         if(Save=="Y"){
@@ -885,9 +895,10 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
-          Summary_MLK[[s]] <- data.frame(Sp = spN[s], Algorithm = "MLK", Threshold=Thr)
+          ListSummary[["MLK"]] <- data.frame(Sp = spN[s], Algorithm = "MLK", Threshold=Thr)
           if(SaveFinal=="Y"){
-            ListRaster[["MLK"]]<- STANDAR(predict(VariablesT, Model))
+            ListRaster[["MLK"]] <- STANDAR(predict(VariablesT, Model))
+            names(ListRaster[["MLK"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
@@ -933,9 +944,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_MLK[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_MLK[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -981,9 +992,9 @@ FitENM_TMLA <- function(RecordsData,
   
         Validation<-SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_SVM[[s]] <- data.frame(Sp=spN[s], Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["SVM"]] <- data.frame(Sp=spN[s], Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_SVM[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
         #Save Partition Predictions
         if(Save=="Y"){
@@ -1035,9 +1046,10 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
-          Summary_SVM[[s]] <- data.frame(Sp = spN[s], Algorithm = "SVM", Threshold=Thr)
+          ListSummary[["SVM"]] <- data.frame(Sp = spN[s], Algorithm = "SVM", Threshold=Thr)
           if(SaveFinal=="Y"){
             ListRaster[["SVM"]] <- STANDAR(predict(VariablesT,Model))
+            names(ListRaster[["SVM"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
@@ -1083,9 +1095,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_SVM[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_SVM[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -1129,9 +1141,9 @@ FitENM_TMLA <- function(RecordsData,
         
         Validation<-SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_RDF[[s]] <- data.frame(Sp=spN[s], Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["RDF"]] <- data.frame(Sp=spN[s], Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_RDF[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
         #Save Partition Predictions
         if(Save=="Y"){
@@ -1184,9 +1196,10 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
-          Summary_RDF[[s]] <- data.frame(Sp = spN[s], Algorithm = "RDF", Threshold=Thr)
+          ListSummary[["RDF"]] <- data.frame(Sp = spN[s], Algorithm = "RDF", Threshold=Thr)
           if(SaveFinal=="Y"){
             ListRaster[["RDF"]] <- STANDAR(predict(VariablesT,Model))
+            names(ListRaster[["RDF"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
@@ -1232,9 +1245,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_RDF[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_RDF[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -1280,9 +1293,9 @@ FitENM_TMLA <- function(RecordsData,
         
         Validation<-SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_GAM[[s]] <- data.frame(Sp=spN[s], Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["GAM"]] <- data.frame(Sp=spN[s], Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_GAM[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
         
         #Save Partition Predictions
@@ -1335,9 +1348,10 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
-          Summary_GAM[[s]] <- data.frame(Sp = spN[s], Algorithm = "GAM", Threshold=Thr)
+          ListSummary[["GAM"]] <- data.frame(Sp = spN[s], Algorithm = "GAM", Threshold=Thr)
           if(SaveFinal=="Y"){
             ListRaster[["GAM"]] <- STANDAR(predict(VariablesT,Model,type="response"))
+            names(ListRaster[["GAM"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
@@ -1383,9 +1397,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_GAM[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_GAM[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -1432,9 +1446,9 @@ FitENM_TMLA <- function(RecordsData,
         
         Validation<-SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_GLM[[s]] <- data.frame(Sp=spN[s], Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["GLM"]] <- data.frame(Sp=spN[s], Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_GLM[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+          ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
         }
         
         #Save Partition Predictions
@@ -1486,9 +1500,10 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           # Validation<-SUMMRES(Eval, 1, Thr)
-          Summary_GLM[[s]] <- data.frame(Sp = spN[s], Algorithm = "GLM", Threshold=Thr)
+          ListSummary[["GLM"]] <- data.frame(Sp = spN[s], Algorithm = "GLM", Threshold=Thr)
           if(SaveFinal=="Y"){
             ListRaster[["GLM"]] <- STANDAR(predict(VariablesT,Model,type="response"))
+            names(ListRaster[["GLM"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
@@ -1534,9 +1549,9 @@ FitENM_TMLA <- function(RecordsData,
           Fcpb <- mean(unlist(res20["FCPB"]))
           Validation<-SUMMRES(Eval, N, Thr)
           if(is.null(repl)){
-            Validation_GLM[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
-            Validation_GLM[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+            ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -1579,9 +1594,9 @@ FitENM_TMLA <- function(RecordsData,
       
       Validation<-SUMMRES(Eval, N, Thr)
       if(is.null(repl)){
-        Validation_GAU[[s]] <- data.frame(Sp=spN[s], Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        ListValidation[["GAU"]] <- data.frame(Sp=spN[s], Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
       }else{
-        Validation_GAU[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
       }
       
       #Save Partition Predictions
@@ -1633,10 +1648,11 @@ FitENM_TMLA <- function(RecordsData,
         Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
         names(Thr) <- Threshold
         # Validation<-SUMMRES(Eval, 1, Thr)
-        Summary_GAU[[s]] <- data.frame(Sp = spN[s], Algorithm = "GAU", Threshold=Thr)
+        ListSummary[["GAU"]] <- data.frame(Sp = spN[s], Algorithm = "GAU", Threshold=Thr)
         if(SaveFinal=="Y"){
           ListRaster[["GAU"]] <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
                                                              CI = 0.95, maxn = NULL)$posterior.mode)
+          names(ListRaster[["GAU"]]) <- spN[s]
         }
         if(is.null(Fut)==F){
           for(k in 1:length(VariablesP)){
@@ -1683,63 +1699,49 @@ FitENM_TMLA <- function(RecordsData,
         Fcpb <- mean(unlist(res20["FCPB"]))
         Validation<-SUMMRES(Eval, N, Thr)
         if(is.null(repl)){
-          Validation_GAU[[s]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }else{
-          Validation_GAU[[s]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
         }
       }
     }
     }
-    
-    # Models performance----
-    Obj <- ls(pattern = 'Validation_')
-    ObjII <- ls(pattern = 'Summary_')
-    result <- list()
-    resultII <- list()
-    for(i in 1:length(Obj)){
-      result[[i]] <- ldply(get(Obj[i]))
-      resultII[[i]] <- ldply(get(ObjII[i]))}
-    result <- ldply(result,data.frame,.id=NULL)
-    resultII <- ldply(resultII,data.frame,.id=NULL)
-    
+
     # Ensemble-----
     # Without Ensemble
-    SpValidation <- result[result$Sp==spN[s],]
-    SpThr <- resultII[resultII$Sp==spN[s],]
-    
+
     #Save final models
     if(per!=1 && repl==1 || per==1 || N!=1){
       if(SaveFinal=="Y"){
         if((is.null(Fut)==F && Tst=="Y")==F){
+          Thr <- sapply(ListSummary, '[', 'Threshold')
           for(i in 1:length(ListRaster)){
-            writeRaster(round(ListRaster[[i]], 4), 
+            writeRaster(round(ListRaster[[i]], 4),
                         paste(folders[i], '/',spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
-            Thr <- SpThr[SpThr$Algorithm==names(ListRaster[i]), 'Threshold']
-            writeRaster(ListRaster[[i]]>=Thr, 
+            writeRaster(ListRaster[[i]]>=Thr[[i]], 
                         paste(foldCat[i], '/',spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
           }
         }
-      }
-        
+      }    
         #Save Projections
         if(is.null(Fut)==F){
+          Thr <- sapply(ListSummary, '[', 'Threshold')
           for(p in 1:length(ListFut)){
             for(o in 1:length(ListFut[[p]])){
-              Thr <- SpThr[SpThr$Algorithm==names(ListFut[[p]])[o], 'Threshold']
-                writeRaster(ListFut[[p]][[o]]>=Thr, 
+                writeRaster(ListFut[[p]][[o]]>=Thr[[o]],
                             file.path(ModFut[p],Algorithm[o],"BIN",paste0(spN[s],".tif")),
                             format='GTiff',
                             overwrite=TRUE)
-              writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],Algorithm[o],spN[s]),
-                          format='GTiff',overwrite=TRUE)
+                writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],Algorithm[o],spN[s]),
+                            format='GTiff',overwrite=TRUE)
             }
           }
         }
-      }
+    }
     
     #Adjust invasion cenario for ensemble
     if((is.null(Fut)==F && Tst=="Y")){
@@ -1785,34 +1787,11 @@ FitENM_TMLA <- function(RecordsData,
       
       Validation <- SUMMRES(Eval,N=1,Thr)
       if(is.null(repl)){
-        Validation_Mean[[s]] <- data.frame(Sp=spN[s], Algorithm="MEA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s], Algorithm="MEA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
       }else{
-        Validation_Mean[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MEA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MEA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
       }
-      
-      #Save Partition Predictions
-      # if(Save=="Y"){
-      #   for(i in 1:N){
-      #     if(N!=1){
-      #       writeRaster(Final[[i]],paste(grep("\\bMean\\b",ensPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-      #                   format='GTiff',
-      #                   overwrite=TRUE)
-      #         writeRaster(Final[[i]]>=Thr, 
-      #                     paste(grep("\\bMean\\b",ensCat,value=T), '/',spN[s],"_",i,"_",".tif", sep=""),
-      #                     format='GTiff',
-      #                     overwrite=TRUE)
-      #     }else{
-      #       writeRaster(Final[[i]],paste(grep("\\bMean\\b",ensPart,value=T),"/",spN[s],".tif", sep=""),
-      #                   format='GTiff',
-      #                   overwrite=TRUE)
-      #         writeRaster(Final[[i]]>=Thr, 
-      #                     paste(grep("\\bMean\\b",ensCat,value=T), '/',spN[s],"_",".tif", sep=""),
-      #                     format='GTiff',
-      #                     overwrite=TRUE)
-      #     }
-      #   }
-      # }
-      
+ 
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         if(SaveFinal=="Y"){
@@ -1825,7 +1804,7 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           
-          Summary_Mean[[s]] <- data.frame(Sp=spN[s], Algorithm="MEA", Threshold=Thr)
+          ListSummary[["MEAN"]] <- data.frame(Sp=spN[s], Algorithm="MEA", Threshold=Thr)
           
           writeRaster(Final, 
                       paste(DirMean, '/',spN[s],".tif", sep=""),
@@ -1858,12 +1837,10 @@ FitENM_TMLA <- function(RecordsData,
 
     # With Over the Mean(Superior) Ensemble----
     if(any(PredictType=='Sup')){
-      SpValidation <- result[result$Sp==spN[s],]
-      SpValidation$Algorithm <- as.character(SpValidation$Algorithm)
       
-      Best <- which(SpValidation$TSS>=mean(SpValidation$TSS))
-      Best <- SpValidation$Algorithm[Best]
-        
+      # Selection of best algorithms based on TSS
+      Best <- which(unlist(sapply(ListValidation, '[','TSS'))>=mean(unlist(sapply(ListValidation, '[','TSS'))))
+      Best <- substr(names(Best),1,nchar(names(Best))-4)
       W <- names(ListRaster)%in%Best
       
       #Partial Models
@@ -1899,9 +1876,9 @@ FitENM_TMLA <- function(RecordsData,
       
       Validation <- SUMMRES(Eval,N=1,Thr)
       if(is.null(repl)){
-        Validation_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="SUP", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        ListValidation[["SUP"]] <- data.frame(Sp=spN[s], Algorithm="SUP", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
       }else{
-        Validation_Sup[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SUP", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        ListValidation[["SUP"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SUP", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
       }
       
       #Save Partition Predictions
@@ -1939,7 +1916,7 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           
-          Summary_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="SUP", Threshold=Thr)
+          ListSummary[["SUP"]] <- data.frame(Sp=spN[s], Algorithm="SUP", Threshold=Thr)
           
           writeRaster(Final, 
                       paste(DirSup, '/',spN[s],".tif", sep=""),
@@ -1973,11 +1950,10 @@ FitENM_TMLA <- function(RecordsData,
     # With PCA ------
     if (any(PredictType == 'PCA')) {
 
-      
       #Partial Models Ensemble
-      Final <- do.call(Map, c(cbind,RastPart))
-      Final <- lapply(Final, function (x) as.numeric(princomp(x)$scores[,1]))
-      Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
+      Final <- as.numeric(princomp(Final)$scores[,1])
+      Final <- list((Final-min(Final))/(max(Final)-min(Final)))
       
       
       # if(length(Final)>1){
@@ -1992,8 +1968,11 @@ FitENM_TMLA <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        if(N==1){
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final)
+        }else{
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        }
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -2013,9 +1992,9 @@ FitENM_TMLA <- function(RecordsData,
       
       Validation <- SUMMRES(Eval,N=1,Thr)
       if(is.null(repl)){
-        Validation_PCA[[s]] <- data.frame(Sp=spN[s], Algorithm="PCA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        ListValidation[["PCA"]] <- data.frame(Sp=spN[s], Algorithm="PCA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
       }else{
-        Validation_PCA[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        ListValidation[["PCA"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
       }
       
       #Save Partition Predictions
@@ -2053,7 +2032,7 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           
-          Summary_PCA[[s]] <- data.frame(Sp=spN[s], Algorithm="PCA", Threshold=Thr)
+          ListSummary[["PCA"]] <- data.frame(Sp=spN[s], Algorithm="PCA", Threshold=Thr)
           
           writeRaster(Final, 
                       paste(DirPCA, '/',spN[s],".tif", sep=""),
@@ -2087,20 +2066,18 @@ FitENM_TMLA <- function(RecordsData,
     # With PCA over the Mean(Superior) Ensemble----
     if (any(PredictType == 'PCA_Sup')) {
 
+      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
       # Selection of best algorithms based on TSS
-      SpValidation <- result[result$Sp==spN[s],]
-      SpValidation$Algorithm <- as.character(SpValidation$Algorithm)
-        
-      Best <- which(SpValidation$TSS>=mean(SpValidation$TSS))
-      Best <- SpValidation$Algorithm[Best]
-        
+      Best <- which(ListValidationT[,'TSS']>=mean(ListValidationT[,"TSS"]))
+      Best <- as.character(ListValidationT[Best,"Algorithm"])
       W <- names(ListRaster)%in%Best
       
       #Partial Models
-      Final <- do.call(Map, c(cbind,RastPart[W]))
-      Final <- lapply(Final, function (x) as.numeric(princomp(x)$scores[,1]))
-      Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
-      
+      Final <- do.call(cbind,lapply(RastPart[W], function(x) do.call(cbind,x)))
+      Final <- as.numeric(princomp(Final)$scores[,1])
+      Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+
       # if(length(Final)>1){
       #   Final <- lapply(Final,function(x) brick(stack(x[W])))
       #   Final <- lapply(Final, function(x) PCA_ENS_TMLA(x))
@@ -2113,8 +2090,11 @@ FitENM_TMLA <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        if(N==1){
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final)
+        }else{
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        }
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -2134,9 +2114,9 @@ FitENM_TMLA <- function(RecordsData,
       
       Validation <- SUMMRES(Eval,N=1,Thr)
       if(is.null(repl)){
-        Validation_PCA_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="PCS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        ListValidation[["PCS"]] <- data.frame(Sp=spN[s], Algorithm="PCS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
       }else{
-        Validation_PCA_Sup[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        ListValidation[["PCS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCS", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
       }
       
       #Save Partition Predictions
@@ -2174,7 +2154,7 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           
-          Summary_PCA_Sup[[s]] <- data.frame(Sp=spN[s], Algorithm="PCS", Threshold=Thr)
+          ListSummary[["PCS"]] <- data.frame(Sp=spN[s], Algorithm="PCS", Threshold=Thr)
     
           writeRaster(Final, 
                       paste(DirPCA_Sup, '/',spN[s],"_",".tif", sep=""),
@@ -2208,16 +2188,16 @@ FitENM_TMLA <- function(RecordsData,
     #With PCA over the threshold Ensemble----
     if (any(PredictType == 'PCA_Thr')) {
       
-      SpValidation <- result[result$Sp==spN[s],]
-      
+      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
       #Partial Models
-      Final <- do.call(Map, c(cbind,RastPart))
-      for (j in 1:length(Final)){
-        Final[[j]] <- t(apply(Final[[j]], 1, function(x) ifelse(x < SpValidation[,"THR"], 0, x)))
-      }
-      Final <- lapply(Final, function (x) as.numeric(princomp(x)$scores[,1]))
-      Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
-      
+      Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
+      ValidTHR <- ListValidationT[,"THR"]
+      Final <- mapply(function(x,y) ifelse(x>=y,x,0),Final,ValidTHR)
+
+      Final <- as.numeric(princomp(Final)$scores[,1])
+      Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+
       # if(length(Final)>1){
       #   Final <- lapply(Final,function(x) brick(stack(x)))
       #   for(i in 1:length(Final)){
@@ -2245,8 +2225,11 @@ FitENM_TMLA <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       for(i in 1:N){
-        # PredPoint <- extract(Final[[i]], PAtest[[i]][, c("x", "y")])
-        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        if(N==1){
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final)
+        }else{
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        }
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
@@ -2266,9 +2249,9 @@ FitENM_TMLA <- function(RecordsData,
       
       Validation <- SUMMRES(Eval,N=1,Thr)
       if(is.null(repl)){
-        Validation_PCA_Thr[[s]] <- data.frame(Sp=spN[s], Algorithm="PCT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        ListValidation[["PCT"]] <- data.frame(Sp=spN[s], Algorithm="PCT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
       }else{
-        Validation_PCA_Thr[[s]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        ListValidation[["PCT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
       }
       
       #Save Partition Predictions
@@ -2300,7 +2283,7 @@ FitENM_TMLA <- function(RecordsData,
           Final <- brick(ListRaster)
           for(k in Algorithm){
             FinalSp <- Final[[k]]
-            FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
+            FinalSp[FinalSp<ListValidationT[ListValidationT$Algorithm==k,"THR"]] <- 0
             Final[[k]] <- FinalSp
           }
           Final <- PCA_ENS_TMLA(Final)
@@ -2311,7 +2294,7 @@ FitENM_TMLA <- function(RecordsData,
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
           
-          Summary_PCA_Thr[[s]] <- data.frame(Sp=spN[s], Algorithm="PCT", Threshold=Thr)
+          ListSummary[["PCT"]] <- data.frame(Sp=spN[s], Algorithm="PCT", Threshold=Thr)
           
           writeRaster(Final, 
                       paste(DirPCA_Thr, '/',paste(spN[s],sep="_"),".tif", sep=""),
@@ -2331,7 +2314,7 @@ FitENM_TMLA <- function(RecordsData,
               #Select only values above the Threshold
               for(k in Algorithm){
                 FinalSp <- Final[[k]]
-                FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
+                FinalSp[FinalSp<ListValidationT[ListValidationT$Algorithm==k,"THR"]] <- 0
                 if(all(na.omit(FinalSp[])==0)){
                   Final[Final[[k]]] <- NULL
                 }else{
@@ -2353,30 +2336,24 @@ FitENM_TMLA <- function(RecordsData,
         }
       }
     }
-    
-    # Save .txt with the models performance---- 
-    
-    #Partial Models
-    Obj <- ls(pattern = 'Validation_')
-    result <- list()
-    for(i in 1:length(Obj)){
-      result[[i]] <- ldply(get(Obj[i]))}
-    result <- ldply(result)
-    write.table(result, paste(DirSave, VALNAME, sep = '/'), sep="\t",
-                col.names = T, row.names = F)
-    
-    #Full Models
-    if(per!=1 && repl==1 || per==1 || N!=1){
-    ObjII <- ls(pattern = 'Summary_')
-    resultII <- list()
-    for(i in 1:length(ObjII)){
-      resultII[[i]] <- ldply(get(ObjII[i]))}
-    resultII <- ldply(resultII)
-    write.table(resultII, paste(DirSave, VALNAMEII, sep = '/'), sep="\t",
-                col.names = T, row.names = F)
-    }
+    #Final Data Frame Results
+    result <- ldply(ListValidation,data.frame,.id=NULL)
+    resultII <- ldply(ListSummary,data.frame,.id=NULL)
+
+    out <- list(Validation = result,
+                Summary = resultII)
+    return(out)
   }#Fecha loop Especie
-  
+
+# Save .txt with the models performance---- 
+FinalValidation <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "Validation"))))
+FinalSummary <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "Summary"))))
+
+write.table(FinalValidation,paste(DirSave, VALNAME, sep = '/'),sep="\t",
+            col.names = T,row.names=F)
+write.table(FinalSummary,paste(DirSave, VALNAMEII, sep = '/'),sep="\t",
+            col.names = T,row.names=F)
+
   # Save additional information and retuls----
   InfoModeling <- list(c("###########################################################"),
        paste('Start date :',Ti),

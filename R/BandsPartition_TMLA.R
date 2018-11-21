@@ -16,8 +16,8 @@ BandsPartition_TMLA <- function(evnVariables,
     #N: Longitudinal(1) or Latitudinal(2) bands
   
   #Development
-  res<-NULL
-  resOpt <- list()
+  # res<-NULL
+  # resOpt <- list()
 
   #Separate data by groups
   RecordsData <- lapply(RecordsData, function(x) cbind(x,rep(0,nrow(x))))
@@ -28,7 +28,9 @@ BandsPartition_TMLA <- function(evnVariables,
   grid <- seq(2,20,2)
   
   #Start species loop----
-  for(x in 1:length(RecordsData)){
+  results <- foreach(x = 1:length(RecordsData), .packages = c("raster","modEvA","ape","dismo","plyr"),
+  .export=c("Moran_for_Quadrants_Pair_TMLA")) %dopar% {
+  # for(x in 1:length(RecordsData)){
     opt <- NULL
     print(names(RecordsData)[x])
     RecordsData.s <- RecordsData[[x]]
@@ -101,7 +103,7 @@ BandsPartition_TMLA <- function(evnVariables,
       Opt2 <- Opt2[nrow(Opt2),]
     }
     
-    resOpt[[x]] <- cbind(names(RecordsData)[x],Opt2)
+    resOpt <- cbind(names(RecordsData)[x],Opt2)
 
     #Create Bands Mask
     
@@ -168,7 +170,6 @@ BandsPartition_TMLA <- function(evnVariables,
                   format="GTiff",NAflag = -9999,overwrite=T)
       
     # Pseudoabsences allocation-----
-      
       # Random-----
       if(pseudoabsencesMethod=="rnd"){
         # Clip the mask raster to generate rando pseudoabsences
@@ -183,7 +184,6 @@ BandsPartition_TMLA <- function(evnVariables,
         
         pseudo.mask <- brick(pseudo.mask2)
         rm(pseudo.mask2)
-
         # Random allocation of pseudoabsences 
         absences <- list()
         for (i in 1:2) {
@@ -224,6 +224,7 @@ BandsPartition_TMLA <- function(evnVariables,
         pseudo.mask[which(pseudo.mask[,]==FALSE)] <- NA
         
         # Split the raster of environmental layer with grids
+        pseudo.mask <- pseudo.mask*msk 
         pseudo.mask2 <- list()
 
         for(i in 1:2){
@@ -262,10 +263,17 @@ BandsPartition_TMLA <- function(evnVariables,
         colnames(absences) <- colnames(RecordsData.s)
       }
       RecordsData.s <- rbind(RecordsData.s,absences)
-      res<-rbind(res,RecordsData.s)
+      
+      #Final Data Frame Results
+      out <- list(ResultList= RecordsData.s,
+                  ResOptm = resOpt)
+      return(out)
   }
-    resOpt <- ldply(resOpt,data.frame)
-    write.table(resOpt,paste(DirSave,"Band_Moran_MESS.txt",sep="\\"),sep="\t",row.names=F)
-    write.table(res,paste(DirSave,"OccBands.txt",sep="\\"),sep="\t",row.names=F)
-    return(res)
+  
+  FinalResult <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResultList"))))
+  FinalInfoGrid <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResOptm"))))
+  
+  write.table(FinalInfoGrid,paste(DirSave,"Band_Moran_MESS.txt",sep="\\"),sep="\t",row.names=F)
+  write.table(FinalResult,paste(DirSave,"OccBands.txt",sep="\\"),sep="\t",row.names=F)
+  return(res)
 }
