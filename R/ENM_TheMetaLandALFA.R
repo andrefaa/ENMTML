@@ -923,7 +923,3 @@ ENMs_TheMetaLand<-function(Dir,
       }
     }
 }
-
-ENMs_TheMetaLand(Dir="C:/Users/decoa/OneDrive/WorkshopENM_Ingrid/Env/CANESM2Solo/PCA",
-                 Sp="Species",x="Long",y="Lat",NMin=20,PCA="N",Proj="N",Tst="N",MRst="Y",PabR=1,PabM="const", 
-                 Part="check",SavePart="N",SaveFinal="Y",Alg=c("BIO","MXS","GAU","MLK","RDF","SVM","GLM",'GAM'),Thr="spec_sens",MSDM="Land",ENS=c("Sup","PCA","PCA_Sup","PCA_Thr"))
