@@ -136,6 +136,7 @@ M_delimited <- function(var,
         stopCluster(cl)
       }
   }
+  stopCluster(cl)
   return(Dir_M)
 }
   

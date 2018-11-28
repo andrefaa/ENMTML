@@ -280,5 +280,6 @@ BandsPartition_TMLA <- function(evnVariables,
   
   write.table(FinalInfoGrid,paste(DirSave,"Band_Moran_MESS.txt",sep="\\"),sep="\t",row.names=F)
   write.table(FinalResult,paste(DirSave,"OccBands.txt",sep="\\"),sep="\t",row.names=F)
+  stopCluster(cl)
   return(res)
 }

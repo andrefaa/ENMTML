@@ -2355,4 +2355,5 @@ write.table(FinalSummary,paste(DirSave, VALNAMEII, sep = '/'),sep="\t",
   lapply(InfoModeling, write, 
          paste(DirSave, "/InfoModeling.txt", sep=""), append=TRUE, 
          ncolumns=20, sep='\t')
+  stopCluster(cl)
 }

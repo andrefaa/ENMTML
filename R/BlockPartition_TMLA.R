@@ -411,6 +411,6 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   write.table(FinalResult,paste(DirSave,"OccBlocks.txt",sep="\\"),sep="\t",row.names=F)
   write.table(FinalInfoGrid, paste(DirSave, "BestPartitions.txt", sep = '/'), sep="\t",
               col.names = T, row.names = F)
-  
+  stopCluster(cl)
   return(FinalResult)
 }

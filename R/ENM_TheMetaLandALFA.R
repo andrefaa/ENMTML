@@ -166,10 +166,7 @@ ENMs_TheMetaLand<-function(Dir,
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools"))
    
-# #2.Start Cluster & Adjust Algorithm Names----
-  cl <- makeCluster(detectCores()-1)
-  registerDoParallel(cl)
-  
+# #2.Adjust Algorithm Names----
   Ord <- c("BIO","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU")
   Alg <- Ord[Ord%in%Alg]
   
