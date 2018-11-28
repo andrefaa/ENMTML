@@ -20,6 +20,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   
   Ti <- Sys.time()
   options(warn = -1)
+  
+  #Start Cluster
+  cl <- makeCluster(detectCores()-1)
+  registerDoParallel(cl)
 
   # Directory to save----
   folders <- paste(DirSave,Algorithm,sep="/")

@@ -18,6 +18,11 @@ BandsPartition_TMLA <- function(evnVariables,
   #Development
   # res<-NULL
   # resOpt <- list()
+  
+  #Start Cluster
+  cl <- makeCluster(detectCores()-1)
+  registerDoParallel(cl)
+  
 
   #Separate data by groups
   RecordsData <- lapply(RecordsData, function(x) cbind(x,rep(0,nrow(x))))

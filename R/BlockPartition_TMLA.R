@@ -22,6 +22,11 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   # evnVariables: Raster object. Variable set to be used in pseusoabsences
   # cellSize: numeric vector. a vector of values with different cell grid sizes
 
+  
+  #Start Cluster
+  cl <- makeCluster(detectCores()-1)
+  registerDoParallel(cl)
+  
   #Cellsize
   cellSize = seq(0.5, 10, by = .5)
   
