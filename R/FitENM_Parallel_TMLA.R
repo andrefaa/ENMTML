@@ -1955,19 +1955,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     if (any(PredictType == 'PCA')) {
 
       #Partial Models Ensemble
-      Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
-      Final <- as.numeric(princomp(Final)$scores[,1])
-      Final <- list((Final-min(Final))/(max(Final)-min(Final)))
-      
-      
-      # if(length(Final)>1){
-      #   Final <- lapply(Final,function(x) brick(stack(x)))
-      #   Final <- lapply(Final,function(x) PCA_ENS_TMLA(x))
-      # }else{
-      #   Final <- brick(unlist(Final))
-      #   Final <- PCA_ENS_TMLA(Final)
-      # }
-      
+      if(any(lapply(RastPart, function(x) length(x))>1)){
+        Final <- do.call(Map, c(cbind, RastPart))
+        Final <- lapply(Final, function(x) as.numeric(princomp(x)$scores[,1]))
+        Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      }else{
+        Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
+        Final <- as.numeric(princomp(Final)$scores[,1])
+        Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+      }
+
       # Threshold
       Eval <- list()
       Boyce <- list()
@@ -2078,18 +2075,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       W <- names(ListRaster)%in%Best
       
       #Partial Models
-      Final <- do.call(cbind,lapply(RastPart[W], function(x) do.call(cbind,x)))
-      Final <- as.numeric(princomp(Final)$scores[,1])
-      Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+      if(any(lapply(RastPart, function(x) length(x))>1)){
+        Final <- do.call(Map, c(cbind, RastPart[W]))
+        Final <- lapply(Final, function(x) as.numeric(princomp(x)$scores[,1]))
+        Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      }else{
+        Final <- do.call(cbind,lapply(RastPart[W], function(x) do.call(cbind,x)))
+        Final <- as.numeric(princomp(Final)$scores[,1])
+        Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+      }
 
-      # if(length(Final)>1){
-      #   Final <- lapply(Final,function(x) brick(stack(x[W])))
-      #   Final <- lapply(Final, function(x) PCA_ENS_TMLA(x))
-      # }else{
-      #   Final <- brick(unlist(Final)[W])
-      #   Final <- PCA_ENS_TMLA(Final)
-      # }
-      
       # Threshold
       Eval <- list()
       Boyce <- list()
@@ -2195,35 +2190,20 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
       #Partial Models
-      Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
-      ValidTHR <- ListValidationT[,"THR"]
-      Final <- mapply(function(x,y) ifelse(x>=y,x,0),Final,ValidTHR)
-
-      Final <- as.numeric(princomp(Final)$scores[,1])
-      Final <- list((Final-min(Final))/(max(Final)-min(Final)))
-
-      # if(length(Final)>1){
-      #   Final <- lapply(Final,function(x) brick(stack(x)))
-      #   for(i in 1:length(Final)){
-      #     for(k in Algorithm){
-      #       FinalSp <- Final[[i]][[k]]
-      #       FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
-      #       Final[[i]][[k]] <- FinalSp
-      #     }
-      #   }
-      #   Final <- lapply(Final, function(x) PCA_ENS_TMLA(x))
-      # }else{
-      #   Final <- brick(unlist(Final))
-      #   if(Tst=="Y"){
-      #     names(Final) <- Algorithm
-      #   }
-      #   for(k in Algorithm){
-      #     FinalSp <- Final[[k]]
-      #     FinalSp[FinalSp<SpValidation[SpValidation$Algorithm==k,"THR"]] <- 0
-      #     Final[[k]] <- FinalSp
-      #   }
-      #   Final <- PCA_ENS_TMLA(Final)
-      # }
+      if(any(lapply(RastPart, function(x) length(x))>1)){
+        Final <- do.call(Map, c(cbind, RastPart))
+        ValidTHR <- ListValidationT[,"THR"]
+        Final <- lapply(Final,function(z) mapply(function(x,y) ifelse(x>=y,x,0),z,ValidTHR))
+        Final <- lapply(Final, function(x) as.numeric(princomp(x)$scores[,1]))
+        Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      }else{
+        Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
+        ValidTHR <- ListValidationT[,"THR"]
+        Final <- mapply(function(x,y) ifelse(x>=y,x,0),Final,ValidTHR)
+        Final <- as.numeric(princomp(Final)$scores[,1])
+        Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+        
+      }
 
       # Threshold
       Eval <- list()
