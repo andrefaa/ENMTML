@@ -7,8 +7,8 @@ ENMs_TheMetaLand<-function(Dir,
                            NMin=10,
                            PCA,
                            Proj,
-                           Tst,
-                           MRst,
+                           SetEval,
+                           SpeciesM,
                            PabR=1,
                            PabM,
                            Part,
@@ -29,8 +29,8 @@ ENMs_TheMetaLand<-function(Dir,
     #NMin:Minimum number of occurrence to fit the models; spcies that do not meet this number will be excluded
     #PCA: Perform a PCA on predictors and use PCs as environmental variables?(Y/N)
     #Proj : Project the model onto another set of predictors? (Y/N)
-    #TST : Use an pre-determined set of occurrences for validation? (Y/N)
-    #MRst : Restrict the acessible area M? (Species-specific) (Y/N)
+    #SetEval : Use an pre-determined set of occurrences for validation? (Y/N)
+    #SpeciesM : Restrict the acessible area M? (Species-specific) (Y/N)
     #PabR:Presence-Absence Ratio
     #PabM:Pseudo-absence Selection Method
       #rnd:Random
@@ -64,7 +64,7 @@ ENMs_TheMetaLand<-function(Dir,
       #Min: Distance to the nearest occurrence
       #Cum: Cummulative distance to all occurrences
       #Kern: Kernel-Gauss
-      #Land: Landscape Patches (Posteriori)
+      #Post: Posterior M-SDM Methods
     #ENS: Create Ensemble Model
       #N : none
       #Mean : Simple Average
@@ -144,8 +144,8 @@ ENMs_TheMetaLand<-function(Dir,
   if(any(!Thr%in%c("no_omission","spec_sens","kappa","equal_sens_spec","prevalence","sensitivity"))){
     stop("Thr Argument is not valid!")
   }
-  if(!(MSDM%in%c("N","LatLong","Min","Cum","Kern","Land"))){
-    stop("MSDM Argument is not valid!(N/LatLong/Min/Cum/Kern/Land)")
+  if(!(MSDM%in%c("N","LatLong","Min","Cum","Kern","Post"))){
+    stop("MSDM Argument is not valid!(N/LatLong/Min/Cum/Kern/Post)")
   }
   if(length(MSDM)>1){
     stop("Please choose only one M-SDM method")
@@ -316,7 +316,7 @@ ENMs_TheMetaLand<-function(Dir,
     }
     
 #5. Restrict Extent per Species----
-    if(MRst=="Y"){
+    if(SpeciesM=="Y"){
       cat("Select restriction type (buffer / ecoregions):")
       method <- as.character(readLines(n = 1))
       while(!method%in%c("buffer","ecoregions")){
@@ -342,9 +342,9 @@ ENMs_TheMetaLand<-function(Dir,
         PCA<-"Y"
       }
       
-      if(Tst=="Y"){
-        warning("Invalid combination! Tst can't be Y with Geographical partitions! Changing Tst to N")
-        Tst <- "N"
+      if(SetEval=="Y"){
+        warning("Invalid combination! SetEval can't be Y with Geographical partitions! Changing SetEval to N")
+        SetEval <- "N"
       }
       
       if(Part=="band"){  
@@ -392,7 +392,7 @@ ENMs_TheMetaLand<-function(Dir,
           }
           occINPUT <- BandsPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=bands,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
-                                      DirM=DirM,MRst=MRst,type=TipoMoran)
+                                      DirM=DirM,MRst=SpeciesM,type=TipoMoran)
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
           rm(envTT)
@@ -445,7 +445,7 @@ ENMs_TheMetaLand<-function(Dir,
           }
           occINPUT <- BlockPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=blocks,
                                       pseudoabsencesMethod=PabM,PrAbRatio=PabR,DirSave=DirB,
-                                      DirM = DirM,MRst=MRst,type=TipoMoran)
+                                      DirM = DirM,MRst=SpeciesM,type=TipoMoran)
 
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
@@ -454,7 +454,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #6.3.MSDM A PRIORI----
-      if(MSDM=="N"||MSDM=="Land"){
+      if(MSDM=="N"||MSDM=="Post"){
         DirPRI <- NULL
       }
       
@@ -479,7 +479,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #6.5.Adjust Checkerboard when using Geographical Restrictions (For Maxent Sampling)
-      if(MRst=="Y"){
+      if(SpeciesM=="Y"){
         Ms <- stack(file.path(DirM,list.files(DirM)))
         Cs <- stack(file.path(DirB,list.files(DirB,pattern=".tif$")))
         Cs <- Ms*Cs
@@ -489,7 +489,7 @@ ENMs_TheMetaLand<-function(Dir,
       
       #6.5. Fit ENM for Geographical Partition
       FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
-                  Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
+                  Tst=SetEval,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                   SaveFinal=SaveFinal,repl=NULL,per=NULL)
     }
     
@@ -498,7 +498,7 @@ ENMs_TheMetaLand<-function(Dir,
     if(Part=="boot"||Part=="cross"){
       
       #7.0.Dataset for evaluation
-      if(Tst=="Y"){
+      if(SetEval=="Y"){
         cat("Select the occurrence dataset for evaluation:")
         OccTst <- read.table(file.choose(),sep="\t",h=T)
         OccTst<-OccTst[,c(Sp,x,y)]
@@ -507,7 +507,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #7.1.MSDM A PRIORI----
-        if(MSDM=="N"||MSDM=="Land"){
+        if(MSDM=="N"||MSDM=="Post"){
           DirPRI <- NULL
         }
       
@@ -558,7 +558,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #Adjusting for determined evaluation dataset
-      if(Tst=="Y" && Part=="boot" && per!=1 || Tst=="Y" && Part=="cross" && rep!=1){
+      if(SetEval=="Y" && Part=="boot" && per!=1 || SetEval=="Y" && Part=="cross" && rep!=1){
         if(Part=="boot"){
           warning("Adjusting data partition to one!")
           per <- 1
@@ -600,7 +600,7 @@ ENMs_TheMetaLand<-function(Dir,
           }
           names(occTR) <- names(occ_xy)
           names(occTS) <- names(occTR)
-          if(Tst=="Y"){
+          if(SetEval=="Y"){
             occTS <- OccTst_xy
             occTS <- lapply(occTS, function(x) cbind(x, rep(2,nrow(x)),rep(1,nrow(x))))
             names(occTS) <- names(occTR)
@@ -624,7 +624,7 @@ ENMs_TheMetaLand<-function(Dir,
       #7.4. Generating Pseudo-Absences----
         #Random Pseudo-Absences
           if(PabM=="rnd"){
-            if(Proj=="Y"&& Tst=="Y"){
+            if(Proj=="Y"&& SetEval=="Y"){
               pseudo.mask <- envT[[1]]
               pseudo.maskP <- EnvF[[1]][[1]]
             }else{
@@ -636,7 +636,7 @@ ENMs_TheMetaLand<-function(Dir,
             absencesTS <- list()
             for(s in 1:length(occTR)){
               set.seed(s)
-              if(MRst=="Y"){
+              if(SpeciesM=="Y"){
                 SpMask <- raster(file.path(DirM,paste0(names(occTR)[s],".tif")))
                 SpMask <- pseudo.mask*SpMask
                 if(sum(is.na(SpMask[])==F)<(PabR*nrow(occTR[[s]]))){
@@ -644,7 +644,7 @@ ENMs_TheMetaLand<-function(Dir,
                   stop("Please try again with another restriction type or without restricting the extent")
                   
                 }
-                if(Tst=="Y"){
+                if(SetEval=="Y"){
                   SpMaskP <- pseudo.maskP
                 }else{
                   SpMaskP <- SpMask
@@ -660,7 +660,7 @@ ENMs_TheMetaLand<-function(Dir,
             absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(0,nrow(x))))
             absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x))))
             absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(0,nrow(x))))
-            if(is.null(k) && per==1 && Tst=="N"){
+            if(is.null(k) && per==1 && SetEval=="N"){
               for(i in 1:length(absencesTS)){
                 absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
               }
@@ -704,13 +704,13 @@ ENMs_TheMetaLand<-function(Dir,
                 pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
               }
             
-              if(Proj=="Y"&& Tst=="Y"){
+              if(Proj=="Y"&& SetEval=="Y"){
                 pseudo.maskP <- EnvF[[1]][[1]]
               }else{
                 pseudo.maskP <- pseudo.mask
               }
 
-              if(MRst=="Y"){
+              if(SpeciesM=="Y"){
                 SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
                 SpMask <- pseudo.mask*SpMask
                 if(sum(is.na(SpMask[])==F)<(PabR*nrow(occTR[[i]]))){
@@ -718,7 +718,7 @@ ENMs_TheMetaLand<-function(Dir,
                   stop("Please try again with another restriction type or without restricting the extent")
                   
                 }
-                if(Tst=="Y"){
+                if(SetEval=="Y"){
                   SpMaskP <- pseudo.maskP
                 }else{
                   SpMaskP <- SpMask
@@ -729,7 +729,7 @@ ENMs_TheMetaLand<-function(Dir,
               absencesTR.0 <- randomPoints(pseudo.mask, (1 / PabR)*nrow(occTR[[i]]),
                                          ext = extent(pseudo.mask),
                                          prob = FALSE)
-              if(Tst=="Y"){
+              if(SetEval=="Y"){
                 absencesTS.0 <- randomPoints(pseudo.maskP, (1 / PabR)*nrow(occTS[[i]]),
                                              ext = extent(pseudo.mask),
                                              prob = FALSE)                
@@ -745,7 +745,7 @@ ENMs_TheMetaLand<-function(Dir,
             }
             absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
             absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
-            if(is.null(k) && per==1 && Tst=="N"){
+            if(is.null(k) && per==1 && SetEval=="N"){
               for(i in 1:length(absencesTS)){
                 absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
               }
@@ -798,7 +798,7 @@ ENMs_TheMetaLand<-function(Dir,
           
       #7.9. Run FitENM----
         FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
-                    Tst=Tst,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
+                    Tst=SetEval,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                     SaveFinal=SaveFinal,per=per,repl=k)
         
       #7.10. Create Occurrence Table for Replicates----
@@ -855,7 +855,7 @@ ENMs_TheMetaLand<-function(Dir,
     
 #8.MSDM Posteriori----
     
-    if(MSDM=="Land"){
+    if(MSDM=="Post"){
       
       cat("Choose L-MSDM type (MaxMin/LowerQ/Pres/MCP/MCPBuffer)")
       Q0 <- as.character(readLines(n = 1))
