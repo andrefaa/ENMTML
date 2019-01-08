@@ -7,9 +7,9 @@ MSDM_Priori_TMLA <- function(Species,
   
 
   #Metodo 1: LatLong----
-  if(MSDM=="LatLong"){
+  if(MSDM=="XY"){
     
-    DirPRI<-"LatLong"
+    DirPRI<-"XY"
     if (file.exists(file.path(DirMSDM,DirPRI))){
       DirPRI<-file.path(DirMSDM,DirPRI)
     } else {
@@ -47,9 +47,9 @@ MSDM_Priori_TMLA <- function(Species,
   }
   
   #Metodo 2- Distancias minimas----
-  if(MSDM=="Min"){
+  if(MSDM=="MIN"){
   
-    DirPRI<-"Min"
+    DirPRI<-"MIN"
     if (file.exists(file.path(DirMSDM,DirPRI))){
       DirPRI<-file.path(DirMSDM,DirPRI)
     } else {
@@ -85,9 +85,9 @@ MSDM_Priori_TMLA <- function(Species,
   }
   
   #Metodo 3: Distancia cumulativa----
-  if(MSDM=="Cum"){  
+  if(MSDM=="CML"){  
     
-    DirPRI<-"Cum"
+    DirPRI<-"CML"
     if (file.exists(file.path(DirMSDM,DirPRI))){
       DirPRI<-file.path(DirMSDM,DirPRI)
     } else {
@@ -125,9 +125,9 @@ MSDM_Priori_TMLA <- function(Species,
   }
   
   #Metodo 4: Kernel-Gaussiano----
-  if(MSDM=="Kern"){
+  if(MSDM=="KER"){
     
-    DirPRI<-"Kern"
+    DirPRI<-"KER"
     if (file.exists(file.path(DirMSDM,DirPRI))){
       DirPRI<-file.path(DirMSDM,DirPRI)
     } else {

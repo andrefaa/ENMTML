@@ -2,7 +2,7 @@
 
 MSDM_Posterior <- function(RecordsData,
                            Threshold=Thr,
-                           cutoff=c('MaxMin','Pres','LowerQ','MCP','MCPBuffer'),
+                           cutoff=c('OBR','PRES','LR','MCP','MCP-B'),
                            PredictType=ENS,
                            DirSave=NULL,
                            DirRaster=NULL){
@@ -40,7 +40,7 @@ MSDM_Posterior <- function(RecordsData,
     colnames(RasterList) <- c("sp",'RasterList')
   }
   
-  if(cutoff=="MCPBuffer"){
+  if(cutoff=="MCP-B"){
     cat("Select buffer distance (km):")
     CUT_Buf <- (as.numeric(readLines(n = 1)))*1000
   }
@@ -77,7 +77,7 @@ MSDM_Posterior <- function(RecordsData,
                     NAflag = -9999,
                     overwrite = TRUE)
     }
-    if(cutoff=="MCPBuffer"){
+    if(cutoff=="MCP-B"){
       hull <- convHull(SpData[SpData[,"PresAbse"]==1, c("x", "y")], lonlat=TRUE)
       hull <- predict(Adeq, hull, mask=TRUE)
       
@@ -111,7 +111,7 @@ MSDM_Posterior <- function(RecordsData,
                     overwrite = TRUE)
     }
     
-    if(cutoff%in%c("MaxMin","LowerQ","Pres")){
+    if(cutoff%in%c("OBR","LR","PRES")){
       
       # Transform coordinate in a SpatialPoints object
       pts1 <- SpData[SpData[, "PresAbse"] == 1, c("x", "y")]
@@ -132,7 +132,7 @@ MSDM_Posterior <- function(RecordsData,
         AdeqPoints <- cbind(AdeqPoints, ID=extract(AdeqBin2, AdeqPoints)[,'ID'])
         # Find the patches that contain presences records
         polypoint<-raster::intersect(AdeqBin2,pts1)
-        if(cutoff=="Pres"){
+        if(cutoff=="PRES"){
           Mask2 <- Adeq
           Msk <- rasterize(polypoint,Adeq,background=0)
           Msk[is.na(Adeq[])] <- NA
@@ -204,7 +204,7 @@ MSDM_Posterior <- function(RecordsData,
         AdeqBin2$Eucldist[!AdeqBin2$ID%in%filter1] <- round(DistBetweenPoly, 4)
 
         # CUTOFF------
-        if(cutoff=='MaxMin'){
+        if(cutoff=='OBR'){
         # Cutoff based on the maximum value of the minimum distance
           spraster<-rasterize(pts1,Adeq,field=1)
           sps<-as(spraster,'SpatialPixels')@coords
@@ -213,7 +213,7 @@ MSDM_Posterior <- function(RecordsData,
           distmin<-apply(dist,1,function(x) min(x, na.rm=T))# 
           CUT<-max(distmin)
         }
-        if(cutoff=="LowerQ"){
+        if(cutoff=="LR"){
         # Cutoff based the lower quartile distance
         CUT <- c(summary(DistBetweenPoly0[,3]))[2]
         }

@@ -60,11 +60,16 @@ ENMs_TheMetaLand<-function(Dir,
       #Any number between 0-1
     #MSDM: Spatial restrictions
       #N: none
-      #LatLong: Latitudinal and Longitudinal information of each cell
-      #Min: Distance to the nearest occurrence
-      #Cum: Cummulative distance to all occurrences
-      #Kern: Kernel-Gauss
-      #Post: Posterior M-SDM Methods
+      #XY: Latitudinal and Longitudinal information of each cell
+      #MIN: Distance to the nearest occurrence
+      #CML: Cummulative distance to all occurrences
+      #KER: Kernel-Gauss
+      #POST: Posterior M-SDM Methods
+        #OBR: Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)
+        #LR: Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)
+        #PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep)
+        #MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)
+        #MCP-B: Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)
     #ENS: Create Ensemble Model
       #N : none
       #Mean : Simple Average
@@ -144,8 +149,8 @@ ENMs_TheMetaLand<-function(Dir,
   if(any(!Thr%in%c("no_omission","spec_sens","kappa","equal_sens_spec","prevalence","sensitivity"))){
     stop("Thr Argument is not valid!")
   }
-  if(!(MSDM%in%c("N","LatLong","Min","Cum","Kern","Post"))){
-    stop("MSDM Argument is not valid!(N/LatLong/Min/Cum/Kern/Post)")
+  if(!(MSDM%in%c("N","XY","MIN","CML","KER","POST"))){
+    stop("MSDM Argument is not valid!(N/XY/MIN/CML/KER/POST)")
   }
   if(length(MSDM)>1){
     stop("Please choose only one M-SDM method")
@@ -454,11 +459,11 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #6.3.MSDM A PRIORI----
-      if(MSDM=="N"||MSDM=="Post"){
+      if(MSDM=="N"||MSDM=="POST"){
         DirPRI <- NULL
       }
       
-      if(MSDM%in%c("LatLong","Min","Cum", "Kern")){
+      if(MSDM%in%c("XY","MIN","CML", "KER")){
         print("Creating MSDM Layers...")
         
         DirMSDM<-"MSDM"
@@ -507,11 +512,11 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #7.1.MSDM A PRIORI----
-        if(MSDM=="N"||MSDM=="Post"){
+        if(MSDM=="N"||MSDM=="POST"){
           DirPRI <- NULL
         }
       
-        if(MSDM%in%c("LatLong","Min","Cum", "Kern")){
+        if(MSDM%in%c("XY","MIN","CML", "KER")){
           print("Creating MSDM Layers...")
           
           DirMSDM<-"MSDM"
@@ -855,12 +860,12 @@ ENMs_TheMetaLand<-function(Dir,
     
 #8.MSDM Posteriori----
     
-    if(MSDM=="Post"){
+    if(MSDM=="POST"){
       
-      cat("Choose L-MSDM type (MaxMin/LowerQ/Pres/MCP/MCPBuffer)")
+      cat("Choose L-MSDM type (OBR/LR/PRES/MCP/MCP-B)")
       Q0 <- as.character(readLines(n = 1))
-      while(Q0 %in% c("MaxMin","LowerQ","Pres","MCP","MCPBuffer")==F){
-        warning("Choose a valid L-MSDM type!(MaxMin/LowerQ/Pres/MCP/MCPBuffer)")
+      while(Q0 %in% c("OBR","LR","PRES","MCP","MCP-B")==F){
+        warning("Choose a valid L-MSDM type!(OBR/LR/PRES/MCP/MCP-B)")
         Q0 <- as.character(readLines(n = 1))
       }
       
