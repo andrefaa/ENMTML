@@ -15,7 +15,7 @@ Please follow the "installation" instructions
 **6.** library(GRaF)
 
 ## Run
-ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",Tst="",MRst="",PabR=,PabM="",
+ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",SetEval="",SpeciesM="",PabR=,PabM="",
                   Part="",SavePart="N",SaveFinal="Y",Alg=c(),Thr="",MSDM="",ENS=c())
 
 **See possible input options below**
@@ -24,14 +24,14 @@ ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",Tst="",MRst="",PabR
 There are a couple of pre and post-processing available in the function, here is a list of what is currently available:  
 **1.** PCA on environmental variables  
 **2.** Project to other time/spatial locations (PCA included!)  
-**3.** Automatically restrict the extent before model fitting   
+**3.** Automatically restrict the accessible area (M) before model fitting   
 **4.** Specify an user defined dataset for evaluation    
 **5.** Control Presence/Pseudo-absence Ratio    
 **6.** Different pseudo-absence allocation methods    
 **7.** Different data-partition methods for model evaluation (random or geographically structured)  
 **8.** Nine different algorithms    
 **9.** Create presence-absence maps (from dismo Thresholds)   
-**10.** Incorporate effects from spatial distribution (M-SDM)     
+**10.** Incorporate spatial restrictions (M-SDM)     
 **11.** Create Ensemble from the different algorithms  
 
 
@@ -46,8 +46,8 @@ The function has several input arguments, specify all of them as your desires.
 * **NMin:** Minimum number of unique occurrences (species with less than this number will be excluded)  
 * **PCA:** Do you wish to perform a PC on your predictors?(Y/N) !Predictors will automatically be used for the modelling process!  
 * **Proj:** Project the model onto another region or time period? (Y/N)  
-* **Tst:** Use an pre-determined set of occurrences for validation? (Y/N)
-* **MRst:** Restrict the acessible area M? (Species-specific) (Y/N)
+* **SetEval:** Use an pre-determined set of occurrences for validation? (Y/N)
+* **SpeciesM:** Restrict the acessible area M? (Species-specific) (Y/N)
 * **PabR:** Presence-Absence Ratio  
 * **PabM:** Pseudo-absence Selection Method  
   + **rnd:** Random  
@@ -79,11 +79,16 @@ The function has several input arguments, specify all of them as your desires.
   + **Any number between 0-1**
 * **MSDM:** Include Spatial Restrictions  
   + **N:** Do not include  
-  + **LatLong:** Create two layers (Latitude and Longitude of each cell) [added as a predictor]  
-  + **Min:** Create a layer with information of the distance from each cell to the closest occurrence [added as a predictor]  
-  + **Cum:** Create a layer with information of the summed distance from each cell to ALL occurrences [added as a predictor]  
-  + **Kern:** Create a layer with a Gaussian-Kernel on the occurrence data [added as a predictor]  
-  + **Land:** Spatial restriction based on adequability patches [NOT added as a predictor] 
+  + **XY:** Create two layers (Latitude and Longitude of each cell) [added as a predictor]  
+  + **MIN:** Create a layer with information of the distance from each cell to the closest occurrence [added as a predictor]  
+  + **CML:** Create a layer with information of the summed distance from each cell to ALL occurrences [added as a predictor]  
+  + **KER:** Create a layer with a Gaussian-Kernel on the occurrence data [added as a predictor]  
+  + **POST:** Posterior M-SDM Methods [NOT added as a predictor]  
+   + **OBR:** Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)
+   + **LR:** Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)  
+   + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep)  
+   + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)  
+   + **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
 * **ENS:** Ensemble of the different algorithms  
   + **N:** No Ensemble  
   + **Mean:** Simple average of the different models  
