@@ -64,7 +64,7 @@ ENMs_TheMetaLand<-function(Dir,
       #MIN: Distance to the nearest occurrence
       #CML: Cummulative distance to all occurrences
       #KER: Kernel-Gauss
-      #POST: Posterior M-SDM Methods
+      #POST: Posterior M-SDM Methods (If chosen, prefered method will be asked later)
         #OBR: Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)
         #LR: Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)
         #PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep)
