@@ -84,11 +84,11 @@ The function has several input arguments, specify all of them as your desires.
   + **CML:** Create a layer with information of the summed distance from each cell to ALL occurrences [added as a predictor]  
   + **KER:** Create a layer with a Gaussian-Kernel on the occurrence data [added as a predictor]  
   + **POST:** Posterior M-SDM Methods [NOT added as a predictor]  
-   + **OBR:** Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)
-   + **LR:** Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)  
-   + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep)  
-   + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)  
-   + **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
+    - **OBR:** Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)
+    - **LR:** Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)  
+    - **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep)  
+    - **MCP:** Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)  
+    - **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
 * **ENS:** Ensemble of the different algorithms  
   + **N:** No Ensemble  
   + **Mean:** Simple average of the different models  
