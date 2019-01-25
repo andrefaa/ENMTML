@@ -15,7 +15,7 @@ Please follow the "installation" instructions
 **6.** library(GRaF)
 
 ## Run
-ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,PCA="",Proj="",SetEval="",SpeciesM="",PabR=,PabM="",
+ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,VarColin="",Proj="",SetEval="",SpeciesM="",PabR=,PabM="",
                   Part="",SavePart="N",SaveFinal="Y",Alg=c(),Thr="",MSDM="",ENS=c())
 
 **See possible input options below**
