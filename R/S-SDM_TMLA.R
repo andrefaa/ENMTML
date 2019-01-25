@@ -1,4 +1,4 @@
-S-SDM <- function(DirENM,
+S_SDM <- function(DirENM,
                   DirMSDM,
                   DirProj,
                   spN){

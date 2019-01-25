@@ -18,7 +18,8 @@ ENMs_TheMetaLand<-function(Dir,
                            Alg,
                            Thr,
                            MSDM,
-                           ENS){
+                           ENS,
+                           S_SDM){
   
   #Script to fit ENMs from TheMetaLand Lab!
   
@@ -1088,7 +1089,7 @@ ENMs_TheMetaLand<-function(Dir,
     }
     
 #9.S-SDM----
-    if(S-SDM=="Y"){
+    if(S_SDM=="Y"){
       
       #Where to S-SDM
       if(ENS!="N"){
@@ -1129,6 +1130,6 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #Calculate S-SDM
-      S-SDM(DirENM=DirT,DirMSDM=DirT2,DirProj=DirT3,spN)
+      S_SDM(DirENM=DirT,DirMSDM=DirT2,DirProj=DirT3,spN)
     }
 }
