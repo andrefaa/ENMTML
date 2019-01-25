@@ -29,8 +29,8 @@ MESS_and_MOP <- function(Fut,
     }
   }
 }
-tes <- rasterToPoints(Fut[[1]])
-MOP_NB(spOccS, tes, 6:10, 3:7, "25", 0.1, 0.1, "x", "y", MxMESS="N")
+# tes <- rasterToPoints(Fut[[1]])
+# MOP_NB(spOccS, tes, 6:10, 3:7, "25", 0.1, 0.1, "x", "y", MxMESS="N")
 ##		m1 - Reference matrix (M), of variables in columns and 
 ## pixels in the rows, and Latitude and Longitude.
 ##		m2 - Extent matrix (G), of variables in columns and pixels 

@@ -6,6 +6,7 @@ ENMs_TheMetaLand<-function(Dir,
                            y,
                            NMin=10,
                            VarColin,
+                           VarImP,
                            Proj,
                            SetEval,
                            SpeciesM,
@@ -568,7 +569,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
       
       #6.5. Fit ENM for Geographical Partition
-      FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
+      FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=VarImP,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                   Tst=SetEval,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                   SaveFinal=SaveFinal,repl=NULL,per=NULL)
     }
@@ -963,7 +964,7 @@ ENMs_TheMetaLand<-function(Dir,
       }
           
       #7.9. Run FitENM----
-        FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
+        FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=VarImP,Fut=Fut,Part=Part,Algorithm=Alg,PredictType=ENS,spN=spN,
                     Tst=SetEval,Threshold=Thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=SavePart,
                     SaveFinal=SaveFinal,per=per,repl=k)
         
