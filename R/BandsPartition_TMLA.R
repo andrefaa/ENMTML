@@ -217,7 +217,7 @@ BandsPartition_TMLA <- function(evnVariables,
         colnames(absences) <- colnames(RecordsData.s)
       }
       
-      if(pseudoabsencesMethod=="const"){
+      if(pseudoabsencesMethod=="EnvConst"){
 
         Model <- bioclim(evnVariables, RecordsData.s[,c("x","y")])
         pseudo.mask <- dismo::predict(Model, evnVariables, ext=extent(msk))
@@ -267,6 +267,55 @@ BandsPartition_TMLA <- function(evnVariables,
         absences <- ldply(absences, data.frame)
         colnames(absences) <- colnames(RecordsData.s)
       }
+      
+      if(pseudoabsencesMethod=="GeoConst"){
+        
+        Model <- circles(RecordsData.s[,c("x","y")], lonlat=T,d=Geo_Buf)
+        pseudo.mask <- mask(evnVariables[[1]],Model@polygons,inverse=T)
+        names(pseudo.mask) <- "Group"
+        pseudo.mask[is.na(pseudo.mask)==F] <- 1 
+        pseudo.mask[which(pseudo.mask[,]==FALSE)] <- NA
+        
+        # Split the raster of environmental layer with grids
+        pseudo.mask <- pseudo.mask*msk 
+        pseudo.mask2 <- list()
+        
+        for(i in 1:2){
+          mask3 <- pseudo.mask
+          mask3[!msk[]==i] <- NA 
+          mask3[is.na(msk[])] <- NA 
+          pseudo.mask2[[i]] <- mask3
+        }
+        pseudo.mask <- brick(pseudo.mask2)
+        rm(pseudo.mask2)
+        
+        absences <- list()
+        for (i in 1:2) {
+          set.seed(x)
+          if(MRst=="Y"){
+            SpMask <- raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
+            pseudo.mask[[i]] <- pseudo.mask[[i]]*SpMask
+            if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[x]]))){
+              warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences") 
+              stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
+            }
+          }
+          absences.0 <- randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
+                                     ext = extent(pseudo.mask[[i]]),
+                                     prob = FALSE)
+          colnames(absences.0) <- c(x, y)
+          absences[[i]] <- as.data.frame(absences.0)
+          rm(absences.0)
+        }
+        for (i in 1:length(absences)){
+          absences[[i]] <- cbind(absences[[i]], rep(i,nrow(absences[[i]])))  
+        }
+        absences <- lapply(absences, function(x) cbind(x, rep(0,nrow(x))))
+        absences <- lapply(absences, function(y) cbind(rep(names(RecordsData)[x],nrow(y)),y))
+        absences <- ldply(absences, data.frame)
+        colnames(absences) <- colnames(RecordsData.s)
+      }
+      
       RecordsData.s <- rbind(RecordsData.s,absences)
       
       #Final Data Frame Results

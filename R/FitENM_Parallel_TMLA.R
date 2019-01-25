@@ -68,19 +68,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       dir.create(ensFCat[i])
       assign(paste("Dir",PredictType[PredictType!="N"][i],"Cat",sep=""),ensFCat[i])
     }
-    
-    #Partitions directories
-    # if(Save=="Y"){
-    #   ensPart <- paste(ensF,"PART",sep="/")
-    #   for(i in 1:length(ensPart)){
-    #     dir.create(ensPart[i])
-    #   }
-    #   #Binary directories
-    #   ensCat <- paste(ensPart,"BIN",sep="/")
-    #   for(i in 1:length(ensCat)){
-    #     dir.create(ensCat[i])
-    #   }
-    # }
   }
   
   #Projection directories
@@ -124,25 +111,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   
   # Species names
   print(paste("Total species to be modeled", length(spN)))
-  
-  # # Extent to predict the models
-  #   e <- extent(Variables)
-  
+
   # Number of partition
-    N <- as.numeric(max(RecordsData[, "Partition"]))
+  N <- as.numeric(max(RecordsData[, "Partition"]))
       
-  # # Lists for validation-----
-  # for(i in 1:length(Algorithm)){
-  #   assign(paste("Validation_", Algorithm[i], sep=""),list())
-  #   assign(paste("Summary_", Algorithm[i], sep=""),list())
-  # }
-  # if(any(PredictType!="N")){
-  #   for(i in 1:length(PredictType)){
-  #     assign(paste("Validation_", PredictType[i], sep=""),list())
-  #   assign(paste("Summary_", PredictType[i], sep=""),list())
-  #   }
-  # }  
-  
   #Txt of Final tables    
   if(is.null(repl)==F){
     VALNAME <- paste('Validation_Partition','_',sep="",repl,'.txt' )
@@ -251,6 +223,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
    }
   
+  #MESS & MOPA Calculation----
+  if(!is.null(Fut)){
+    MESS_and_MOPA(Fut,RecordsData,VarCol,ModFut,PAMethod="PresAbse")
+    if(exists("RecordsDataM")){
+      MESS_and_MOPA(Fut,RecordsDataM,VarCol,ModFut,PAMethod="Background")
+    }
+  }
+  
   
   #Define N due to Partition Method
   if(Part=="boot" || Part=="cross"){
@@ -263,7 +243,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
                                                       "maxnet","maxlike","GRaF","ecospat","plyr","gam","RStoolbox"),
                      .export=c("Validation2_0","SUMMRES","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA")) %dopar% {
-  #for(s in 1:length(spN)){
+  # for(s in 1:length(spN)){
     print(paste(s, spN[s], Sys.time()))
     
     #Results Lists                                       
@@ -348,7 +328,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         PAtestM <- PAtest
       }
     }
-
+    
     #BIOCLIM (BIO)----- 
     if (any(Algorithm == "BIO")) {
       Model <- list()
@@ -433,6 +413,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       # Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
+        #Variable Importance & Response Curves
+        if(VarImP=="T"){
+          VarImp_RspCurv(Model,'BIO',spN[s])
+        }
         PredPoint <- predict(Model, SpDataT[, VarColT])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -492,6 +476,525 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }else{
             ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }
+        }
+      }
+    }
+    
+    #DOMAIN (DOM)----- 
+    if (any(Algorithm == "DOM")) {
+      Model <- list()
+      #DOM model
+      for (i in 1:N) {
+        dataPr <- PAtrain[[i]][PAtrain[[i]][, "PresAbse"] == 1,]
+        Model[[i]] <- domain(dataPr[, VarColT])
+      }
+      
+      #DOM evaluation
+      if((is.null(Fut)==F && Tst=="Y")==F){
+        Eval <- list()
+        Boyce <- list()
+        for (i in 1:N) {
+          RastPart[["DOM"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["DOM"]][[i]])
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(RastPart[["DOM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+        }
+        
+        #DOM threshold
+        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+        names(Thr) <- rep(Threshold,N)
+        
+        #Evaluation 2.0
+        res20 <- Validation2_0(Eval,Thr,PredPoint,RastPart[["DOM"]],N)
+        
+        #DOM result 
+        Boyce <- mean(unlist(Boyce))
+        Jac <- mean(unlist(res20["JAC"]))
+        OPR <- mean(unlist(res20["OPR"]))
+        Fcpb <- mean(unlist(res20["FCPB"]))
+        Validation<-SUMMRES(Eval, N, Thr)
+        if(is.null(repl)){
+          ListValidation[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        }else{
+          ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="DOM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        }
+        
+        #Save Partition Predictions
+        if(Save=="Y"){
+          for(i in 1:N){
+            PartRas <- STANDAR(predict(Model[[i]], VariablesT))
+            if(N!=1){
+              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("DOM",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("DOM",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }else{
+              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("DOM",PartCat,value=T), '/',paste0(spN[s],repl),".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+          }
+        }
+        
+        # Save final model
+        if(per!=1 && repl==1 || per==1 || N!=1){
+          Model <- domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'DOM',spN[s])
+          }
+          PredPoint <- predict(Model, SpDataT[, VarColT])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          # Validation<-SUMMRES(Eval, 1, Thr)
+          ListSummary[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["DOM"]] <- STANDAR(predict(Model, VariablesT))
+            names(ListRaster[["DOM"]]) <- spN[s]
+          }
+          if(is.null(Fut)==F){
+            for(k in 1:length(VariablesP)){
+              ListFut[[ProjN[k]]][["DOM"]] <- predict(VariablesP[[k]], Model)
+              if(maxValue(ListFut[[ProjN[k]]][["DOM"]])==0){
+                ListFut[[ProjN[k]]][["DOM"]] <- ListFut[[ProjN[k]]][["DOM"]]
+              }else{
+                ListFut[[ProjN[k]]][["DOM"]] <- STANDAR(ListFut[[ProjN[k]]][["DOM"]])
+              }
+            }
+          }
+        }
+      }else{
+        Eval <- list()
+        Boyce <- list()
+        for(k in 1:length(VariablesP)){
+          ListFut[[ProjN[k]]][["DOM"]] <- predict(VariablesP[[k]],Model[[i]])
+          if(maxValue(ListFut[[ProjN[k]]][["DOM"]])==0){
+            ListFut[[ProjN[k]]][["DOM"]] <- ListFut[[ProjN[k]]][["DOM"]]
+          }else{
+            ListFut[[ProjN[k]]][["DOM"]] <- STANDAR(ListFut[[ProjN[k]]][["DOM"]])
+          }
+          
+          PredPoint <- extract(ListFut[[ProjN[k]]][["DOM"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["DOM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+          
+          #DOM threshold
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- rep(Threshold,N)
+          
+          #Evaluation 2.0
+          res20 <- Validation2_0(Eval,Thr,PredPoint,ListFut[[ProjN]][["DOM"]],N)
+          
+          #DOM result 
+          Boyce <- mean(unlist(Boyce))
+          Jac <- mean(unlist(res20["JAC"]))
+          OPR <- mean(unlist(res20["OPR"]))
+          Fcpb <- mean(unlist(res20["FCPB"]))
+          Validation<-SUMMRES(Eval, N, Thr)
+          if(is.null(repl)){
+            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }else{
+            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }
+        }
+      }
+    }
+    
+    #MAHALANOBIS (MAH)----- 
+    if (any(Algorithm == "MAH")) {
+      Model <- list()
+      #MAH model
+      for (i in 1:N) {
+        dataPr <- PAtrain[[i]][PAtrain[[i]][, "PresAbse"] == 1,]
+        Model[[i]] <- mahal(dataPr[, VarColT])
+      }
+      
+      #MAH evaluation
+      if((is.null(Fut)==F && Tst=="Y")==F){
+        Eval <- list()
+        Boyce <- list()
+        for (i in 1:N) {
+          RastPart[["MAH"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MAH"]][[i]])
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(RastPart[["MAH"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+        }
+        
+        #MAH threshold
+        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+        names(Thr) <- rep(Threshold,N)
+        
+        #Evaluation 2.0
+        res20 <- Validation2_0(Eval,Thr,PredPoint,RastPart[["MAH"]],N)
+        
+        #MAH result 
+        Boyce <- mean(unlist(Boyce))
+        Jac <- mean(unlist(res20["JAC"]))
+        OPR <- mean(unlist(res20["OPR"]))
+        Fcpb <- mean(unlist(res20["FCPB"]))
+        Validation<-SUMMRES(Eval, N, Thr)
+        if(is.null(repl)){
+          ListValidation[["MAH"]] <- data.frame(Sp=spN[s], Algorithm="MAH", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        }else{
+          ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MAH", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        }
+        
+        #Save Partition Predictions
+        if(Save=="Y"){
+          for(i in 1:N){
+            PartRas <- STANDAR(predict(Model[[i]], VariablesT))
+            if(N!=1){
+              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MAH",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MAH",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }else{
+              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("MAH",PartCat,value=T), '/',paste0(spN[s],repl),".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+          }
+        }
+        
+        # Save final model
+        if(per!=1 && repl==1 || per==1 || N!=1){
+          Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'MAH',spN[s])
+          }
+          PredPoint <- predict(Model, SpDataT[, VarColT])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          # Validation<-SUMMRES(Eval, 1, Thr)
+          ListSummary[["MAH"]] <- data.frame(Sp=spN[s], Algorithm="MAH", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["MAH"]] <- STANDAR(predict(Model, VariablesT))
+            names(ListRaster[["MAH"]]) <- spN[s]
+          }
+          if(is.null(Fut)==F){
+            for(k in 1:length(VariablesP)){
+              ListFut[[ProjN[k]]][["MAH"]] <- predict(VariablesP[[k]], Model)
+              if(maxValue(ListFut[[ProjN[k]]][["MAH"]])==0){
+                ListFut[[ProjN[k]]][["MAH"]] <- ListFut[[ProjN[k]]][["MAH"]]
+              }else{
+                ListFut[[ProjN[k]]][["MAH"]] <- STANDAR(ListFut[[ProjN[k]]][["MAH"]])
+              }
+            }
+          }
+        }
+      }else{
+        Eval <- list()
+        Boyce <- list()
+        for(k in 1:length(VariablesP)){
+          ListFut[[ProjN[k]]][["MAH"]] <- predict(VariablesP[[k]],Model[[i]])
+          if(maxValue(ListFut[[ProjN[k]]][["MAH"]])==0){
+            ListFut[[ProjN[k]]][["MAH"]] <- ListFut[[ProjN[k]]][["MAH"]]
+          }else{
+            ListFut[[ProjN[k]]][["MAH"]] <- STANDAR(ListFut[[ProjN[k]]][["MAH"]])
+          }
+          
+          PredPoint <- extract(ListFut[[ProjN[k]]][["MAH"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MAH"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+          
+          #MAH threshold
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- rep(Threshold,N)
+          
+          #Evaluation 2.0
+          res20 <- Validation2_0(Eval,Thr,PredPoint,ListFut[[ProjN]][["MAH"]],N)
+          
+          #MAH result 
+          Boyce <- mean(unlist(Boyce))
+          Jac <- mean(unlist(res20["JAC"]))
+          OPR <- mean(unlist(res20["OPR"]))
+          Fcpb <- mean(unlist(res20["FCPB"]))
+          Validation<-SUMMRES(Eval, N, Thr)
+          if(is.null(repl)){
+            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }else{
+            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }
+        }
+      }
+    }
+    
+    #ENFA (ENF)----- 
+    if (any(Algorithm == "ENF")) {
+      Model <- list()
+      #ENF model
+      for (i in 1:N) {
+        dataPr <- PAtrainM[[i]][, c("PresAbse", VarColT)]
+        dudi <- dudi.pca(dataPr[, VarColT],scannf = FALSE)
+        Model[[i]] <- madifa(dudi,dataPr$PresAbse,scannf = FALSE)
+      }
+      
+      #ENF evaluation
+      if((is.null(Fut)==F && Tst=="Y")==F){
+        Eval <- list()
+        Boyce <- list()
+        for (i in 1:N) {
+          Zli <- as.matrix(scale(PAtestM[[i]][,VarColT])) %*% as.matrix(Model[[i]]$co)
+          f1 <- function(x) rep(x, PAtestM[[i]]$PresAbse)
+          Sli <- apply(Zli, 2, f1)
+          m <- apply(Sli, 2, mean)
+          cov <- t(as.matrix(Sli)) %*% as.matrix(Sli)/nrow(Sli)
+          RastPart[["ENF"]][[i]] <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
+          PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["ENF"]][[i]])
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(RastPart[["ENF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+        }
+        
+        #ENF threshold
+        Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+        names(Thr) <- rep(Threshold,N)
+        
+        #Evaluation 2.0
+        res20 <- Validation2_0(Eval,Thr,PredPoint,RastPart[["ENF"]],N)
+        
+        #ENF result 
+        Boyce <- mean(unlist(Boyce))
+        Jac <- mean(unlist(res20["JAC"]))
+        OPR <- mean(unlist(res20["OPR"]))
+        Fcpb <- mean(unlist(res20["FCPB"]))
+        Validation<-SUMMRES(Eval, N, Thr)
+        if(is.null(repl)){
+          ListValidation[["ENF"]] <- data.frame(Sp=spN[s], Algorithm="ENF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        }else{
+          ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="ENF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        }
+        
+        #Save Partition Predictions
+        if(Save=="Y"){
+          for(i in 1:N){
+            PredRas <- values(VariablesT)
+            POS <- which(!is.na(PredRas[,1]))
+            Zli <- as.matrix(scale(na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
+            POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
+            ZER <- rep(0,length(POS))
+            ZER[POSPRE] <- 1
+            f1 <- function(x) rep(x, ZER)
+            Sli <- apply(Zli, 2, f1)
+            m <- apply(Sli, 2, mean)
+            cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+            PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
+            XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+            PredRAS <- data.frame(cbind(XY,ENF=NA))
+            PredRAS[POS,"ENF"] <- PredRas
+            gridded(PredRAS) <- ~x+y
+            PartRas <- STANDAR(raster(PredRAS))
+            rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRas",
+                      "PredRAS"))
+            if(N!=1){
+              writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("ENF",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("ENF",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }else{
+              writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("ENF",PartCat,value=T), '/',paste0(spN[s],repl),".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+          }
+        }
+        
+        # Save final model
+        if(per!=1 && repl==1 || per==1 || N!=1){
+          dudi <- dudi.pca(SpDataT[, VarColT],scannf = FALSE)
+          Model <- madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'ENF',spN[s])
+          }
+          Zli <- as.matrix(scale(SpDataT[, VarColT])) %*% as.matrix(Model$co)
+          f1 <- function(x) rep(x, SpDataT$PresAbse)
+          Sli <- apply(Zli, 2, f1)
+          m <- apply(Sli, 2, mean)
+          cov <- t(as.matrix(Sli)) %*% as.matrix(Sli)/nrow(Sli)
+          PredPoint <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          # Validation<-SUMMRES(Eval, 1, Thr)
+          ListSummary[["ENF"]] <- data.frame(Sp=spN[s], Algorithm="ENF", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            PredRas <- values(VariablesT)
+            POS <- which(!is.na(PredRas[,1]))
+            Zli <- as.matrix(scale(na.omit(values(VariablesT))) %*% as.matrix(Model$co))
+            POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
+            ZER <- rep(0,length(POS))
+            ZER[POSPRE] <- 1
+            f1 <- function(x) rep(x, ZER)
+            Sli <- apply(Zli, 2, f1)
+            m <- apply(Sli, 2, mean)
+            cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+            PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
+            XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+            PredRAS <- data.frame(cbind(XY,ENF=NA))
+            PredRAS[POS,"ENF"] <- PredRas
+            gridded(PredRAS) <- ~x+y
+            ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
+            rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRas",
+                      "PredRAS"))
+            names(ListRaster[["ENF"]]) <- spN[s]
+          }
+          if(is.null(Fut)==F){
+            for(k in 1:length(VariablesP)){
+              PredRas <- values(VariablesP[[k]])
+              POS <- which(!is.na(PredRas[,1]))
+              Zli <- as.matrix(scale(na.omit(values(VariablesP[[k]]))) %*% as.matrix(Model$co))
+              POSPRE <- cellFromXY(VariablesP[[k]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
+              ZER <- rep(0,length(POS))
+              ZER[POSPRE] <- 1
+              f1 <- function(x) rep(x, ZER)
+              Sli <- apply(Zli, 2, f1)
+              m <- apply(Sli, 2, mean)
+              cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+              PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
+              XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+              PredRAS <- data.frame(cbind(XY,ENF=NA))
+              PredRAS[POS,"ENF"] <- PredRas
+              gridded(PredRAS) <- ~x+y
+              ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(raster(PredRAS))
+              rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRas",
+                        "PredRAS"))
+              if(maxValue(ListFut[[ProjN[k]]][["ENF"]])==0){
+                ListFut[[ProjN[k]]][["ENF"]] <- ListFut[[ProjN[k]]][["ENF"]]
+              }else{
+                ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(ListFut[[ProjN[k]]][["ENF"]])
+              }
+            }
+          }
+        }
+      }else{
+        Eval <- list()
+        Boyce <- list()
+        for(k in 1:length(VariablesP)){
+          ListFut[[ProjN[k]]][["ENF"]] <- predict(VariablesP[[k]],Model[[i]])
+          if(maxValue(ListFut[[ProjN[k]]][["ENF"]])==0){
+            ListFut[[ProjN[k]]][["ENF"]] <- ListFut[[ProjN[k]]][["ENF"]]
+          }else{
+            ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(ListFut[[ProjN[k]]][["ENF"]])
+          }
+          
+          PredPoint <- extract(ListFut[[ProjN[k]]][["ENF"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["ENF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+          
+          #ENF threshold
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- rep(Threshold,N)
+          
+          #Evaluation 2.0
+          res20 <- Validation2_0(Eval,Thr,PredPoint,ListFut[[ProjN]][["ENF"]],N)
+          
+          #ENF result 
+          Boyce <- mean(unlist(Boyce))
+          Jac <- mean(unlist(res20["JAC"]))
+          OPR <- mean(unlist(res20["OPR"]))
+          Fcpb <- mean(unlist(res20["FCPB"]))
+          Validation<-SUMMRES(Eval, N, Thr)
+          if(is.null(repl)){
+            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }else{
+            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
           }
         }
       }
@@ -591,6 +1094,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                            PredPoint[PredPoint$PresAbse == 0, 2]))
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'MXD',spN[s])
+          }
           # Validation<-SUMMRES(Eval, 1, Thr)
           ListSummary[["MXD"]] <- data.frame(Sp = spN[s], Algorithm = "MXD", Threshold=Thr)
           if(SaveFinal=="Y"){
@@ -738,6 +1245,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                            PredPoint[PredPoint$PresAbse == 0, 2]))
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'MXS',spN[s])
+          }
           # Validation<-SUMMRES(Eval, 1, Thr)
           ListSummary[["MXS"]] <- data.frame(Sp = spN[s], Algorithm = "MXS", Threshold=Thr)
           if(SaveFinal=="Y"){
@@ -805,8 +1316,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MLK model
       for (i in 1:N) {
         # dataPr <- PAtrain[[i]][, c("x", "y")]
-        x <- PAtrain[[i]][PAtrain[[i]][,"PresAbse"]==1, VarColT]
-        z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
+        x <- scale(PAtrain[[i]][PAtrain[[i]][,"PresAbse"]==1, VarColT])
+        z <- scale(PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT])
         # Model[[i]] <- maxlike(Fmula, stack(vars), dataPr,
         #                       link=c("logit"),savedata=T,
         #                       hessian = TRUE, removeDuplicates=FALSE)
@@ -887,17 +1398,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          x <- SpDataT[SpDataT[,"PresAbse"]==1, VarColT]
+          x <- SpDataTM[SpDataTM[,"PresAbse"]==1, VarColT]
           z <- SpDataTM[SpDataTM[,"PresAbse"]==0, VarColT]
           Model <- maxlike(Fmula,x=x,z=z,
-                                link=c("logit"),
-                                hessian = TRUE, removeDuplicates=FALSE)
+                           link=c("cloglog"),hessian = FALSE, 
+                           method="BFGS",removeDuplicates=FALSE)
           PredPoint <- predict(Model, SpDataT[, VarColT])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- Threshold
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'MLK',spN[s])
+          }
           # Validation<-SUMMRES(Eval, 1, Thr)
           ListSummary[["MLK"]] <- data.frame(Sp = spN[s], Algorithm = "MLK", Threshold=Thr)
           if(SaveFinal=="Y"){
@@ -934,7 +1449,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MLK"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #BIO threshold
+          #ENF threshold
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- rep(Threshold,N)
           
@@ -1043,6 +1558,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
                         kernel = "rbfdot",C = 1, prob.model=T)
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'SVM',spN[s])
+          }
           PredPoint <- as.numeric(kernlab::predict(object=Model, newdata=SpDataT[, VarColT],type="probabilities")[,2])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1085,7 +1604,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["SVM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #BIO threshold
+          #ENF threshold
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- rep(Threshold,N)
           
@@ -1114,15 +1633,17 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][, c("PresAbse", VarColT)]
         set.seed(1)
-        Model[[i]] <- tuneRF(dataPr[,-1], (dataPr[,1]), trace=F,
-                             stepFactor=2, ntreeTry=1000, doBest=T, plot=F)
+        Model[[i]] <- randomForest(as.factor(PresAbse)~.,data=dataPr[,c("PresAbse",VarColT)],
+                                    importance=T, type="regression")
+        # Model[[i]] <- tuneRF(dataPr[,-1], (dataPr[,1]), trace=F,
+        #                      stepFactor=2, ntreeTry=1000, doBest=T, plot=F)
       }
       #RDF evaluation
       if((is.null(Fut)==F && Tst=="Y")==F){
         Eval <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT]))
+          RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT],type="prob")[,2])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["RDF"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1191,9 +1712,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           set.seed(0)
-          Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
-                          stepFactor=2, ntreeTry=500, doBest=T, plot = F)    
-          PredPoint <- predict(Model, SpDataT[, VarColT])
+          Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[,c("PresAbse",VarColT)],
+                                importance=T, type="classification")
+          # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
+          #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'RDF',spN[s])
+          }
+          PredPoint <- predict(Model, SpDataT[, VarColT],type="prob")[,2]
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2]))
@@ -1257,10 +1784,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
     }
     
-    #GENERALISED ADDITIVE MODEL (GAM)------
+    #GENERALISED ADDITIVE MODEL (GAM)----
     if(any(Algorithm == 'GAM')) {
       Model <- list()
-      Fmula <- paste("s(", VarColT,", k=3)", sep="")
+      Fmula <- paste("s(", VarColT,")", sep="")
       Fmula <- paste("PresAbse", paste(Fmula, collapse = " + "), sep = " ~ ")
       Fmula <- as.formula(Fmula)
       
@@ -1345,6 +1872,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- gam(Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
                        select = T, family = binomial)
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'GAM',spN[s])
+          }
           PredPoint <- c(predict(Model, SpDataT[, VarColT],type="response"))
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1387,7 +1918,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #BIO threshold
+          #DOM threshold
           Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
           names(Thr) <- rep(Threshold,N)
           
@@ -1409,7 +1940,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
     }
     
-    #GENERALISED LINEAR MODEL (GLM) ------
+    #GENERALISED LINEAR MODEL (GLM) -----
     if(any(Algorithm == 'GLM')) {
       Model <- list()
       Fmula <- paste("PresAbse", paste(c(VarColT, paste("(",VarColT, ")^2", sep = "")),
@@ -1419,6 +1950,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][, c("PresAbse", VarColT)]
         Model[[i]] <- glm(Fmula, data = dataPr, family = binomial)
+        if(VarImP=="T"){
+          dir.create(file.path(grep("GLM",folders,value=T),"Response Curves & Variable Importance"))
+          DirV <- file.path(grep("GLM",folders,value=T),"Response Curves & Variable Importance")
+          V_IMP <- varImp(Model[[i]],scale=T)
+          V_IMP <- V_IMP/sum(V_IMP)
+          write.table(V_IMP,file.path(DirV,"VariableImportance.txt"),sep="\t",row.names=T)
+          for(k in 1:length(VarColT)){
+            tiff(file.path(DirV,paste0("Response_Curves_",VarColT[k],".tiff")),width = 3200, height = 3200, units = "px", res = 800)
+            response(Model[[i]],var=VarColT[k])
+            dev.off()
+          }
+        }
       }
       
       #GLM evaluation
@@ -1497,6 +2040,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family = binomial)
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'GLM',spN[s])
+          }
           PredPoint <- c(predict(Model, SpDataT[, VarColT],type="response"))
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1645,6 +2192,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
+        #Variable Importance & Response Curves
+        if(VarImP=="T"){
+          VarImp_RspCurv(Model,'GAU',spN[s])
+        }
         PredPoint <- predict(Model, SpDataT[, VarColT])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1710,11 +2261,172 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
     }
     }
+    
+    #BOOSTED REGRESSION TREE (BRT) ----
+    if(any(Algorithm == 'BRT')){
+      Model <- list()
+      #BRT model
+      for (i in 1:N) {
+        dataPr <- PAtrain[[i]]
+        if(nrow(dataPr)*0.75<=21){
+          bagFr <- 1
+        }else{
+          bagFr <- 0.75
+        }
+        Model[[i]] <- gbm.step(data=dataPr, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
+                               tree.complexity= 5, learning.rate= 0.005, bag.fraction= bagFr)
+      }
+      
+      #BRT evaluation
+      if((is.null(Fut)==F && Tst=="Y")==F){
+        Eval <- list()
+        Boyce <- list()
+        for (i in 1:N) {
+          RastPart[["BRT"]][[i]] <- predict.gbm(Model[[i]], PAtest[[i]][, VarColT],
+                                                n.trees=Model[[i]]$gbm.call$best.trees,type="response")
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BRT"]][[i]])
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
+                                       PredPoint[PredPoint$PresAbse == 0,2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(RastPart[["BRT"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        }
+        #BRT threshold
+        Thr <- unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+        names(Thr) <- rep(Threshold,N)
+        
+        #Evaluation 2.0
+        res20 <- Validation2_0(Eval,Thr,PredPoint,RastPart[["BRT"]],N)
+        
+        #BRT result 
+        Boyce <- mean(unlist(Boyce))
+        Jac <- mean(unlist(res20["JAC"]))
+        OPR <- mean(unlist(res20["OPR"]))
+        Fcpb <- mean(unlist(res20["FCPB"]))
+        
+        Validation<-SUMMRES(Eval, N, Thr)
+        if(is.null(repl)){
+          ListValidation[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+        }else{
+          ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BRT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+        }
+        
+        #Save Partition Predictions
+        if(Save=="Y"){
+          for(i in 1:N){
+            PartRas <- STANDAR(predict(VariablesT,Model[[i]],
+                                           n.trees=Model[[i]]$gbm.call$best.trees,type="response"))
+            if(N!=1){
+              writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("BRT",PartCat,value=T), '/',spN[s],"_",i,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("BRT",PartCat,value=T), '/',spN[s],"_",repl,".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }else{
+              writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                          format='GTiff',
+                          overwrite=TRUE)
+              for(p in 1:length(Thr)){
+                writeRaster(PartRas>=Thr[p], 
+                            paste(grep("BRT",PartCat,value=T), '/',spN[s],".tif", sep=""),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
+            }
+          }
+        }
+        
+        #Save final model
+        if(per!=1 && repl==1 || per==1 || N!=1){
+          Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
+                            tree.complexity= 5, learning.rate= 0.005, bag.fraction= bagFr)
+          #Variable Importance & Response Curves
+          if(VarImP=="T"){
+            VarImp_RspCurv(Model,'BRT',spN[s])
+          }
+          PredPoint <- predict.gbm(Model, SpDataT[, VarColT],
+                                   n.trees=Model$gbm.call$best.trees,type="response")
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          # Validation<-SUMMRES(Eval, 1, Thr)
+          ListSummary[["BRT"]] <- data.frame(Sp = spN[s], Algorithm = "BRT", Threshold=Thr)
+          if(SaveFinal=="Y"){
+            ListRaster[["BRT"]] <- STANDAR(predict(VariablesT,Model,
+                                               n.trees=Model$gbm.call$best.trees,type="response"))
+            names(ListRaster[["BRT"]]) <- spN[s]
+          }
+          if(is.null(Fut)==F){
+            for(k in 1:length(VariablesP)){
+              ListFut[[ProjN[k]]][["BRT"]] <- predict.gbm(Model,VariablesP[[k]],
+                                                          n.trees=Model$gbm.call$best.trees,type="response")
+              if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
+                ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
+              }else{
+                ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
+              }
+            }
+          }
+        }
+      }else{
+        Eval <- list()
+        Boyce <- list()
+        for(k in 1:length(VariablesP)){
+          ListFut[[ProjN[k]]][["BRT"]] <- predict.gbm(Model,VariablesP[[k]],
+                                                      n.trees=Model$gbm.call$best.trees,type="response")
+          if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
+            ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
+          }else{
+            ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
+          }
+          
+          PredPoint <- extract(ListFut[[ProjN[k]]][["BRT"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BRT"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+          
+          #BRT threshold
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- rep(Threshold,N)
+          
+          #Evaluation 2.0
+          res20 <- Validation2_0(Eval,Thr,PredPoint,ListFut[[ProjN]][["BRT"]],N)
+          
+          #BRT result 
+          Boyce <- mean(unlist(Boyce))
+          Jac <- mean(unlist(res20["JAC"]))
+          OPR <- mean(unlist(res20["OPR"]))
+          Fcpb <- mean(unlist(res20["FCPB"]))
+          Validation<-SUMMRES(Eval, N, Thr)
+          if(is.null(repl)){
+            ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }else{
+            ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+          }
+        }
+      }
+    }
 
-    # Ensemble-----
-    # Without Ensemble
-
-    #Save final models
+    #Final models----
     if(per!=1 && repl==1 || per==1 || N!=1){
       if(SaveFinal=="Y"){
         if((is.null(Fut)==F && Tst=="Y")==F){
@@ -1752,8 +2464,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       RastPart <- list(ListFut)
     }
     
+    # Ensemble-----
     # Mean Ensemble----
-    if(any(PredictType=="Mean")){
+    if(any(PredictType=="MEAN")){
       
       #Partial Models Ensemble
       Final <- do.call(Map, c(rbind,RastPart))
@@ -1811,11 +2524,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["MEAN"]] <- data.frame(Sp=spN[s], Algorithm="MEA", Threshold=Thr)
           
           writeRaster(Final, 
-                      paste(DirMean, '/',spN[s],".tif", sep=""),
+                      paste(DirMEAN, '/',spN[s],".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        paste(DirMeanCat, '/',spN[s],".tif", sep=""),
+                        paste(DirMEANCat, '/',spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
         }
@@ -1827,24 +2540,107 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- calc(Final,mean)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","Mean",spN[s]),
+                        file.path(ModFut[p],"ENS","MEAN",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
               writeRaster(Final>=as.numeric(Thr), 
-                          file.path(ModFut[p],"ENS","Mean","BIN",paste(spN[s],sep="_")),
+                          file.path(ModFut[p],"ENS","MEAN","BIN",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
           }
         }
       }
     }
-
-    # With Over the Mean(Superior) Ensemble----
-    if(any(PredictType=='Sup')){
+    
+    # Weighted Mean Ensemble----
+    if(any(PredictType=="W_MEAN")){
+      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
+      #Partial Models Ensemble
+      Final <- do.call(Map, c(rbind,RastPart))
+      TSS <- ListValidationT$TSS
+      Final <- lapply(Final, function(x) sweep(x, 1, TSS, '*'))
+      Final <- lapply(Final, function (x) colMeans(x))
       
+      # Threshold
+      Eval <- list()
+      Boyce <- list()
+      for(i in 1:N){
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2])
+        Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+      }
+      
+      Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+      names(Thr) <- rep(Threshold,N)
+      
+      #Evaluation 2.0
+      res20 <- Validation2_0(as.list(Eval),Thr,PredPoint,as.list(Final),N)
+      
+      #MEA result
+      Boyce <- mean(unlist(Boyce))
+      Jac <- mean(unlist(res20[names(res20)=="JAC"]))
+      OPR <- mean(unlist(res20[names(res20)=="OPR"]))
+      Fcpb <- mean(unlist(res20[names(res20)=="FCPB"]))
+      
+      Validation <- SUMMRES(Eval,N=1,Thr)
+      if(is.null(repl)){
+        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s], Algorithm="WMEA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)
+      }else{
+        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="WMEA", Validation,Boyce=Boyce,Jack_ppac=Jac,OPR_ppac=OPR,Fcpb=Fcpb)          
+      }
+      
+      #Final Model
+      if(per!=1 && repl==1 || per==1 || N!=1){
+        if(SaveFinal=="Y"){
+          Final <- brick(ListRaster)
+          Final <- calc(Final, function(x) x*TSS)
+          Final <- calc(Final,mean)
+          PredPoint <- extract(Final, SpDataT[, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          Eval <- list(dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2]))
+          Thr<-unlist(sapply(Eval, function(x) threshold(x)[Threshold]))
+          names(Thr) <- Threshold
+          
+          ListSummary[["W_MEAN"]] <- data.frame(Sp=spN[s], Algorithm="WMEA", Threshold=Thr)
+          
+          writeRaster(Final, 
+                      paste(DirW_MEAN, '/',spN[s],".tif", sep=""),
+                      format='GTiff',
+                      overwrite=TRUE)
+          writeRaster(Final>=as.numeric(Thr), 
+                      paste(DirW_MEANCat, '/',spN[s],".tif", sep=""),
+                      format='GTiff',
+                      overwrite=TRUE)
+        }
+        
+        #Future Projection
+        if(is.null(Fut)==F && Tst!="Y"){
+          for(p in 1:length(ListFut)){
+            Final <- brick(ListFut[[p]])
+            Final <- calc(Final,mean)
+            
+            writeRaster(Final, 
+                        file.path(ModFut[p],"ENS","W_MEAN",spN[s]),
+                        format='GTiff',
+                        overwrite=TRUE)
+            writeRaster(Final>=as.numeric(Thr), 
+                        file.path(ModFut[p],"ENS","W_MEAN","BIN",paste(spN[s],sep="_")),
+                        format='GTiff',
+                        overwrite=TRUE)
+          }
+        }
+      }
+    }
+
+    # Superior Ensemble----
+    if(any(PredictType=='SUP')){
+      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
       # Selection of best algorithms based on TSS
-      Best <- which(unlist(sapply(ListValidation, '[','TSS'))>=mean(unlist(sapply(ListValidation, '[','TSS'))))
-      Best <- substr(names(Best),1,nchar(names(Best))-4)
+      Best <- ListValidationT[which(ListValidationT$TSS>=mean(ListValidationT$TSS)),"Algorithm"]
       W <- names(ListRaster)%in%Best
       
       #Partial Models
@@ -1923,11 +2719,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["SUP"]] <- data.frame(Sp=spN[s], Algorithm="SUP", Threshold=Thr)
           
           writeRaster(Final, 
-                      paste(DirSup, '/',spN[s],".tif", sep=""),
+                      paste(DirSUP, '/',spN[s],".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
           writeRaster(Final>=as.numeric(Thr), 
-                      paste(DirSupCat, '/',spN[s],".tif", sep=""),
+                      paste(DirSUPCat, '/',spN[s],".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
         }
@@ -1939,11 +2735,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- calc(Final,mean)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","Sup",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"ENS","SUP",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"ENS","Sup","BIN",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"ENS","SUP","BIN",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
           }
@@ -2065,7 +2861,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
         
     # With PCA over the Mean(Superior) Ensemble----
-    if (any(PredictType == 'PCA_Sup')) {
+    if (any(PredictType == 'PCA_SUP')) {
 
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
@@ -2156,11 +2952,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["PCS"]] <- data.frame(Sp=spN[s], Algorithm="PCS", Threshold=Thr)
     
           writeRaster(Final, 
-                      paste(DirPCA_Sup, '/',spN[s],"_",".tif", sep=""),
+                      paste(DirPCA_SUP, '/',spN[s],"_",".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
           writeRaster(Final>=as.numeric(Thr), 
-                      paste(DirPCA_SupCat, '/',spN[s],"_",".tif", sep=""),
+                      paste(DirPCA_SUPCat, '/',spN[s],"_",".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
         }
@@ -2172,11 +2968,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- PCA_ENS_TMLA(Final)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","PCA_Sup",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"ENS","PCA_SUP",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"ENS","PCA_Sup","BIN",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"ENS","PCA_SUP","BIN",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
           }
@@ -2185,7 +2981,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
     
     #With PCA over the threshold Ensemble----
-    if (any(PredictType == 'PCA_Thr')) {
+    if (any(PredictType == 'PCA_THR')) {
       
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
@@ -2281,11 +3077,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["PCT"]] <- data.frame(Sp=spN[s], Algorithm="PCT", Threshold=Thr)
           
           writeRaster(Final, 
-                      paste(DirPCA_Thr, '/',paste(spN[s],sep="_"),".tif", sep=""),
+                      paste(DirPCA_THR, '/',paste(spN[s],sep="_"),".tif", sep=""),
                       format='GTiff',
                       overwrite=TRUE)
           writeRaster(Final>=unlist(Thr), 
-                        paste(DirPCA_ThrCat, '/',spN[s],"_",".tif", sep=""),
+                        paste(DirPCA_THRCat, '/',spN[s],"_",".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
         }
@@ -2309,17 +3105,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Final <- PCA_ENS_TMLA(Final)
   
               writeRaster(Final, 
-                          file.path(ModFut[p],"ENS","PCA_Thr",paste(spN[s],sep="_")),
+                          file.path(ModFut[p],"ENS","PCA_THR",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
                 writeRaster(Final>=unlist(Thr), 
-                            file.path(ModFut[p],"ENS","PCA_Thr","BIN",paste(spN[s],sep="_")),
+                            file.path(ModFut[p],"ENS","PCA_THR","BIN",paste(spN[s],sep="_")),
                             format='GTiff',
                             overwrite=TRUE)
             }
         }
       }
     }
+    
     #Final Data Frame Results
     result <- ldply(ListValidation,data.frame,.id=NULL)
     resultII <- ldply(ListSummary,data.frame,.id=NULL)

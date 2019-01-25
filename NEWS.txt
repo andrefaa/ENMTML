@@ -58,6 +58,23 @@
 -BlockPartition>Parallel Processing (~50% gain)
 -BandsPartition>Parallel Processing (~50% gain)
 -FitENM>Parallel Processing (>60% gain)
+
+###### 22/01/2019 ######
+!! MAJOR UPDATE !!
+-[New] Pseudo-Absence Allocation method -> Geographic
+-[New] Occurrence Thining now available!
+	3 methods: Distance-defined, Variogram, Based on 10x cellsize
+-[New] Ensemble Method -> Weighted-Average
+-[New] Methods to deal with Variable Colinearity -> VIF & Pearson
+-[New] S-SDM calculations on both fitted and projected areas, also available for Ensemble
+-[New] Algorithms for fitting ENMs
+	5 New algorithms: BRT, ANN, ENFA, DOMAIN, MAHALANOBIS
+-[New] MESS and MOP when performing projections (Based on data used for fitting the models, not the whole M)
+-[New] Variable contribution and response curves
+-[New] Variance partitioning
+-[Fix] Issues when using MAC/Linux OS and projections due to the function choose.dir
+-Several changes in function arguments, see README on GitHub!
+-Changes to RDF algorithm, now is a Classification-RDF, which is more suitable for Pres/Abse Data
 #######################################
 
 
