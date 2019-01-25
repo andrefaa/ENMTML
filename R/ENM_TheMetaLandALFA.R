@@ -706,7 +706,7 @@ ENMs_TheMetaLand<-function(Dir,
         
       #7.4. Generating Pseudo-Absences----
         #Random Pseudo-Absences
-          if(PabM=="rnd"){
+          if(PabM=="Rnd"){
             if(Proj=="Y"&& SetEval=="Y"){
               pseudo.mask <- envT[[1]]
               pseudo.maskP <- EnvF[[1]][[1]]
