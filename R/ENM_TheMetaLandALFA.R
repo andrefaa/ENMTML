@@ -399,7 +399,7 @@ ENMs_TheMetaLand<-function(Dir,
     occ_xy <- lapply(occ,function(x) x[,c("x","y")])
     
     #4.5.GAM and GLM usage----
-    if(any(sapply(occA,function(x) nrow(x))<nlayers(envT)) && any(Alg%in%c("GAM","GLM"))){
+    if(any(sapply(occ,function(x) nrow(x))<nlayers(envT)) && any(Alg%in%c("GAM","GLM"))){
       warning("A species has fewer records than the number of predictors, impossible to adjust GAM and GLM! GAM and GLM will be excluded")
       Alg <- Alg[!Alg%in%c("GAM","GLM")]
     }
