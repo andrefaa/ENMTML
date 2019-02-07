@@ -46,10 +46,10 @@ The function has several input arguments, specify all of them as your desires.
 * **NMin:** Minimum number of unique occurrences (species with less than this number will be excluded)  
 * **Thin:** Perform a spatial filtering (Thinning) on the presences?
 * **VarColin:** Wish to perform processes to reduce variable collinearity? (Y/N)  
-  +**N**: Use original variables  
-  +**Pearson:** Select variables by Pearson Correlation (Threshold specified by user)  
-  +**VIF:** Variance Inflation Factor (Chatterjee and Hadi 2006)  
-  +**PCA:** Perform a PCA on predictors and use PCs as environmental variables  
+  + **N**: Use original variables  
+  + **Pearson:** Select variables by Pearson Correlation (Threshold specified by user)  
+  + **VIF:** Variance Inflation Factor (Chatterjee and Hadi 2006)  
+  + **PCA:** Perform a PCA on predictors and use PCs as environmental variables  
 * **Proj:** Project the model onto another region or time period? (Y/N)  
 * **SetEval:** Use an pre-determined set of occurrences for validation? (Y/N)
 * **SpeciesM:** Restrict the acessible area M? (Species-specific) (Y/N)
@@ -57,7 +57,7 @@ The function has several input arguments, specify all of them as your desires.
 * **PabM:** Pseudo-absence Selection Method  
   + **Rnd:** Random  
   + **EnvConst:** Constrained by a Bioclim Model  
-  +**GeoConst:** Constrained by a Geographical buffer  
+  + **GeoConst:** Constrained by a Geographical buffer  
 * **Part:** Data partition method  
   + **boot:** Random bootstrap partition (e.g. 70 training - 30% test)  
   + **cross:** Random partition in k-fold  
@@ -101,11 +101,12 @@ The function has several input arguments, specify all of them as your desires.
     + **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
 * **ENS:** Ensemble of the different algorithms  
   + **N:** No Ensemble  
-  + **Mean:** Simple average of the different models  
-  + **Sup:** Average of the models with TSS value above the average of TSS values for all models  
+  + **MEAN:** Simple average of the different models  
+  + **W_MEAN:** Weighted Average  
+  + **SUP:** Average of the best models (TSS over the average)  
   + **PCA:** Performs a PCA and returns the first axis  
-  + **PCA_Sup:** Performs a PCA only with models with TSS value above the average of TSS values for all models  
-  + **PCA_Thr:** Performs a PCA, but cells with suitability values under the threshold are set to 0  
+  + **PCA_SUP:** PCA of the best models (TSS over the average)  
+  + **PCA_THR:** PCA only with cells above the threshold  
 * **S_SDM:** Stacked Species Distribution Model (Y/N)
       
 ## Where do I inform my Occurrence Data?  
