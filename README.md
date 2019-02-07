@@ -15,8 +15,8 @@ Please follow the "installation" instructions
 **6.** library(GRaF)
 
 ## Run
-ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,VarColin="",Proj="",SetEval="",SpeciesM="",PabR=,PabM="",
-                  Part="",SavePart="N",SaveFinal="Y",Alg=c(),Thr="",MSDM="",ENS=c())
+ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,Thin="",VarColin="",VarImp="",Proj="",SetEval="",SpeciesM="",PabR=,PabM="",
+                  Part="",SavePart="N",SaveFinal="Y",Alg=c(),Thr="",MSDM="",ENS=c(),S_SDM="")
 
 **See possible input options below**
 
@@ -44,14 +44,20 @@ The function has several input arguments, specify all of them as your desires.
 * **x:** Name of the column with information about longitude  
 * **y:** Name of the column with information about latitude  
 * **NMin:** Minimum number of unique occurrences (species with less than this number will be excluded)  
-* **PCA:** Do you wish to perform a PC on your predictors?(Y/N) !Predictors will automatically be used for the modelling process!  
+* **Thin:** Perform a spatial filtering (Thinning) on the presences?
+* **VarColin:** Wish to perform processes to reduce variable collinearity? (Y/N)  
+  +**N**: Use original variables  
+  +**Pearson:** Select variables by Pearson Correlation (Threshold specified by user)  
+  +**VIF:** Variance Inflation Factor (Chatterjee and Hadi 2006)  
+  +**PCA:** Perform a PCA on predictors and use PCs as environmental variables  
 * **Proj:** Project the model onto another region or time period? (Y/N)  
 * **SetEval:** Use an pre-determined set of occurrences for validation? (Y/N)
 * **SpeciesM:** Restrict the acessible area M? (Species-specific) (Y/N)
 * **PabR:** Presence-Absence Ratio  
 * **PabM:** Pseudo-absence Selection Method  
-  + **rnd:** Random  
-  + **const:** Constrained by a Bioclim Model  
+  + **Rnd:** Random  
+  + **EnvConst:** Constrained by a Bioclim Model  
+  +**GeoConst:** Constrained by a Geographical buffer  
 * **Part:** Data partition method  
   + **boot:** Random bootstrap partition (e.g. 70 training - 30% test)  
   + **cross:** Random partition in k-fold  
@@ -61,11 +67,15 @@ The function has several input arguments, specify all of them as your desires.
 * **SaveFinal:** Save .tif files of the final model (fitted with all the data)[Default="Y"]? (Y/N)
 * **Alg:** List of available algorithms  
   + **BIO:** Bioclim  
+  + **MAH:** Mahalanobis  
+  + **DOM:** Domain  
+  + **ENF:** ENFA  
   + **MXS:** Maxent Simple[only linear and quadratic features] (MaxNet)  
   + **MXD:** Maxent Default[all features] (MaxNet)  
   + **SVM:** Support Vector Machine  
   + **GLM:** Generalized Linear Model  
-  + **GAM:** Generalizes Additive Model  
+  + **GAM:** Generalizes Additive Model 
+  + **BRT:** Boosted Regression Tree
   + **RDF:** Random Forest  
   + **MLK:** Maximum Likelihood  
   + **GAU:** Gaussian   
@@ -84,11 +94,11 @@ The function has several input arguments, specify all of them as your desires.
   + **CML:** Create a layer with information of the summed distance from each cell to ALL occurrences [added as a predictor]  
   + **KER:** Create a layer with a Gaussian-Kernel on the occurrence data [added as a predictor]  
   + **POST:** Posterior M-SDM Methods (If chosen, prefered method will be asked later) [NOT added as a predictor]  
-    - **OBR:** Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)
-    - **LR:** Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)  
-    - **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep)  
-    - **MCP:** Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)  
-    - **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
+    + **OBR:** Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)  
+    + **LR:** Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)  
+    + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep)  
+    + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)  
+    + **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
 * **ENS:** Ensemble of the different algorithms  
   + **N:** No Ensemble  
   + **Mean:** Simple average of the different models  
@@ -96,6 +106,7 @@ The function has several input arguments, specify all of them as your desires.
   + **PCA:** Performs a PCA and returns the first axis  
   + **PCA_Sup:** Performs a PCA only with models with TSS value above the average of TSS values for all models  
   + **PCA_Thr:** Performs a PCA, but cells with suitability values under the threshold are set to 0  
+* **S_SDM:** Stacked Species Distribution Model (Y/N)
       
 ## Where do I inform my Occurrence Data?  
 Not everything will be input as arguments at the beggining!  
