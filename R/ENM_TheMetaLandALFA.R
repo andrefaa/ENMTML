@@ -40,7 +40,7 @@ ENMs_TheMetaLand<-function(Dir,
     #SpeciesM : Restrict the acessible area M? (Species-specific) (Y/N)
     #PabR:Presence-Absence Ratio
     #PabM:Pseudo-absence Selection Method
-      #rnd:Random
+      #Rnd:Random
       #EnvConst: Constrained by a Bioclim Model
       #GeoConst: Constrained by a geographical buffer
     #Part: Data partition methods 
@@ -50,11 +50,15 @@ ENMs_TheMetaLand<-function(Dir,
       #check : Geographic partition in a checkerboard
     #Alg: Algorithms list
       #BIO : Bioclim
+      #MAH : Mahalanobis
+      #DOM : Domain
+      #ENF : ENFA
       #MXS : Maxent Linear and Quaratic Features (MaxNet)
       #MXD : Maxent Default (MaxNet)
       #SVM : Support Vector Machine
       #GLM : Generalized Linear Model
       #GAM : Generalizes Additive Model
+      #BRT : Boosted Regression Tree
       #RDF : Random Forest
       #MLK : Maximum Likelihood
       #GAU : Gaussian
@@ -86,6 +90,7 @@ ENMs_TheMetaLand<-function(Dir,
       #PCA : PCA with all models
       #PCA_SUP : PCA of the best models (TSS over the average)
       #PCA_THR : PCA only with cells above the threshold
+    #S_SDM: Stacked Species Distribution Model (Y/N)
 
 #1.Check Function Arguments  
   
