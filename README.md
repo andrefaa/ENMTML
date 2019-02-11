@@ -5,7 +5,7 @@ Overall, there is a main script (ENM_TheMetaLand) and a group of auxiliary funct
 Please follow the "installation" instructions
 
 ## Installation
-```
+```ruby
 install.packages("devtools")  
 library(devtools)  
 install_github("andrefaa/ENM_TheMetaLand")  
@@ -13,7 +13,7 @@ library(ENMTheMetaLand)
 ```
 
 **FOR NEW USERS**  
-```
+```ruby
 install_github('goldingn/GRaF')  
 library(GRaF)
 ```
