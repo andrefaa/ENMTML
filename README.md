@@ -5,14 +5,18 @@ Overall, there is a main script (ENM_TheMetaLand) and a group of auxiliary funct
 Please follow the "installation" instructions
 
 ## Installation
-**1.** install.packages("devtools")  
-**2.** library(devtools)  
-**3.** install_github("andrefaa/ENM_TheMetaLand")  
-**4.** library(ENMTheMetaLand)  
+```
+install.packages("devtools")  
+library(devtools)  
+install_github("andrefaa/ENM_TheMetaLand")  
+library(ENMTheMetaLand)  
+```
 
 **FOR NEW USERS**  
-**5.** install_github('GRaF', 'goldingn')  
-**6.** library(GRaF)
+```
+install_github('goldingn/GRaF')  
+library(GRaF)
+```
 
 ## Run
 ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,Thin="",VarColin="",VarImp="",Proj="",SetEval="",SpeciesM="",PabR=,PabM="",
