@@ -67,7 +67,7 @@ ENMs_TheMetaLand<-function(dir,
   }
   if(!is.null((er))){
     print(er)
-    stop("Argumentos faltantes, please, check if the argumentos listed above")
+    stop("Argumentos faltantes, please, check  the argumentos listed above")
   }
   
   if(!(colin_var%in%c("Pearson","VIF","PCA","N"))){
@@ -85,13 +85,13 @@ ENMs_TheMetaLand<-function(dir,
   if(length(pseudoabs_method)>1){
     stop("Please choose only one Pseudo-absence allocation method")
   }
-  if(!(part%in%c("boot","cross","band","check"))){
-    stop("'part' Argument is not valid!(boot/cross/band/check)")
+  if(!(part%in%c("BOOT","KFOLD","BANDS","CHECK"))){
+    stop("'part' Argument is not valid!(BOOT/KFOLD/BANDS/CHECK)")
   }
-  if(any(!algorithm%in%c("BIO","GLM","GAM","SVM","RDF","MXS","MXD","MLK","GAU"))){
-    stop(paste("Algorithm",algorithm[!(algorithm%in%c("BIO","GLM","GAM","SVM","RDF","MXS","MXD","MLK","GAU"))],"is not valid"))
+  if(any(!algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"))){
+    stop(paste("Algorithm",algorithm[!(algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"))],"is not valid"))
   }
-  if(any(!thr%in%c("no_omission","spec_sens","kappa","equal_sens_spec","prevalence","sensitivity"))){
+  if(any(!thr%in%c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD","SORENSEN"))){
     stop("'thr' Argument is not valid!")
   }
   if(!(msdm%in%c("N","XY","MIN","CML","KER","POST"))){
@@ -127,9 +127,13 @@ ENMs_TheMetaLand<-function(dir,
     }
   }
   
-#2.Adjust Algorithm Names----
+#2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
   algorithm <- Ord[Ord%in%algorithm]
+  
+  ThrNames <- c("no_omission","spec_sens","kappa","sensitivty","JACCARD")
+  thr <- ThrNames[c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD")%in%thr]
+  rm(ThrNames)
   
 #3.Predictors ----
   options(warn=1)
@@ -314,10 +318,14 @@ ENMs_TheMetaLand<-function(dir,
 
     #4.2.Thining----
     if(thin_occ=="Y"){
-      cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 10x cellsize (Haversine Transformation)"))
+      cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
       ThinMet <- as.integer(readLines(n=1))
       occA <- OccsThin(occA,envT,ThinMet,colin_var,DirR)
     }
+  
+    #4.3.Save Thinned & Unique Occurrences
+    ndb <- ldply(occA)[,1:3]
+    write.table(ndb,file.path(DirR,"Occ_Cleaned.txt"),sep="\t",row.names=F)
   
     #4.3.Remove species with less than min_occ----
     occ <- occA[sapply(occA,function (x) nrow(x)>=min_occ)]
@@ -343,11 +351,11 @@ ENMs_TheMetaLand<-function(dir,
     
 #5. Restrict Extent per Species----
     if(sp_accessible_area=="Y"){
-      cat("Select restriction type (buffer / ecoregions):")
+      cat("Select restriction type (buffer / mask):")
       method <- as.character(readLines(n = 1))
       while(!method%in%c("buffer","ecoregions")){
-        warning("Please Select a valid restriction type (buffer / ecoregions)")
-        cat("Select restriction type (buffer / ecoregions):")
+        warning("Please Select a valid restriction type (buffer / mask)")
+        cat("Select restriction type (buffer / mask):")
         method <- as.character(readLines(n = 1))
       }
       DirM <- M_delimited(var=envT,
@@ -362,7 +370,7 @@ ENMs_TheMetaLand<-function(dir,
   
     
 #6. Geographical Partition----
-    if(part=="band" || part=="check"){
+    if(part=="BANDS" || part=="CHECK"){
       
       if(any(grepl("PC",names(envT)))==T || any(grepl("pc",names(envT)))==T){
         colin_var<-"PCA"
@@ -373,10 +381,10 @@ ENMs_TheMetaLand<-function(dir,
         eval_occ <- "N"
       }
       
-      if(part=="band"){  
+      if(part=="BANDS"){  
         #6.1.Bands----
         
-        DirB<-"Bands"
+        DirB<-"BANDS"
         if (file.exists(file.path(DirR,DirB))){
           DirB<-file.path(DirR,DirB)
         } else {
@@ -402,13 +410,14 @@ ENMs_TheMetaLand<-function(dir,
             print("Use Longitudinal(1) or Latitudinal Bands(2)?")
             bands <- as.integer(readLines(n = 1))
           }
-          print("Select Moran Calculation Type (all/nearest):")
-          TipoMoran <- as.character(readLines(n = 1))
-          while(is.na(TipoMoran)||!(TipoMoran%in%c("all","nearest"))){
-            warning("Please choose a valid Moran Calculation Type [all/nearest]")
-            print("Select Moran Calculation Type (all/nearest):")
-            TipoMoran <- as.character(readLines(n = 1))
-          }
+          TipoMoran <- "all"
+          # print("Select Moran Calculation Type (all/nearest):")
+          # TipoMoran <- as.character(readLines(n = 1))
+          # while(is.na(TipoMoran)||!(TipoMoran%in%c("all","nearest"))){
+          #   warning("Please choose a valid Moran Calculation Type [all/nearest]")
+          #   print("Select Moran Calculation Type (all/nearest):")
+          #   TipoMoran <- as.character(readLines(n = 1))
+          # }
           
           #Check for M-Restriction
           if(exists("DirM")){
@@ -425,10 +434,10 @@ ENMs_TheMetaLand<-function(dir,
         }
 
       }
-      if(part=="check"){
+      if(part=="CHECK"){
         #6.2.Block----
         
-        DirB<-"Blocks"
+        DirB<-"CHECK"
         if (file.exists(file.path(DirR,DirB))){
           DirB<-file.path(DirR,DirB)
         } else {
@@ -439,7 +448,7 @@ ENMs_TheMetaLand<-function(dir,
         if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
           print("Partition Already Exist! Using pre-created partitions! ")
           setwd(DirB)
-          occINPUT <- read.table(file.path(DirB,"OccBlocks.txt"),sep="\t",header=T)
+          occINPUT <- read.table(file.path(DirB,"OccCheck.txt"),sep="\t",header=T)
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
         }else{
@@ -448,13 +457,14 @@ ENMs_TheMetaLand<-function(dir,
           }else{
             envTT<-envT
           }
-          print("Select Moran Calculation Type (all/nearest):")
-          TipoMoran <- as.character(readLines(n = 1))
-          while(is.na(TipoMoran)||!(TipoMoran%in%c("all","nearest"))){
-            warning("Please choose a valid Moran Calculation Type [all/nearest]")
-            print("Select Moran Calculation Type (all/nearest):")
-            TipoMoran <- as.character(readLines(n = 1))
-          }
+          TipoMoran <- "all"
+          # print("Select Moran Calculation Type (all/nearest):")
+          # TipoMoran <- as.character(readLines(n = 1))
+          # while(is.na(TipoMoran)||!(TipoMoran%in%c("all","nearest"))){
+          #   warning("Please choose a valid Moran Calculation Type [all/nearest]")
+          #   print("Select Moran Calculation Type (all/nearest):")
+          #   TipoMoran <- as.character(readLines(n = 1))
+          # }
           
           #Check for M-Restriction
           if(exists("DirM")){
@@ -514,7 +524,7 @@ ENMs_TheMetaLand<-function(dir,
     
 #7.Random Partition----
     
-    if(part=="boot"||part=="cross"){
+    if(part=="BOOT"||part=="KFOLD"){
       
       #7.0.Dataset for evaluation
       if(eval_occ=="Y"){
@@ -545,7 +555,7 @@ ENMs_TheMetaLand<-function(dir,
         }
 
       #7.2. Data Partition----
-      if(part=="boot"){
+      if(part=="BOOT"){
         cat("Select the number of replicates (>=1):")
         rep <- as.integer(readLines(n = 1))
         while(is.na(rep)||rep<1){
@@ -561,7 +571,7 @@ ENMs_TheMetaLand<-function(dir,
           per<-as.numeric(readLines(n = 1))
         }
       }
-      if(part=="cross"){
+      if(part=="KFOLD"){
         cat("Select the number of k-folds (>=1):")
         rep <- as.integer(readLines(n = 1))
         per<-1
@@ -577,15 +587,15 @@ ENMs_TheMetaLand<-function(dir,
       }
       
       #Adjusting for determined evaluation dataset
-      if(eval_occ=="Y" && part=="boot" && per!=1 || eval_occ=="Y" && part=="cross" && rep!=1){
-        if(part=="boot"){
+      if(eval_occ=="Y" && part=="BOOT" && per!=1 || eval_occ=="Y" && part=="KFOLD" && rep!=1){
+        if(part=="BOOT"){
           warning("Adjusting data partition to one!")
           per <- 1
         }
-        if(part=="cross"){
+        if(part=="KFOLD"){
           warning("Adjusting partition to bootstrap and data partition to one! 
           Replicates will be equal to the original number of folds")
-          part <- "boot"
+          part <- "BOOT"
           per <- 1
         }
       }
@@ -600,7 +610,7 @@ ENMs_TheMetaLand<-function(dir,
         if(rep==1){
           k <- NULL
         }
-        if(part=="boot"){
+        if(part=="BOOT"){
           if(rep!=1){
             print(paste("Replicate.....",k),sep="")
           }
@@ -625,7 +635,7 @@ ENMs_TheMetaLand<-function(dir,
             names(occTS) <- names(occTR)
           }
         }
-        if(part=="cross"){
+        if(part=="KFOLD"){
           print(paste("Adjsuting fold....",k,sep=""))
           occFoldK <- lapply(occFold, function(x) ifelse(x$Partition!=k,1,2))
           occFoldK <- Map(cbind,occ_xy,occFoldK)
@@ -884,7 +894,7 @@ ENMs_TheMetaLand<-function(dir,
         }
       
       #7.6. Calculate Moran & MESS----
-      if(per!=1 || part=="cross"){
+      if(per!=1 || part=="KFOLD"){
         Bootstrap_Moran_e_MESS_TMLA(Env=envT,RecordsData=occINPUT,DirO=DirR,repl=k)
       }
           
@@ -907,7 +917,7 @@ ENMs_TheMetaLand<-function(dir,
                     SaveFinal=save_final,per=per,repl=k)
         
       #7.10. Create Occurrence Table for Replicates----
-        if(rep!=1 || part=="cross"){
+        if(rep!=1 || part=="KFOLD"){
           occTREINO[[k]] <- occINPUT[occINPUT$Partition==1,]
           occTESTE[[k]] <- occINPUT[occINPUT$Partition==2,]
         }
@@ -939,7 +949,7 @@ ENMs_TheMetaLand<-function(dir,
           
           
           #Save Final Bootstrap File
-          if(per!=1 || part=="cross"){
+          if(per!=1 || part=="KFOLD"){
             Boot <- list.files(DirR,pattern="Bootstrap_Moran_MESS")
             BootF <- list()
             for(i in Boot){
@@ -948,15 +958,15 @@ ENMs_TheMetaLand<-function(dir,
             BootF <- ldply(BootF,data.frame,.id=NULL)
             BootF <- BootF[order(as.character(BootF[,1])),]
             unlink(file.path(DirR,Boot))
-            if(part=="boot"){
+            if(part=="BOOT"){
               write.table(BootF,file.path(DirR,"Bootstrap_Moran_MESS.txt"),sep="\t",row.names=F)
             }
-            if(part=="cross"){
+            if(part=="KFOLD"){
               write.table(BootF,file.path(DirR,"CrossValidation_Moran_MESS.txt"),sep="\t",row.names=F)
             }
           }
         }
-    }#Fecha partition boot|jknife
+    }#Fecha partition BOOT|KFOLD
     
 #8.MSDM Posteriori----
     

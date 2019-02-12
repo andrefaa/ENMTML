@@ -1,6 +1,6 @@
 M_delimited <- function(var,
                         occ_xy,
-                        method = c('buffer', 'ecoregions'),
+                        method = c('buffer', 'mask'),
                         BufferDistanceKm,
                         EcoregionsFile,
                         Dir,
@@ -99,7 +99,7 @@ M_delimited <- function(var,
   
   if (method == 'ecoregions') {
       if(is.null(EcoregionsFile)==T){
-        print("Please select the file to be used as Ecoregions mask")
+        print("Please select the file ('.bil','.asc','.tif','.shp','.txt') to be used as mask:")
         Dir <- file.choose()
         EcoregionsFileExt <- unique(file_ext(Dir))
         if (any(EcoregionsFileExt %in% c('bil', 'asc', 'tif'))) {
