@@ -108,28 +108,27 @@
 #' 
 #' 
 #' @export
-ENMs_TheMetaLand<-function(dir,
-                           sp,
-                           x,
-                           y,
-                           min_occ=10,
-                           thin_occ,
-                           colin_var,
-                           imp_var,
-                           transfer,
-                           eval_occ,
-                           sp_accessible_area,
-                           pres_abs_ratio=1,
-                           pseudoabs_method,
-                           part,
-                           save_part="N",
-                           save_final="Y",
-                           algorithm,
-                           thr,
-                           msdm,
-                           ensemble,
-                           s_sdm){
-  
+ENMs_TheMetaLand <- function(dir,
+                             sp,
+                             x,
+                             y,
+                             min_occ = 10,
+                             thin_occ,
+                             colin_var,
+                             imp_var,
+                             transfer,
+                             eval_occ,
+                             sp_accessible_area,
+                             pres_abs_ratio = 1,
+                             pseudoabs_method,
+                             part,
+                             save_part = "N",
+                             save_final = "Y",
+                             algorithm,
+                             thr,
+                             msdm,
+                             ensemble,
+                             s_sdm) {
   
 #1.Check Function Arguments  
   
@@ -211,7 +210,7 @@ ENMs_TheMetaLand<-function(dir,
   
 #1.Load Packages ----
   
-  ipak <- function(pkg){
+  ipak <- function(pkg) {
     new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
     if (length(new.pkg))
       install.packages(new.pkg, dependencies = TRUE)
@@ -239,18 +238,18 @@ ENMs_TheMetaLand<-function(dir,
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
   algorithm <- Ord[Ord%in%algorithm]
   
-  ThrNames <- c("no_omission","spec_sens","kappa","sensitivty","JACCARD")
-  thr <- ThrNames[c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD")%in%thr]
+  ThrNames <- c("LPT", "MAX_TSS", "MAX_KAPPA", "SENSITIVITY","JACCARD", "SORENSEN")
+  thr <- ThrNames[c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD", "SORENSEN")%in%thr]
   rm(ThrNames)
   
 #3.Predictors ----
-  options(warn=1)
+  options(warn = 1)
   setwd(dir)
   
   env <- unique(file_ext(list.files()))
-  form <- c('bil','asc','txt','tif')
-  env <- env[env%in%form]
-  if(length(env)>1){
+  form <- c('bil', 'asc', 'txt', 'tif')
+  env <- env[env %in% form]
+  if (length(env) > 1) {
     stop("More than one file format in dir")
   }
   
@@ -295,22 +294,22 @@ ENMs_TheMetaLand<-function(dir,
   
   #3.1. Variable Colinearity----
   #3.1.1.VIF----
-  if(colin_var=="VIF"){
-    VF <- vifstep(envT,th=nlayers(envT)*2)
-    envT <- exclude(envT,VF)
-    if(transfer=="Y"){
+  if(colin_var=="VIF") {
+    VF <- vifstep(envT, th = nlayers(envT) * 2)
+    envT <- exclude(envT, VF)
+    if (transfer == "Y") {
       RasM <- colMeans(na.omit(values(envT)))
-      RasSTD <- apply(na.omit(values(envT)),2,std)
+      RasSTD <- apply(na.omit(values(envT)), 2, std)
     }
     envT <- scale(envT)
     
-    if(transfer=="Y"){
+    if(transfer=="Y") {
       EnvF <- list()
-      for(i in 1:length(Pfol)){
+      for (i in 1:length(Pfol)) {
         ProjT <- unique(file_ext(list.files(Pfol[i])))
-        form <- c('bil','asc','txt','tif')
-        ProjT <- ProjT[ProjT%in%form]
-        if(length(ProjT)>1){
+        form <- c('bil', 'asc', 'txt', 'tif')
+        ProjT <- ProjT[ProjT %in% form]
+        if (length(ProjT) > 1) {
           stop("More than one file format in DirP")
         }
         
@@ -332,7 +331,7 @@ ENMs_TheMetaLand<-function(dir,
   
   #3.1.2.PCA----
   
-  if (colin_var=="PCA"){
+  if (colin_var=="PCA") {
       
     #Projection PCA
     if(transfer=="Y"){
