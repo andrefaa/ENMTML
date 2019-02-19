@@ -218,13 +218,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
       }
       rm(list=c("msk","msk2"))
-      RecordsDataM <- ldply(RecordsDataM,data.frame,.id=NULL)
-      cols <-  c("x","y","Partition","PresAbse",names(Variables))  
-      RecordsDataM[,cols] = apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
+      RecordsDataM <- ldply(RecordsDataM, data.frame, .id = NULL)
+      cols <-  c("x", "y", "Partition", "PresAbse", names(Variables))  
+      RecordsDataM[, cols] = apply(RecordsDataM[, cols], 2, function(x)
+        as.numeric(as.character(x)))
     }
    }
   
   #MESS & MOPA Calculation----
+#                                                          #
+#             update the code below to peform              #
+#   extrapolation for current and another time periods     #
+#                                                          #
+
   if(!is.null(Fut)){
     MESS_and_MOPA(Fut,RecordsData,VarCol,ModFut,PAMethod="PresAbse")
     if(exists("RecordsDataM")){

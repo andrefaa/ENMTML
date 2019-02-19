@@ -1,9 +1,13 @@
 Package: ENMTheMetaLand
 Type: Package
-Title: Function to fit Ecological Niche Models, including several pre- and post-processing methods
+Title: Create and process Ecological Niche and Species Distribution Models, including several pre- and post-processing methods
 Version: 1.0
 Date: 2018-05-23
 Author: Andre Andrade & Santiago Velazco
 Maintainer: Andre Andrade <andrefaandrade@gmail.com>
 Description: Fit ENMs.....
-License: Free
+Imports: 
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1

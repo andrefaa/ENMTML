@@ -4,13 +4,13 @@
 \alias{ENMs_TheMetaLand}
 \title{Create and process Ecological Niche and Species Distribution Models}
 \usage{
-ENMs_TheMetaLand(dir, sp, x, y, min_occ = 10, thin_occ, colin_var,
+ENMs_TheMetaLand(pred_dir, sp, x, y, min_occ = 10, thin_occ, colin_var,
   imp_var, transfer, eval_occ, sp_accessible_area, pres_abs_ratio = 1,
   pseudoabs_method, part, save_part = "N", save_final = "Y", algorithm,
   thr, msdm, ensemble, s_sdm)
 }
 \arguments{
-\item{dir}{character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)}
+\item{pred_dir}{character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)}
 
 \item{sp}{character. Name of the column with information about species names}
 

@@ -1,6 +1,6 @@
 #' Create and process Ecological Niche and Species Distribution Models
 #'
-#' @param dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
+#' @param pred_dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
 #' @param sp character. Name of the column with information about species names
 #' @param x character. Name of the column with information about longitude
 #' @param y character. Name of the column with information about latitude
@@ -108,7 +108,7 @@
 #' 
 #' 
 #' @export
-ENMs_TheMetaLand <- function(dir,
+ENMs_TheMetaLand <- function(pred_dir,
                              sp,
                              x,
                              y,
@@ -133,8 +133,8 @@ ENMs_TheMetaLand <- function(dir,
 #1.Check Function Arguments  
   
   er <- NULL
-  if(missing(dir)){
-    er <- c(er,paste("'dir' unspecified argument, specify the directory of environmental variables | "))
+  if(missing(pred_dir)){
+    er <- c(er,paste("'pred_dir' unspecified argument, specify the directory of environmental variables | "))
   }
   if(missing(sp)){
     er <- c(er,paste("'sp' unspecified argument, specify the column' name with the species name  | "))
@@ -244,13 +244,13 @@ ENMs_TheMetaLand <- function(dir,
   
 #3.Predictors ----
   options(warn = 1)
-  setwd(dir)
+  setwd(pred_dir)
   
   env <- unique(file_ext(list.files()))
   form <- c('bil', 'asc', 'txt', 'tif')
   env <- env[env %in% form]
   if (length(env) > 1) {
-    stop("More than one file format in dir")
+    stop("More than one file format in pred_dir")
   }
   
   if(any(env == c('asc', 'bil', 'tif'))){
@@ -337,12 +337,12 @@ ENMs_TheMetaLand <- function(dir,
     if(transfer=="Y"){
       EnvF <- list()
       for(i in 1:length(Pfol)){
-        EnvF[[i]] <- PCAFuturo(Env=envT,Dir=dir,DirP=Pfol[i],Save="Y")
+        EnvF[[i]] <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol[i],Save="Y")
       }
       names(EnvF) <- PfolN
-      envT <- brick(stack(file.path(dir,"PCA",list.files(file.path(dir,"PCA"),pattern='PC'))))
+      envT <- brick(stack(file.path(pred_dir,"PCA",list.files(file.path(pred_dir,"PCA"),pattern='PC'))))
     }else{
-      envT<-PCA_env_TMLA(env = envT, Dir = dir)
+      envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
     }
   }
   
@@ -470,7 +470,7 @@ ENMs_TheMetaLand <- function(dir,
                   method = method,
                   BufferDistanceKm=NULL,
                   EcoregionsFile=NULL,
-                  Dir=dir,
+                  Dir=pred_dir,
                   spN=spN,
                   SaveM = TRUE)
     }
@@ -506,7 +506,7 @@ ENMs_TheMetaLand <- function(dir,
           occINPUT[,5] <- as.numeric(occINPUT[,5])
         }else{
           if(colin_var!="PCA"){
-            envTT<-PCA_env_TMLA(env = envT, Dir = dir)
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
           }else{
             envTT<-envT
           }
@@ -560,7 +560,7 @@ ENMs_TheMetaLand <- function(dir,
           occINPUT[,5] <- as.numeric(occINPUT[,5])
         }else{
           if(colin_var!="PCA"){
-            envTT<-PCA_env_TMLA(env = envT, Dir = dir)
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
           }else{
             envTT<-envT
           }
@@ -598,11 +598,11 @@ ENMs_TheMetaLand <- function(dir,
         print("Creating msdm Layers...")
         
         DirMSDM<-"msdm"
-        if (file.exists(file.path(dir,DirMSDM))){
-          DirMSDM<-file.path(dir,DirMSDM)
+        if (file.exists(file.path(pred_dir,DirMSDM))){
+          DirMSDM<-file.path(pred_dir,DirMSDM)
         } else {
-          dir.create(file.path(dir,DirMSDM))
-          DirMSDM<-file.path(dir,DirMSDM)
+          dir.create(file.path(pred_dir,DirMSDM))
+          DirMSDM<-file.path(pred_dir,DirMSDM)
         }
         DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT,MSDM=msdm,DirMSDM=DirMSDM)
       }
@@ -624,7 +624,7 @@ ENMs_TheMetaLand <- function(dir,
       }
       
       #6.5. Fit ENM for Geographical Partition
-      FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=imp_var,Fut=Fut,Part=part,Algorithm=Alg,PredictType=ensemble,spN=spN,
+      FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=imp_var,Fut=Fut,Part=part,Algorithm=algorithm,PredictType=ensemble,spN=spN,
                   Tst=eval_occ,Threshold=thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=save_part,
                   SaveFinal=save_final,repl=NULL,per=NULL)
     }
@@ -651,11 +651,11 @@ ENMs_TheMetaLand <- function(dir,
           print("Creating msdm Layers...")
           
           DirMSDM<-"msdm"
-          if (file.exists(file.path(dir,DirMSDM))){
-            DirMSDM<-file.path(dir,DirMSDM)
+          if (file.exists(file.path(pred_dir,DirMSDM))){
+            DirMSDM<-file.path(pred_dir,DirMSDM)
           } else {
-            dir.create(file.path(dir,DirMSDM))
-            DirMSDM<-file.path(dir,DirMSDM)
+            dir.create(file.path(pred_dir,DirMSDM))
+            DirMSDM<-file.path(pred_dir,DirMSDM)
           }
           
           DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT,MSDM=msdm,DirMSDM=DirMSDM)
@@ -808,11 +808,11 @@ ENMs_TheMetaLand <- function(dir,
           if(pseudoabs_method=="EnvConst"){
             
             DirCons <- "EnvConstrain"
-            if (file.exists(file.path(dir,DirCons))){
-              DirCons<-file.path(dir,DirCons)
+            if (file.exists(file.path(pred_dir,DirCons))){
+              DirCons<-file.path(pred_dir,DirCons)
             } else {
-              dir.create(file.path(dir,DirCons))
-              DirCons<-file.path(dir,DirCons)
+              dir.create(file.path(pred_dir,DirCons))
+              DirCons<-file.path(pred_dir,DirCons)
             }
             
             #Check for Environmental Constrain Existence
@@ -897,11 +897,11 @@ ENMs_TheMetaLand <- function(dir,
           
           
           DirCons <- "GeoConstrain"
-          if (file.exists(file.path(dir,DirCons))){
-            DirCons<-file.path(dir,DirCons)
+          if (file.exists(file.path(pred_dir,DirCons))){
+            DirCons<-file.path(pred_dir,DirCons)
           } else {
-            dir.create(file.path(dir,DirCons))
-            DirCons<-file.path(dir,DirCons)
+            dir.create(file.path(pred_dir,DirCons))
+            DirCons<-file.path(pred_dir,DirCons)
           }
           
           #Check for Environmental Constrain Existence
@@ -1019,7 +1019,7 @@ ENMs_TheMetaLand <- function(dir,
       }
           
       #7.9. Run FitENM----
-        FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=imp_var,Fut=Fut,Part=part,Algorithm=Alg,PredictType=ensemble,spN=spN,
+        FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=imp_var,Fut=Fut,Part=part,Algorithm=algorithm,PredictType=ensemble,spN=spN,
                     Tst=eval_occ,Threshold=thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=save_part,
                     SaveFinal=save_final,per=per,repl=k)
         
