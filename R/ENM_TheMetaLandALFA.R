@@ -1,6 +1,7 @@
 #' Create and process Ecological Niche and Species Distribution Models
 #'
 #' @param pred_dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
+#' @occ_dir character. Directory path with tab delimited TXT file with species names, latitude and longitude 
 #' @param sp character. Name of the column with information about species names
 #' @param x character. Name of the column with information about longitude
 #' @param y character. Name of the column with information about latitude
@@ -9,7 +10,7 @@
 #' @param colin_var character. Method to reduce variable collinearity: 
 #' \itemize {
 #'   \item N: Use original variables.
-#'   \item Pearson: Select variables by Pearson correlation (threshold specified by user).
+#'   \item PEARSON: Select variables by Pearson correlation (threshold specified by user).
 #'   \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006).
 #'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Componets as environmental variables
 #' }
@@ -109,6 +110,7 @@
 #' 
 #' @export
 ENMs_TheMetaLand <- function(pred_dir,
+                             occ_dir,
                              sp,
                              x,
                              y,
@@ -135,6 +137,9 @@ ENMs_TheMetaLand <- function(pred_dir,
   er <- NULL
   if(missing(pred_dir)){
     er <- c(er,paste("'pred_dir' unspecified argument, specify the directory of environmental variables | "))
+  }
+  if(missing(occ_dir)){
+    er <- c(er,paste("'occ_dir' unspecified argument, specify the directory of occurrence species data | "))
   }
   if(missing(sp)){
     er <- c(er,paste("'sp' unspecified argument, specify the column' name with the species name  | "))
@@ -177,8 +182,8 @@ ENMs_TheMetaLand <- function(pred_dir,
     stop("Argumentos faltantes, please, check  the argumentos listed above")
   }
   
-  if(!(colin_var%in%c("Pearson","VIF","PCA","N"))){
-    stop("'colin_var' Argument is not valid!(Pearson,VIF,PCA,N)")
+  if(!(colin_var%in%c("PEARSON","VIF","PCA","N"))){
+    stop("'colin_var' Argument is not valid!(PEARSON, VIF, PCA, N)")
   }
   if(!(transfer%in%c("Y","N"))){
     stop("'transfer' Argument is not valid!(Y/N)")
@@ -186,7 +191,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   if(pres_abs_ratio<=0){
     stop("'pres_abs_ratio' Argument is not valid!(pres_abs_ratio>=0)")
   }
-  if(!(pseudoabs_method%in%c("Rnd","EnvConst","GeoConst"))){
+  if(!(pseudoabs_method%in%c("RND", "ENV_CONST", "GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST"))){
     stop("'pseudoabs_method' Argument is not valid!(Rnd/EnvConst/GeoConst)")
   }
   if(length(pseudoabs_method)>1){
@@ -347,7 +352,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   #3.3.3.Pearson----
-  if(colin_var=="Pearson"){
+  if(colin_var=="PEARSON"){
     cat("Select correlation threshold:(0-1)")
     Cor_TH <- as.numeric(readLines(n=1))
     Pear <- layerStats(envT, 'pearson', na.rm=T)
@@ -412,8 +417,11 @@ ENMs_TheMetaLand <- function(pred_dir,
     DirR<-file.path(getwd(), DirR)
   }
   
-  print("Select occurrence file(.txt):")
-  occ<-read.table(file.choose(getwd()),h=T,sep='\t',stringsAsFactors = F)
+  # Read txt with occurences data
+  occ <- read.table(occ_dir,
+                    h = T,
+                    sep = '\t',
+                    stringsAsFactors = F)
   occ<-occ[,c(sp,x,y)]
   colnames(occ) <- c("sp","x","y")
   occ_xy <- split(occ[,-1],f=occ$sp)
@@ -421,7 +429,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   
   
     #4.1.Unique Occurrences----
-    occA<-Occ_Unicas_TMLA(env=envT[[1]],occ.xy=occ_xy,DirO=DirR)
+    occA<-Occ_Unicas_TMLA(env=envT[[1]], occ.xy=occ_xy, DirO=DirR)
 
     #4.2.Thining----
     if(thin_occ=="Y"){
@@ -455,8 +463,8 @@ ENMs_TheMetaLand <- function(pred_dir,
       algorithm <- algorithm[!algorithm%in%c("GAM","GLM")]
     }
     
-    
-#5. Restrict Extent per Species----
+
+    #5. Restrict Extent per Species----
     if(sp_accessible_area=="Y"){
       cat("Select restriction type (buffer / mask):")
       method <- as.character(readLines(n = 1))
@@ -475,6 +483,11 @@ ENMs_TheMetaLand <- function(pred_dir,
                   SaveM = TRUE)
     }
   
+    if(grepl("GEO", pseudoabs_method)){
+      #Define Buffer distance:
+      cat("Select buffer distance(in km):")
+      Geo_Buf <- as.integer(readLines(n = 1))*1000
+    }
     
 #6. Geographical Partition----
     if(part=="BANDS" || part=="BLOCK"){
@@ -545,7 +558,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         #6.2.Block----
         
         DirB<-"BLOCK"
-        if (file.exists(file.path(DirR,DirB))){
+        if (file.exists(file.path(DirR, DirB))){
           DirB<-file.path(DirR,DirB)
         } else {
           dir.create(file.path(DirR,DirB))
@@ -579,10 +592,21 @@ ENMs_TheMetaLand <- function(pred_dir,
           }else{
             DirM <- NULL
           }
-          occINPUT <- BlockPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=2,
-                                      pseudoabsencesMethod=pseudoabs_method,PrAbRatio=pres_abs_ratio,DirSave=DirB,
-                                      DirM=DirM,MRst=sp_accessible_area,type=TipoMoran)
-
+          
+          occINPUT <-
+            BlockPartition_TMLA(
+              evnVariables = envTT,
+              RecordsData = occ_xy,
+              N = 2,
+              pseudoabsencesMethod = pseudoabs_method,
+              PrAbRatio = pres_abs_ratio,
+              DirSave = DirB,
+              DirM = DirM,
+              MRst = sp_accessible_area,
+              type = TipoMoran,
+              Geo_Buf=Geo_Buf
+            )
+          
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
           rm(envTT)
@@ -759,7 +783,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         
       #7.4. Generating Pseudo-Absences----
         #Random Pseudo-Absences
-          if(pseudoabs_method=="Rnd"){
+          if(pseudoabs_method=="RND"){
             if(transfer=="Y"&& eval_occ=="Y"){
               pseudo.mask <- envT[[1]]
               pseudo.maskP <- EnvF[[1]][[1]]
@@ -805,7 +829,7 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
           
         #Bioclimatic Constrained Pseudo-Absences
-          if(pseudoabs_method=="EnvConst"){
+          if(pseudoabs_method=="ENV_CONST"){
             
             DirCons <- "EnvConstrain"
             if (file.exists(file.path(pred_dir,DirCons))){
@@ -828,14 +852,10 @@ ENMs_TheMetaLand <- function(pred_dir,
             for (i in 1:length(occTR)) {
               set.seed(i)
               if(EnvMsk=="N"){
-                Model <- bioclim(envT, occTR[[i]][,c("x","y")])
-                pseudo.mask <- dismo::predict(Model, envT, ext=extent(envT[[1]]))
-                pseudo.mask <- round(pseudo.mask, 5)
-                pseudo.mask <- (pseudo.mask-minValue(pseudo.mask))/
-                                    (maxValue(pseudo.mask)-minValue(pseudo.mask))
-                pseudo.mask <-(1-pseudo.mask)>=0.99
+                pseudo.mask <- inverse_bio(envT, occTR[[i]][,c("x","y")])
+                
                 writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
-                pseudo.mask[which(pseudo.mask[,]==FALSE)] <- NA
+                
               }else{
                 pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
               }
@@ -889,12 +909,7 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
         
         #Geographical Constrained Pseudo-Absences
-        if(pseudoabs_method=="GeoConst"){
-          
-          #Define Buffer distance:
-          cat("Select buffer distance(in km):")
-          Geo_Buf <- as.integer(readLines(n = 1))*1000
-          
+        if(pseudoabs_method=="GEO_CONST"){
           
           DirCons <- "GeoConstrain"
           if (file.exists(file.path(pred_dir,DirCons))){
@@ -917,11 +932,10 @@ ENMs_TheMetaLand <- function(pred_dir,
           for (i in 1:length(occTR)) {
             set.seed(i)
             if(EnvMsk=="N"){
-              Model <- circles(occTR[[i]][,c("x","y")], lonlat=T,d=Geo_Buf)
-              pseudo.mask <- mask(envT[[1]],Model@polygons,inverse=T)
-              pseudo.mask[is.na(pseudo.mask)==F] <- 1 
+              
+              pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
               writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
-              pseudo.mask[which(pseudo.mask[,]==FALSE)] <- NA
+            
             }else{
               pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
             }
