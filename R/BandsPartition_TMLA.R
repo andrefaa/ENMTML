@@ -7,7 +7,7 @@ BandsPartition_TMLA <- function(evnVariables,
                                 PrAbRatio = PabR,
                                 DirSave = DirB,
                                 DirM=DirM,
-                                MRst=MRst,
+                                MRst=sp_accessible_area,
                                 type=TipoMoran){
 
   #Parameters
@@ -16,8 +16,21 @@ BandsPartition_TMLA <- function(evnVariables,
     #N: Longitudinal(1) or Latitudinal(2) bands
   
   #Development
-  # res<-NULL
-  # resOpt <- list()
+  
+  KM <- function(cell_coord, variable, NumAbsence) {
+    # cell_env = cell environmental data
+    # variable = a stack raster with variables
+    # NumAbsence = number of centroids sellected as absences
+    # This function will be return a list whith the centroids sellected
+    # for the clusters
+    var <- extract(variable, cell_coord)
+    Km <- kmeans(cbind(cell_coord, var), centers = NumAbsence)
+    return(list(
+      Centroids = Km$centers[, 1:2],
+      Clusters = Km$cluster
+    ))
+  }
+  
   
   #Start Cluster
   cl <- makeCluster(detectCores()-1)
@@ -176,7 +189,7 @@ BandsPartition_TMLA <- function(evnVariables,
       
     # Pseudoabsences allocation-----
       # Random-----
-      if(pseudoabsencesMethod=="rnd"){
+      if(pseudoabsencesMethod=="RND"){
         # Clip the mask raster to generate rando pseudoabsences
         pseudo.mask <- msk
         pseudo.mask2 <- list()
@@ -217,7 +230,7 @@ BandsPartition_TMLA <- function(evnVariables,
         colnames(absences) <- colnames(RecordsData.s)
       }
       
-      if(pseudoabsencesMethod=="EnvConst"){
+      if(pseudoabsencesMethod=="ENV_CONST"){
 
         Model <- bioclim(evnVariables, RecordsData.s[,c("x","y")])
         pseudo.mask <- dismo::predict(Model, evnVariables, ext=extent(msk))
@@ -268,7 +281,7 @@ BandsPartition_TMLA <- function(evnVariables,
         colnames(absences) <- colnames(RecordsData.s)
       }
       
-      if(pseudoabsencesMethod=="GeoConst"){
+      if(pseudoabsencesMethod=="GEO_CONST"){
         
         Model <- circles(RecordsData.s[,c("x","y")], lonlat=T,d=Geo_Buf)
         pseudo.mask <- mask(evnVariables[[1]],Model@polygons,inverse=T)

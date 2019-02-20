@@ -2,7 +2,7 @@ Occ_Unicas_TMLA<-function(env,
                           occ.xy,
                           DirO){
   spN <- names(occ.xy)
-  occ.v <- lapply(occ.xy,function(x) extract(env,x,cellnumber=T))
+  occ.v <- lapply(occ.xy,function(x) raster::extract(env,x,cellnumber=T))
   occ.v <- mapply(cbind, occ.xy, occ.v, SIMPLIFY=F)
   occ.v <- lapply(occ.v, function(x) na.omit(x))
   occ.v <- lapply(occ.v, function(x) x[!duplicated(x$cells),])

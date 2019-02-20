@@ -4,10 +4,10 @@
 \alias{ENMs_TheMetaLand}
 \title{Create and process Ecological Niche and Species Distribution Models}
 \usage{
-ENMs_TheMetaLand(pred_dir, sp, x, y, min_occ = 10, thin_occ, colin_var,
-  imp_var, transfer, eval_occ, sp_accessible_area, pres_abs_ratio = 1,
-  pseudoabs_method, part, save_part = "N", save_final = "Y", algorithm,
-  thr, msdm, ensemble, s_sdm)
+ENMs_TheMetaLand(pred_dir, occ_dir, sp, x, y, min_occ = 10, thin_occ,
+  colin_var, imp_var, transfer, eval_occ, sp_accessible_area,
+  pres_abs_ratio = 1, pseudoabs_method, part, save_part = "N",
+  save_final = "Y", algorithm, thr, msdm, ensemble, s_sdm)
 }
 \arguments{
 \item{pred_dir}{character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)}
@@ -25,7 +25,7 @@ ENMs_TheMetaLand(pred_dir, sp, x, y, min_occ = 10, thin_occ, colin_var,
 \item{colin_var}{character. Method to reduce variable collinearity: 
 \itemize {
   \item N: Use original variables.
-  \item Pearson: Select variables by Pearson correlation (threshold specified by user).
+  \item PEARSON: Select variables by Pearson correlation (threshold specified by user).
   \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006).
   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Componets as environmental variables
 }}
