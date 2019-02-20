@@ -58,7 +58,7 @@ MESS_and_MOP <- function(Variables,
             NAflag = -9999
           )
         }
-        if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "MLK", "GAU"))) {
+        if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
           spOccS <- RecordsData[RecordsData$sp == j, ]
           MESS <- mess(Variables[[i]], spOccS[VarCol])
           MESS <- stand_mess(MESS)
@@ -69,7 +69,7 @@ MESS_and_MOP <- function(Variables,
             NAflag = -9999
           )
         }
-        if (any(algorithm %in% c("MXS", "MXD", "ENF"))) {
+        if (any(algorithm %in% c("MXS", "MXD", "ENF", "MLK"))) {
           spOccS <- RecordsDataM[RecordsDataM$sp == j, ]
           MESS <- mess(Variables[[i]], RecordsDataM[VarCol])
           MESS <- stand_mess(MESS)
