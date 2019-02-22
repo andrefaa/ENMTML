@@ -435,7 +435,7 @@ ENMs_TheMetaLand <- function(pred_dir,
     if(thin_occ=="Y"){
       cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
       ThinMet <- as.integer(readLines(n=1))
-      occA <- OccsThin(occA,envT,ThinMet,colin_var,DirR)
+      occA <- OccsThin(occA, envT, ThinMet, colin_var, DirR)
     }
   
     #4.3.Save Thinned & Unique Occurrences
@@ -463,7 +463,6 @@ ENMs_TheMetaLand <- function(pred_dir,
       algorithm <- algorithm[!algorithm%in%c("GAM","GLM")]
     }
     
-
     #5. Restrict Extent per Species----
     if(sp_accessible_area=="Y"){
       cat("Select restriction type (buffer / mask):")
@@ -545,9 +544,18 @@ ENMs_TheMetaLand <- function(pred_dir,
           }else{
             DirM <- NULL
           }
-          occINPUT <- BandsPartition_TMLA(evnVariables=envTT,RecordsData=occ_xy,N=bands,
-                                      pseudoabsencesMethod=pseudoabs_method,PrAbRatio=pres_abs_ratio,DirSave=DirB,
-                                      DirM=DirM,MRst=sp_accessible_area,type=TipoMoran)
+          occINPUT <-
+            BandsPartition_TMLA(
+              evnVariables = envTT,
+              RecordsData = occ_xy,
+              N = bands,
+              pseudoabsencesMethod = pseudoabs_method,
+              PrAbRatio = pres_abs_ratio,
+              DirSave = DirB,
+              DirM = DirM,
+              MRst = sp_accessible_area,
+              type = TipoMoran
+            )
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
           rm(envTT)
@@ -648,9 +656,25 @@ ENMs_TheMetaLand <- function(pred_dir,
       }
       
       #6.5. Fit ENM for Geographical Partition
-      FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=imp_var,Fut=Fut,Part=part,Algorithm=algorithm,PredictType=ensemble,spN=spN,
-                  Tst=eval_occ,Threshold=thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=save_part,
-                  SaveFinal=save_final,repl=NULL,per=NULL)
+      FitENM_TMLA_Parallel(
+        RecordsData = occINPUT,
+        Variables = envT,
+        VarImP = imp_var,
+        Fut = Fut,
+        Part = part,
+        Algorithm = algorithm,
+        PredictType = ensemble,
+        spN = spN,
+        Tst = eval_occ,
+        Threshold = thr,
+        DirSave = DirR,
+        DirMask = DirB,
+        DirMSDM = DirPRI,
+        Save = save_part,
+        SaveFinal = save_final,
+        repl = NULL,
+        per = NULL
+      )
     }
     
 #7.Random Partition----
@@ -766,6 +790,7 @@ ENMs_TheMetaLand <- function(pred_dir,
             names(occTS) <- names(occTR)
           }
         }
+        
         if(part=="KFOLD"){
           print(paste("Adjsuting fold....",k,sep=""))
           occFoldK <- lapply(occFold, function(x) ifelse(x$Partition!=k,1,2))
@@ -782,8 +807,8 @@ ENMs_TheMetaLand <- function(pred_dir,
         }
         
       #7.4. Generating Pseudo-Absences----
-        #Random Pseudo-Absences
-          if(pseudoabs_method=="RND"){
+        # Pseudo-Absences with Random allocation-----
+        if(pseudoabs_method=="RND"){
             if(transfer=="Y"&& eval_occ=="Y"){
               pseudo.mask <- envT[[1]]
               pseudo.maskP <- EnvF[[1]][[1]]
@@ -828,8 +853,8 @@ ENMs_TheMetaLand <- function(pred_dir,
             DirCons <- NULL
           }
           
-        #Bioclimatic Constrained Pseudo-Absences
-          if(pseudoabs_method=="ENV_CONST"){
+        # Pseudo-Absences allocation with Environmental constrain ----
+        if(pseudoabs_method=="ENV_CONST"){
             
             DirCons <- "EnvConstrain"
             if (file.exists(file.path(pred_dir,DirCons))){
@@ -908,7 +933,7 @@ ENMs_TheMetaLand <- function(pred_dir,
             }
           }
         
-        #Geographical Constrained Pseudo-Absences
+        # Pseudo-Absences allocation with Geographical constrain-----
         if(pseudoabs_method=="GEO_CONST"){
           
           DirCons <- "GeoConstrain"
@@ -988,6 +1013,172 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
         }
           
+        # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
+        if(pseudoabs_method=="GEO_ENV_CONST"){
+          DirCons <- "GeoEnvConstrain"
+          if (file.exists(file.path(pred_dir,DirCons))){
+            DirCons<-file.path(pred_dir,DirCons)
+          } else {
+            dir.create(file.path(pred_dir,DirCons))
+            DirCons<-file.path(pred_dir,DirCons)
+          }
+          
+          #Check for Environmental Constrain Existence
+          EnvMsk <- "N"
+          if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+            print("Geographical constrain already exists! Using already-created masks!")
+            EnvMsk <- "Y"
+          }
+          
+          absencesTR <- list()
+          absencesTS <- list()
+          
+          for (i in 1:length(occTR)) {
+            set.seed(i)
+            if(EnvMsk=="N"){
+              
+              pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
+              pseudo.mask1 <- inverse_bio(envT, occTR[[i]][,c("x","y")])
+              pseudo.mask <- pseudo.mask*pseudo.mask1
+              writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
+              
+            }else{
+              pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
+            }
+            
+            if(transfer=="Y"&& eval_occ=="Y"){
+              pseudo.maskP <- EnvF[[1]][[1]]
+            }else{
+              pseudo.maskP <- pseudo.mask
+            }
+            
+            if(sp_accessible_area=="Y"){
+              SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+              SpMask <- pseudo.mask*SpMask
+              if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
+                warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences") 
+                stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
+              }
+              if(eval_occ=="Y"){
+                SpMaskP <- pseudo.maskP
+              }else{
+                SpMaskP <- SpMask
+              }
+              absencesTR.0 <- randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = extent(SpMask),prob = FALSE)
+              absencesTS.0 <- randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = extent(SpMask),prob = FALSE)
+            }else{
+              absencesTR.0 <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
+                                           ext = extent(pseudo.mask),
+                                           prob = FALSE)
+              if(eval_occ=="Y"){
+                absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                             ext = extent(pseudo.mask),
+                                             prob = FALSE)                
+              }else{
+                absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                             ext = extent(pseudo.mask),
+                                             prob = FALSE)
+              }
+            }
+            absencesTR[[i]] <- as.data.frame(absencesTR.0)
+            absencesTS[[i]] <- as.data.frame(absencesTS.0)
+            rm(absencesTR.0,absencesTS.0)
+          }
+          absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
+          absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
+          if(is.null(k) && per==1 && eval_occ=="N"){
+            for(i in 1:length(absencesTS)){
+              absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
+            }
+          }
+        }
+        
+        # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
+        if(pseudoabs_method=="GEO_ENV_KM_CONST"){
+          DirCons <- "GeoEnvConstrain"
+          if (file.exists(file.path(pred_dir,DirCons))){
+            DirCons<-file.path(pred_dir,DirCons)
+          } else {
+            dir.create(file.path(pred_dir,DirCons))
+            DirCons<-file.path(pred_dir,DirCons)
+          }
+          
+          #Check for Environmental Constrain Existence
+          EnvMsk <- "N"
+          if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+            print("Geographical constrain already exists! Using already-created masks!")
+            EnvMsk <- "Y"
+          }
+          
+          absencesTR <- list()
+          absencesTS <- list()
+          
+          for (i in 1:length(occTR)) {
+            set.seed(i)
+            if(EnvMsk=="N"){
+              
+              pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
+              pseudo.mask1 <- inverse_bio(envT, occTR[[i]][,c("x","y")])
+              pseudo.mask <- pseudo.mask*pseudo.mask1
+              writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
+              
+            }else{
+              pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
+            }
+            
+            if(transfer=="Y"&& eval_occ=="Y"){
+              pseudo.maskP <- EnvF[[1]][[1]]
+            }else{
+              pseudo.maskP <- pseudo.mask
+            }
+            
+            if(sp_accessible_area=="Y"){
+              SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+              SpMask <- pseudo.mask*SpMask
+              if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
+                warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences") 
+                stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
+              }
+              if(eval_occ=="Y"){
+                SpMaskP <- pseudo.maskP
+              }else{
+                SpMaskP <- SpMask
+              }
+              
+              absencesTR.0 <- KM(rasterToPoints(SpMask)[,-3],
+                 mask(evnVariables, SpMask),
+                 ((1 / pres_abs_ratio)*nrow(occTR[[i]])))
+              absencesTS.0 <- KM(rasterToPoints(SpMaskP)[,-3],
+                 mask(evnVariables, SpMaskP),
+                 ((1 / pres_abs_ratio)*nrow(occTS[[i]])))
+            }else{
+              absencesTR.0 <- KM(cell_coord = rasterToPoints(pseudo.mask)[,-3],
+                                 variable = mask(evnVariables, pseudo.mask),
+                                 NumAbsence = (1 / pres_abs_ratio)*nrow(occTR[[i]]))
+              if(eval_occ=="Y"){
+                absencesTS.0 <- KM(rasterToPoints(pseudo.maskP)[,-3],
+                                   mask(evnVariables, pseudo.mask),
+                                   (1 / pres_abs_ratio)*nrow(occTS[[i]]))
+              }else{
+                absencesTS.0 <- KM(rasterToPoints(pseudo.maskP)[,-3],
+                                   mask(evnVariables, pseudo.mask),
+                                   (1 / pres_abs_ratio)*nrow(occTS[[i]]))
+              }
+            }
+            absencesTR[[i]] <- as.data.frame(absencesTR.0)
+            absencesTS[[i]] <- as.data.frame(absencesTS.0)
+            rm(absencesTR.0,absencesTS.0)
+          }
+          absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
+          absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
+          if(is.null(k) && per==1 && eval_occ=="N"){
+            for(i in 1:length(absencesTS)){
+              absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
+            }
+          }
+        }
+        
+        
         #Model Input
           for(i in 1:length(occTR)){
             occTR[[i]] <- cbind(rep(names(occTR)[i],nrow(occTR[[i]])),occTR[[i]])

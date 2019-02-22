@@ -4,60 +4,6 @@ STANDAR <- function(x){
   return(result)
 }
 
-# Function for summary of models performance------
-# SUMMRES<-function(Eval, N, Thr){
-#   res <- data.frame(matrix(0, N, 6))
-#     for(h in 1:length(Thr)){
-#     summres <- data.frame(matrix(0, N, 5))
-#       for (i in 1:N) {
-#         summres[i, ] <- cbind(Eval[[i]]@auc,
-#                             Eval[[i]]@TPR[which(Eval[[i]]@t == Thr[h])],
-#                             Eval[[i]]@TNR[which(Eval[[i]]@t == Thr[h])],
-#                             Eval[[i]]@kappa[which(Eval[[i]]@t == Thr[h])],
-#                             ((Eval[[i]]@TPR[which(Eval[[i]]@t == Thr[h])] + Eval[[i]]@TNR[which(Eval[[i]]@t == Thr[h])]) - 1))
-#       }
-#     summres <- cbind(Thr[h], summres)
-#     summres <- data.frame(matrix(round(colMeans(summres), 5), 1, 6))
-#     res[h,] <- summres
-#     }
-#   Nom <- NULL
-#   if("no_omission"%in%names(Thr)){
-#     Nom <- c(Nom,"LPT")
-#   }
-#   if("spec_sens"%in%names(Thr)){
-#     Nom <- c(Nom,"MAX")
-#   }
-#   res <- cbind(Nom,res)
-#   colnames(res) <- c("TYPE","THR","AUC", "TPR", "TNR", "Kappa","TSS")
-#   return(res)
-# }
-
-# SUMMRES_ENS<-function(Eval, Thr){
-#   res <- data.frame(matrix(0, length(Thr), 5))
-#   for(h in 1:length(Thr)){
-#     res[h,] <- cbind(Eval@auc,
-#                         Eval@TPR[which(Eval@t == Thr[[h]])],
-#                         Eval@TNR[which(Eval@t == Thr[[h]])],
-#                         Eval@kappa[which(Eval@t == Thr[[h]])],
-#                         ((Eval@TPR[which(Eval@t == Thr[[h]])] + Eval@TNR[which(Eval@t == Thr[[h]])]) - 1))
-#     }
-#     colnames(res) <- c("AUC", "TPR", "TNR", "Kappa","TSS")
-#     TYPE <- NULL
-#     if("no_omission"%in%names(Thr)){
-#       TYPE <- c(TYPE,"LPT")
-#     }
-#     if("spec_sens"%in%names(Thr)){
-#       TYPE <- c(TYPE,"MAX")
-#     }
-#     THR <- unlist(Thr)
-#     names(THR) <- NULL
-#     res <- cbind(TYPE, THR, res)
-#   return(res)
-# }
-
-
-
-
 # Prediction of different algorithm------
 PREDICT <- function(Variables, Models_List){
 ListRaster <- as.list(names(Models_List))
@@ -212,3 +158,81 @@ hingeval <-
     pmin(1, pmax(0, (x-min)/(max-min)))
     
   }
+
+
+############################################################
+#                                                          #
+#             function used for data partition             ####
+#    in  BlockPartition_TMLA() & BandsPartition_TMLA()     #
+#                                                          #
+############################################################
+
+KM <- function(cell_coord, variable, NumAbsence) {
+  # cell_env = cell environmental data
+  # variable = a stack raster with variables
+  # NumAbsence = number of centroids sellected as absences
+  # This function will be return a list whith the centroids sellected
+  # for the clusters
+  var <- extract(variable, cell_coord)
+  Km <- kmeans(cbind(cell_coord, var), centers = NumAbsence)
+  ppa2 <- (list(
+    Centroids = Km$centers[, 1:2],
+    Clusters = Km$cluster
+  ))
+  
+  abse <- ppa2$Centroids
+  colnames(abse) <- c("lon", "lat")
+  
+  ppaNA <- extract(variable[[1]], abse)
+  
+  if (sum(is.na(ppaNA)) != 0) {
+    ppaNA1 <- which(is.na(ppaNA))
+    # Wich pseudo absence is a environmental NA
+    ppaNA2 <- as.data.frame(cbind(ppa2$Clusters, rasterToPoints(variable[[1]])[,-3]))
+    ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
+    ppa.clustres <- ppa.clustres[ppaNA1]
+    nearest.point <- list()
+    
+    if (length(ppaNA1) < 2) {
+      error <- matrix(abse[ppaNA1,], 1)
+      colnames(error) <- colnames(abse)
+    } else{
+      error <- abse[ppaNA1,]
+    }
+    
+    nearest.point <- list()
+    for (eee in 1:length(ppaNA1)) {
+      x <- flexclust::dist2(ppa.clustres[[eee]], error, method = "euclidean", p = 2)
+      x <- as.data.frame(x)
+      nearest.point[[eee]] <-
+        as.data.frame(ppa.clustres[[eee]][which.min(x[, eee]),])
+    }
+    nearest.point <- t(matrix(unlist(nearest.point), 2))
+    abse[ppaNA1,] <- nearest.point
+  }
+  return(abse)
+}
+
+# Inverse bioclim
+inv_bio <- function(e, p){
+  Model <- dismo::bioclim(e, p)
+  r <- dismo::predict(Model, e)
+  names(r) <- "Group"
+  r <- round(r, 5)
+  r <- (r - minValue(r)) /
+    (maxValue(r) - minValue(r))
+  r <-(1-r)>=0.99 #environmental constrain
+  r[which(r[,]==FALSE)] <- NA
+  return(r)
+}
+
+# Inverse geo
+inv_geo <- function(e, p, d){
+  Model <- dismo::circles(p, lonlat=T, d=d)
+  r <- mask(e[[1]], Model@polygons, inverse=T)
+  names(r) <- "Group"
+  r[is.na(r)==F] <- 1 
+  r[which(r[,]==FALSE)] <- NA
+  return(r)
+}
+
