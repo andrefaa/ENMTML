@@ -35,11 +35,13 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       Centroids = Km$centers[, 1:2],
       Clusters = Km$cluster
     ))
+    
+    
   }
   
   # Inverse bioclim
-  inverse_bio <- function(e, p){
-    Model <- bioclim(e, p)
+  inv_bio <- function(e, p){
+    Model <- dismo::bioclim(e, p)
     r <- dismo::predict(Model, e)
     names(r) <- "Group"
     r <- round(r, 5)
@@ -52,7 +54,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   
   # Inverse geo
   inv_geo <- function(e, p, d){
-    Model <- circles(p, lonlat=T, d=d)
+    Model <- dismo::circles(p, lonlat=T, d=d)
     r <- mask(e[[1]], Model@polygons, inverse=T)
     names(r) <- "Group"
     r[is.na(r)==F] <- 1 
@@ -60,7 +62,6 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     return(r)
   }
   
-
   #Cellsize
   cellSize = seq(0.5, 10, by = .5)
   
@@ -364,7 +365,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     # Pseudo-Absences allocation with Environmental constrain ----
     if(pseudoabsencesMethod=="ENV_CONST"){
       
-      pseudo.mask_p <- inverse_bio(evnVariables, presences[,-1])
+      pseudo.mask_p <- inv_bio(evnVariables, presences[,-1])
       
       # Split the raster of environmental layer with grids
       pseudo.mask_p <- mask(pseudo.mask, pseudo.mask_p)
@@ -428,7 +429,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
     if(pseudoabsencesMethod=="GEO_ENV_CONST"){
       
-    pseudo.mask_p <- inverse_bio(evnVariables, presences[,-1])
+    pseudo.mask_p <- inv_bio(evnVariables, presences[,-1])
     pseudo.mask_pg <- inv_geo(e=evnVariables, p=presences[,-1], d=Geo_Buf)
     pseudo.mask_p <- pseudo.mask_p*pseudo.mask_pg
     
@@ -463,7 +464,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     # Pseudo-Absences allocation with Environmentla and Geographical and k-mean constrain-----
     if(pseudoabsencesMethod=="GEO_ENV_KM_CONST"){
       
-      pseudo.mask_p <- inverse_bio(evnVariables, presences[,-1])
+      pseudo.mask_p <- inv_bio(evnVariables, presences[,-1])
       pseudo.mask_pg <- inv_geo(e=evnVariables, p=presences[,-1], d=Geo_Buf)
       pseudo.mask_p <- pseudo.mask_p*pseudo.mask_pg
       
@@ -485,40 +486,12 @@ BlockPartition_TMLA <- function(evnVariables = NA,
           }
         }
         
-        ppa2 <-
+        absences.0 <-
           KM(rasterToPoints(pseudo.mask_p[[i]])[,-3],
              mask(evnVariables, pseudo.mask_p[[i]]),
              (1 / PrAbRatio)*sum(presences[,1]==i))
-        absences.0 <- ppa2$Centroids
         colnames(absences.0) <- c("lon", "lat")
         
-        ppaNA <- extract(pseudo.mask[[i]], absences.0)
-        
-        if (sum(is.na(ppaNA)) != 0) {
-          ppaNA1 <- which(is.na(ppaNA))
-          # Wich pseudo absence is a environmental NA
-          ppaNA2 <- as.data.frame(cbind(ppa2$Clusters, rasterToPoints(pseudo.mask_p[[i]])[,-3]))
-          ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
-          ppa.clustres <- ppa.clustres[ppaNA1]
-          nearest.point <- list()
-          
-          if (length(ppaNA1) < 2) {
-            error <- matrix(absences.0[ppaNA1,], 1)
-            colnames(error) <- colnames(absences.0)
-          } else{
-            error <- absences.0[ppaNA1,]
-          }
-          
-          nearest.point <- list()
-          for (eee in 1:length(ppaNA1)) {
-            x <- flexclust::dist2(ppa.clustres[[eee]], error, method = "euclidean", p = 2)
-            x <- as.data.frame(x)
-            nearest.point[[eee]] <-
-              as.data.frame(ppa.clustres[[eee]][which.min(x[, eee]),])
-          }
-          nearest.point <- t(matrix(unlist(nearest.point), 2))
-          absences.0[ppaNA1,] <- nearest.point
-        }
         absences[[i]] <- as.data.frame(absences.0)
       }
       names(absences) <- 1:N
