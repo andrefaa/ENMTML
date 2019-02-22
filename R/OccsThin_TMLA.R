@@ -19,7 +19,7 @@ OccsThin <- function(occ,
   #1.Defined by variogram----
     #Check if there is a PC
     if(VarColin!="PCA" && names(envT)[1]!="PC1"){
-      pc1 <- PCA_env_TMLA(env=envT,Dir=Dir)[[1]]
+      pc1 <- PCA_env_TMLA(env=envT,Dir=pred_dir)[[1]]
     }else{
       pc1 <- envT[[1]]
     }
