@@ -228,18 +228,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   }
 
   #MESS & MOPA Calculation----
+  #Within the extent (for M-Restriction)
+  dir.create(file.path(DirR,"Extrapolation"))
+  DirProj <- file.path(DirR,"Extrapolation")
+  MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,
+                VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
   #For projections
   if(!is.null(Fut)){
     dir.create(file.path(ModFut,"Extrapolation"))
     DirProj <- file.path(ModFut,"Extrapolation")
     MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,
-                 VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
-  }
-  #Within the extent (for M-Restriction)
-  if(!is.null(DirMask)){
-    dir.create(file.path(DirR,"Extrapolation"))
-    DirProj <- file.path(DirR,"Extrapolation")
-    MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,
                  VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
   }
   
@@ -257,7 +255,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                      .export=c("Validation2_0","SUMMRES","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA",
                                "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv")) %dopar% {
 
-    #Results Lists                                       
+    #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
     
