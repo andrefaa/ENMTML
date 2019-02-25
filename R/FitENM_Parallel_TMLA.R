@@ -223,13 +223,24 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       RecordsDataM[,cols] = apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
     }
    }
+  if(!exists("RecordsDataM")){
+    RecordsDataM <- NULL
+  }
 
   #MESS & MOPA Calculation----
+  #For projections
   if(!is.null(Fut)){
-    MESS_and_MOPA(Fut,RecordsData,VarCol,ModFut,PAMethod="PresAbse")
-    if(exists("RecordsDataM")){
-      MESS_and_MOPA(Fut,RecordsDataM,VarCol,ModFut,PAMethod="Background")
-    }
+    dir.create(file.path(ModFut,"Extrapolation"))
+    DirProj <- file.path(ModFut,"Extrapolation")
+    MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,
+                 VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+  }
+  #Within the extent (for M-Restriction)
+  if(!is.null(DirMask)){
+    dir.create(file.path(DirR,"Extrapolation"))
+    DirProj <- file.path(DirR,"Extrapolation")
+    MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,
+                 VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
   }
   
   #Define N due to Partition Method

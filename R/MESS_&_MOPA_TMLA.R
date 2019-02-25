@@ -1,15 +1,16 @@
 MESS_and_MOP <- function(Variables,
-                         RecordsData, 
+                         RecordsData,
+                         RecordsDataM,
                          VarCol,
-                         ProjDir,
-                         Mehtods = c("MESS", "MOP")) {
+                         DirProj,
+                         Methods = c("MESS", "MOP")) {
   #Function to calculate MESS and MOPA metrics
   #Parameters:
-  #Variables: Raster stack in which the model will be projected (other region/time period)
-  #SpOccE: Species data with environmental information, created by ENM_TMLA
-  #VarCol: Name of columns with the predictors information in species data
-  #FoldF: Directory of envF variables (same structure as ENM_TMLA)
-  #Background: Is the algorithm background-based
+  #Variables: Raster stack in which MESS\MOP will be calculated (from upper function)
+  #RecordsData: Species occurrence data\absence (from upper function)
+  #VarCol: Name of columns with the predictors information (from upper function)
+  #DirProj: Output folder
+  #Mehtods = Calculate which metric? (MESS\MOP)
   
   # MOP function
   mop <- function(g_raster, m_occ, percent = 10) {
@@ -39,21 +40,20 @@ MESS_and_MOP <- function(Variables,
     return(mopr)
   }
   
-  if (Mehtods == "MESS") {
+  if ("MESS" %in% Methods) {
     spN <- unique(RecordsData$sp)
     #Initialisation
-    for (i in 1:length(ProjDir)) {
-      if (!file.exists(file.path(ProjDir[i], "MESS"))) {
-        dir.create(file.path(ProjDir[i], "MESS"))
-      }
+    for (i in 1:length(DirProj)) {
       for (j in spN) {
         if (any(algorithm %in% c("BIO", "MAH", "DOM"))) {
           spOccS <- RecordsData[RecordsData$sp == j, ]
           MESS <- mess(Variables[[i]], spOccS[spOccS$PresAbse == 1, VarCol])
-          MESS <- stand_mess(MESS)
+          MESS[MESS==Inf] <- NA
+          MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
+          # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
           writeRaster(
             MESS,
-            file.path(ProjDir[i], "MESS", paste0(j, "_MESS_Presence.tif")),
+            file.path(DirProj[i], paste0(j, "_MESS_Presence.tif")),
             format = "GTiff",
             NAflag = -9999
           )
@@ -61,21 +61,25 @@ MESS_and_MOP <- function(Variables,
         if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
           spOccS <- RecordsData[RecordsData$sp == j, ]
           MESS <- mess(Variables[[i]], spOccS[VarCol])
-          MESS <- stand_mess(MESS)
+          MESS[MESS==Inf] <- NA
+          MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
+          # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
           writeRaster(
             MESS,
-            file.path(ProjDir[i], "MESS", paste0(j, "_MESS_PresAbse.tif")),
+            file.path(DirProj[i], paste0(j, "_MESS_PresAbse.tif")),
             format = "GTiff",
             NAflag = -9999
           )
         }
         if (any(algorithm %in% c("MXS", "MXD", "ENF", "MLK"))) {
           spOccS <- RecordsDataM[RecordsDataM$sp == j, ]
-          MESS <- mess(Variables[[i]], RecordsDataM[VarCol])
-          MESS <- stand_mess(MESS)
+          MESS <- mess(Variables[[i]], spOccS[VarCol])
+          MESS[MESS==Inf] <- NA
+          MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
+          # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
           writeRaster(
             MESS,
-            file.path(ProjDir[i], "MESS", paste0(j, "_MESS_Background.tif")),
+            file.path(DirProj[i], paste0(j, "_MESS_Background.tif")),
             format = "GTiff",
             NAflag = -9999
           )
@@ -85,13 +89,10 @@ MESS_and_MOP <- function(Variables,
   }
   
   
-  if (Mehtods == "MOP") {
+  if ("MOP" %in% Methods) {
     spN <- unique(RecordsData$sp)
     #Initialisation
-    for (i in 1:length(ProjDir)) {
-      if (!file.exists(file.path(ProjDir[i], "MOP"))) {
-        dir.create(file.path(ProjDir[i], "MOP"))
-      }
+    for (i in 1:length(DirProj)) {
       for (j in spN) {
         if (any(algorithm %in% c("BIO", "MAH", "DOM"))) {
           spOccS <- RecordsData[RecordsData$sp == j,]
@@ -99,27 +100,27 @@ MESS_and_MOP <- function(Variables,
             mop(Variables[[i]], spOccS[spOccS$PresAbse == 1, VarCol])
           writeRaster(
             MOP,
-            file.path(ProjDir[i], "MOP", paste0(j, "_MOP_Presence.tif")),
+            file.path(DirProj[i], paste0(j, "_MOP_Presence.tif")),
             format = "GTiff",
             NAflag = -9999
           )
         }
-        if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "MLK", "GAU"))) {
+        if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
           spOccS <- RecordsData[RecordsData$sp == j,]
           MOP <- mop(Variables[[i]], spOccS[VarCol])
           writeRaster(
             MOP,
-            file.path(ProjDir[i], "MOP", paste0(j, "_MOP_PresAbse.tif")),
+            file.path(DirProj[i], paste0(j, "_MOP_PresAbse.tif")),
             format = "GTiff",
             NAflag = -9999
           )
         }
-        if (any(algorithm %in% c("MXS", "MXD", "ENF"))) {
+        if (any(algorithm %in% c("MXS", "MXD", "MLK","ENF"))) {
           spOccS <- RecordsDataM[RecordsDataM$sp == j,]
-          MOP <- mop(Variables[[i]], RecordsDataM[VarCol])
+          MOP <- mop(Variables[[i]], spOccS[VarCol])
           writeRaster(
             MOP,
-            file.path(ProjDir[i], "MOP", paste0(j, "_MOP_Background.tif")),
+            file.path(DirProj[i], paste0(j, "_MOP_Background.tif")),
             format = "GTiff",
             NAflag = -9999
           )
