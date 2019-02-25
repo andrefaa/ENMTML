@@ -6,10 +6,6 @@ M_delimited <- function(var,
                         Dir,
                         spN,
                         SaveM = TRUE) {
-  sapply(c('raster', 'dismo', 'rgeos', 'foreach', 'doParallel', 'tools'),
-         require,
-         character.only = TRUE)
-  
   var <- var[[1]]
   var <- !is.na(var)
   var[var[] == 0] <- NA
@@ -97,7 +93,7 @@ M_delimited <- function(var,
       stopCluster(cl)
     }
   
-  if (method == 'ecoregions') {
+  if (method == 'mask') {
       if(is.null(EcoregionsFile)==T){
         print("Please select the file ('.bil','.asc','.tif','.shp','.txt') to be used as mask:")
         Dir <- file.choose()
@@ -136,7 +132,6 @@ M_delimited <- function(var,
         stopCluster(cl)
       }
   }
-  stopCluster(cl)
   return(Dir_M)
 }
   
