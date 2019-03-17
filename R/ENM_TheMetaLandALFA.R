@@ -467,7 +467,7 @@ ENMs_TheMetaLand <- function(pred_dir,
     if(sp_accessible_area=="Y"){
       cat("Select restriction type (buffer / mask):")
       method <- as.character(readLines(n = 1))
-      while(!method%in%c("buffer","ecoregions")){
+      while(!method%in%c("buffer","mask")){
         warning("Please Select a valid restriction type (buffer / mask)")
         cat("Select restriction type (buffer / mask):")
         method <- as.character(readLines(n = 1))
