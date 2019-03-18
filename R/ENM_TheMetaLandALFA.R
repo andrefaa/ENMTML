@@ -22,8 +22,10 @@
 #' @param pseudoabs_method character. Pseudo-absence allocation method:
 #' \itemize{ 
 #' \item RND: Random allocation throughout area used to fit models. 
-#' \item ENV_CONST: Pseudo-absence are environmentally constrained to region with lower suitability values predicted by a Bioclim model. 
-#' \item GEO_CONST: Pseudo-absence are constrained allocated far from occurrences by a geographical buffer. 
+#' \item ENV_CONST: Pseudo-absences are environmentally constrained to region with lower suitability values predicted by a Bioclim model. 
+#' \item GEO_CONST: Pseudo-absences are allocated far from occurrences, constrained by a geographical buffer. 
+#' \item GEO_ENV_CONST: Pseudo-absences are cosntrained both environmentally (Bioclim Model) and geographically (buffer). 
+#' \item GEO_ENV_KM_CONST: Pseudo-absences constrained on a three-level proccedure (Santi). 
 #' }
 #' @param part character. Partition method for model's validation:
 #' \itemize{
@@ -36,6 +38,7 @@
 #' @param save_final character. Save .tif files of the final model (fitted with all the data)? (Y/N) (Default="Y")
 #' @param algorithm character. Algorithm to construct ecological niche models: 
 #' \itemize{
+#'   \item BIO: Bioclim
 #'   \item MAH: Mahalanobis
 #'   \item DOM: Domain
 #'   \item ENF: Ecological Niche Factor Analysis
