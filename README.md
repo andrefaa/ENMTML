@@ -19,57 +19,66 @@ library(GRaF)
 ```
 
 ## Run
-ENMs_TheMetaLand(Dir="",Sp="",x="",y="",NMin=,Thin="",VarColin="",VarImp="",Proj="",SetEval="",SpeciesM="",PabR=,PabM="",
-                  Part="",SavePart="N",SaveFinal="Y",Alg=c(),Thr="",MSDM="",ENS=c(),S_SDM="")
+ENMs_TheMetaLand(pred_dir = "",  
+                 occ_dir="",  
+                 sp="",x="",y="",min_occ=,thin_occ="",colin_var="",imp_var = "",transfer="",  
+                 eval_occ = "",sp_accessible_area = "",pres_abs_ratio = ,pseudoabs_method = "",part = "",  
+                 algorithm = c("""),  
+                 save_part="N",save_final="Y",thr="",msdm="",ensemble = "",s_sdm = "")  
 
 **See possible input options below**
 
 ## What I can do with ENM_The_MetaLand?  
 There are a couple of pre and post-processing available in the function, here is a list of what is currently available:  
-**1.** PCA on environmental variables  
-**2.** Project to other time/spatial locations (PCA included!)  
+**1.** Control colinearity on environmental variables  
+**2.** Project to other time/spatial locations (PCA included)  
 **3.** Automatically restrict the accessible area (M) before model fitting   
 **4.** Specify an user defined dataset for evaluation    
 **5.** Control Presence/Pseudo-absence Ratio    
 **6.** Different pseudo-absence allocation methods    
 **7.** Different data-partition methods for model evaluation (random or geographically structured)  
-**8.** Nine different algorithms    
-**9.** Create presence-absence maps (from dismo Thresholds)   
+**8.** Twelve different algorithms    
+**9.** Create presence-absence maps   
 **10.** Incorporate spatial restrictions (M-SDM)     
 **11.** Create Ensemble from the different algorithms  
+**12.** Create Stacked Species Distribution Modelling (S-SDM)
 
 
 ## How to run ENM_TheMetaLand?  
-The function has several input arguments, specify all of them as your desires.  
+The function has several input arguments, specify all of them according to your desires.  
 
 ## Input Parameters:  
-* **Dir**: Folder with predictors (4 file formats are supported: ASC/BILL/TIFF/TXT)  
-* **Sp:** Name of the column with information about species names  
+* **pred_dir**: Folder with predictors (4 file formats are supported: ASC/BILL/TIFF/TXT)  
+* **occ_dir**: Path to occurrence file (TXT only!)  
+* **sp:** Name of the column with information about species names  
 * **x:** Name of the column with information about longitude  
 * **y:** Name of the column with information about latitude  
-* **NMin:** Minimum number of unique occurrences (species with less than this number will be excluded)  
-* **Thin:** Perform a spatial filtering (Thinning) on the presences?
-* **VarColin:** Wish to perform processes to reduce variable collinearity? (Y/N)  
+* **min_occ:** Minimum number of unique occurrences (species with less than this number will be excluded)  
+* **thin_occ:** Perform a spatial filtering (Thinning) on the presences? (Y/N)
+* **colin_var:** Processes to reduce variable collinearity?  
   + **N**: Use original variables  
   + **Pearson:** Select variables by Pearson Correlation (Threshold specified by user)  
   + **VIF:** Variance Inflation Factor (Chatterjee and Hadi 2006)  
   + **PCA:** Perform a PCA on predictors and use PCs as environmental variables  
-* **Proj:** Project the model onto another region or time period? (Y/N)  
-* **SetEval:** Use an pre-determined set of occurrences for validation? (Y/N)
-* **SpeciesM:** Restrict the acessible area M? (Species-specific) (Y/N)
-* **PabR:** Presence-Absence Ratio  
-* **PabM:** Pseudo-absence Selection Method  
-  + **Rnd:** Random  
-  + **EnvConst:** Constrained by a Bioclim Model  
-  + **GeoConst:** Constrained by a Geographical buffer  
-* **Part:** Data partition method  
-  + **boot:** Random bootstrap partition (e.g. 70 training - 30% test)  
-  + **cross:** Random partition in k-fold  
-  + **band:** Geographic partition structured as bands (latitudinal or longitudinal)  
-  + **check:** Geographic partition structured as a checkerboard
-* **SavePart:** Save .tif files of the partitions? (Y/N)
-* **SaveFinal:** Save .tif files of the final model (fitted with all the data)[Default="Y"]? (Y/N)
-* **Alg:** List of available algorithms  
+* **imp_var:** Calculate vairable importance and model response curve (Y/N)  
+* **transfer:** Project the model onto another region or time period? (Y/N)  
+* **eval_occ:** Specify a set of occurrences for validation? (Y/N)  
+* **sp_accessible_area:** Create species-specific accessible areas (Y/N)  
+* **pres_abs_ratio:** Presence-Absence Ratio  
+* **pseudoabs_method:** Pseudo-absence Selection Method  
+  + **RND:** Random allocation throughout area used to fit models  
+  + **ENV_CONST:** Pseudo-absences are environmentally constrained to region with lower suitability values predicted by a Bioclim model  
+  + **GEO_CONST:** Pseudo-absences are allocated far from occurrences, constrained by a geographical buffer  
+  + **GEO_ENV_CONST:** Pseudo-absences are cosntrained both environmentally (Bioclim Model) and geographically (buffer)  
+  + **GEO_ENV_KM_CONST:** Pseudo-absences constrained on a three-level proccedure  
+* **part:** Data partition method for model evaluation  
+  + **BOOT:** Random bootstrap partition (e.g. 70 training - 30% test)  
+  + **KFOLD:** Random partition in k-fold cross validation  
+  + **BAND:** Geographic partition structured as bands (latitudinal or longitudinal)  
+  + **BLOCK:** Geographic partition structured as a checkerboard  
+* **save_part:** Save .tif files of the partitions?[Default="N"] (Y/N)
+* **save_final:** Save .tif files of the final model (fitted with all the data)[Default="Y"]? (Y/N)
+* **algorithm:** List of available algorithms  
   + **BIO:** Bioclim  
   + **MAH:** Mahalanobis  
   + **DOM:** Domain  
@@ -83,15 +92,14 @@ The function has several input arguments, specify all of them as your desires.
   + **RDF:** Random Forest  
   + **MLK:** Maximum Likelihood  
   + **GAU:** Gaussian   
-* **Thr:** Threshold used for presence-absence maps (from package dismo)  
-  + **no_omission:** The highest threshold at which there is no omission  
-  + **spec_sens:** Threshold at which the sum of the sensitivity and specificity is highest
-  + **kappa:** the threshold at which kappa is highest ("max kappa")
-  + **prevalence:** modeled prevalence is closest to observed prevalence
-  + **equal_sens_spec:** equal sensitivity and specificity
-  + **sensitivty:** fixed (specified) sensitivity 
-  + **Any number between 0-1**
-* **MSDM:** Include Spatial Restrictions  
+* **thr:** Threshold used for presence-absence maps (from package dismo)  
+  + **LPT:** The highest threshold at which there is no omission  
+  + **MAX_TSS:** Threshold at which the sum of the sensitivity and specificity is highest
+  + **MAX_KAPPA:** the threshold at which kappa is highest ("max kappa")
+  + **JACCARD:** the threshold at which Jaccard is highest  
+  + **SORENSEN:** the threshold at which Sorensen is highest  
+  + **SENSITIVITY:** fixed (specified) sensitivity 
+* **msdm:** Include Spatial Restrictions  
   + **N:** Do not include  
   + **XY:** Create two layers (Latitude and Longitude of each cell) [added as a predictor]  
   + **MIN:** Create a layer with information of the distance from each cell to the closest occurrence [added as a predictor]  
@@ -103,7 +111,7 @@ The function has several input arguments, specify all of them as your desires.
     + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep)  
     + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)  
     + **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
-* **ENS:** Ensemble of the different algorithms  
+* **ensemble:** Ensemble of the different algorithms  
   + **N:** No Ensemble  
   + **MEAN:** Simple average of the different models  
   + **W_MEAN:** Weighted Average  
@@ -111,21 +119,17 @@ The function has several input arguments, specify all of them as your desires.
   + **PCA:** Performs a PCA and returns the first axis  
   + **PCA_SUP:** PCA of the best models (TSS over the average)  
   + **PCA_THR:** PCA only with cells above the threshold  
-* **S_SDM:** Stacked Species Distribution Model (Y/N)
+* **s_sdm:** Stacked Species Distribution Model (Y/N)
       
-## Where do I inform my Occurrence Data?  
+## Is that all?  
 Not everything will be input as arguments at the beggining!  
-There will be some specific parameters which the user will need to "awnser" in the command during the execution  
-Occurrence data will be selected at a given point during the process, the user will be asked to select the occurrence file [TXT FORMAT!!!]  
 
-## What else do I need to awnser?  
 Some specific questions will be asked during the process (e.g. Select the percentage of data for training(0-1) will be asked if you chose the "boot" partition)  
-Pay attention and make your choices accordingly. There are specific valid awnsers, the procedure will NOT move ahead if the answer deviates from what is ecpected.  
 
 ## Where are my results?  
-One level above the folder of your environmental variables will be created a **Result** folder, inside you will find a folder for each algorithm and a folder for Ensemble (ENS) and projections (FUT), if you chose to do so.  
+One level above the folder of your environmental variables will be created a **Result** folder, inside you will find a folder for algorithm results, ensemble results (if chosen), projections and maps of areas of extrapolation.  
 There are also four (4) txt files:     
- **N_Unique_OCC:** Number of unique occurrences by species     
+ **N_Unique_OCC:** Number of unique occurrences of each species    
  **Info_Modelling:** Information of the modelling parameters       
  **Occ_filter:** Filtered occurrence with data used in the modelling (without the excluded species)        
  **Validation_Partition:** Information of the evaluation of partial models (e.g. while projecting the model onto the 30% left for test)       
