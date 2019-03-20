@@ -45,42 +45,42 @@ MESS_and_MOP <- function(Variables,
     spN <- unique(RecordsData$sp)
     #Initialisation
     for (i in 1:length(DirProj)) {
-      for (j in spN) {
+      foreach (j =1: length(spN),.packages=c("raster","dismo"))%dopar% {
         if (any(algorithm %in% c("BIO", "MAH", "DOM"))) {
-          spOccS <- RecordsData[RecordsData$sp == j, ]
+          spOccS <- RecordsData[RecordsData$sp == spN[j], ]
           MESS <- mess(Variables[[i]], spOccS[spOccS$PresAbse == 1, VarCol])
           MESS[MESS==Inf] <- NA
           MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
           # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
           writeRaster(
             MESS,
-            file.path(DirProj[i], paste0(j, "_MESS_Presence.tif")),
+            file.path(DirProj[i], paste0(spN[j], "_MESS_Presence.tif")),
             format = "GTiff",
             NAflag = -9999
           )
         }
         if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
-          spOccS <- RecordsData[RecordsData$sp == j, ]
+          spOccS <- RecordsData[RecordsData$sp == spN[j], ]
           MESS <- mess(Variables[[i]], spOccS[VarCol])
           MESS[MESS==Inf] <- NA
           MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
           # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
           writeRaster(
             MESS,
-            file.path(DirProj[i], paste0(j, "_MESS_PresAbse.tif")),
+            file.path(DirProj[i], paste0(spN[j], "_MESS_PresAbse.tif")),
             format = "GTiff",
             NAflag = -9999
           )
         }
         if (any(algorithm %in% c("MXS", "MXD", "ENF", "MLK"))) {
-          spOccS <- RecordsDataM[RecordsDataM$sp == j, ]
+          spOccS <- RecordsDataM[RecordsDataM$sp == spN[j], ]
           MESS <- mess(Variables[[i]], spOccS[VarCol])
           MESS[MESS==Inf] <- NA
           MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
           # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
           writeRaster(
             MESS,
-            file.path(DirProj[i], paste0(j, "_MESS_Background.tif")),
+            file.path(DirProj[i], paste0(spN[j], "_MESS_Background.tif")),
             format = "GTiff",
             NAflag = -9999
           )
@@ -94,7 +94,7 @@ MESS_and_MOP <- function(Variables,
     spN <- unique(RecordsData$sp)
     #Initialisation
     for (i in 1:length(DirProj)) {
-      for (j in spN) {
+      foreach (j =1: length(spN),.packages=c("raster","dismo"),.export="mop")%dopar% {
         if (any(algorithm %in% c("BIO", "MAH", "DOM"))) {
           spOccS <- RecordsData[RecordsData$sp == j,]
           MOP <-
