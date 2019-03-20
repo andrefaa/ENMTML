@@ -237,7 +237,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   if(!is.null(Fut)){
     dir.create(file.path(ModFut,"Extrapolation"))
     DirProj <- file.path(ModFut,"Extrapolation")
-    MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,
+    MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
                  VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
   }
   
