@@ -251,7 +251,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   rm(ThrNames)
   
 #3.Predictors ----
-  options(warn = 1)
+  options(warn = -1)
   setwd(pred_dir)
   
   env <- unique(file_ext(list.files()))
