@@ -56,7 +56,8 @@ MESS_and_MOP <- function(Variables,
             MESS,
             file.path(DirProj[i], paste0(spN[j], "_MESS_Presence.tif")),
             format = "GTiff",
-            NAflag = -9999
+            NAflag = -9999,
+            overwrite=T
           )
         }
         if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
@@ -69,7 +70,8 @@ MESS_and_MOP <- function(Variables,
             MESS,
             file.path(DirProj[i], paste0(spN[j], "_MESS_PresAbse.tif")),
             format = "GTiff",
-            NAflag = -9999
+            NAflag = -9999,
+            overwrite=T
           )
         }
         if (any(algorithm %in% c("MXS", "MXD", "ENF", "MLK"))) {
@@ -82,7 +84,8 @@ MESS_and_MOP <- function(Variables,
             MESS,
             file.path(DirProj[i], paste0(spN[j], "_MESS_Background.tif")),
             format = "GTiff",
-            NAflag = -9999
+            NAflag = -9999,
+            overwrite=T
           )
         }
       }
@@ -103,7 +106,8 @@ MESS_and_MOP <- function(Variables,
             MOP,
             file.path(DirProj[i], paste0(j, "_MOP_Presence.tif")),
             format = "GTiff",
-            NAflag = -9999
+            NAflag = -9999,
+            overwrite=T
           )
         }
         if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
@@ -113,7 +117,8 @@ MESS_and_MOP <- function(Variables,
             MOP,
             file.path(DirProj[i], paste0(j, "_MOP_PresAbse.tif")),
             format = "GTiff",
-            NAflag = -9999
+            NAflag = -9999,
+            overwrite=T
           )
         }
         if (any(algorithm %in% c("MXS", "MXD", "MLK","ENF"))) {
@@ -123,7 +128,8 @@ MESS_and_MOP <- function(Variables,
             MOP,
             file.path(DirProj[i], paste0(j, "_MOP_Background.tif")),
             format = "GTiff",
-            NAflag = -9999
+            NAflag = -9999,
+            overwrite=T
           )
         }
       }
