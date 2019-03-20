@@ -231,7 +231,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   #Within the extent (for M-Restriction)
   dir.create(file.path(DirSave,"Extrapolation"))
   DirProj <- file.path(DirSave,"Extrapolation")
-  MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,
+  MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
                 VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
   #For projections
   if(!is.null(Fut)){
