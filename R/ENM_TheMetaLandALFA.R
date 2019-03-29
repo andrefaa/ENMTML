@@ -245,11 +245,7 @@ ENMs_TheMetaLand <- function(pred_dir,
 #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
   algorithm <- Ord[Ord%in%algorithm]
-  
-  ThrNames <- c("LPT", "MAX_TSS", "MAX_KAPPA", "SENSITIVITY","JACCARD", "SORENSEN")
-  thr <- ThrNames[c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD", "SORENSEN")%in%thr]
-  rm(ThrNames)
-  
+
 #3.Predictors ----
   options(warn = -1)
   setwd(pred_dir)
@@ -1225,11 +1221,19 @@ ENMs_TheMetaLand <- function(pred_dir,
       }else{
         DirB <- NULL
       }
+      
+      #7.9.Value for Sensitivity Threshold
+          if(any(thr%in%"SENSITIVITY")){
+            cat("Specify the desired sensitivity value (0-1):")
+            sensV <- as.numeric(readLines(n=1))
+          }else{
+            sensV <- NULL
+          }
           
       #7.9. Run FitENM----
         FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=imp_var,Fut=Fut,Part=part,Algorithm=algorithm,PredictType=ensemble,spN=spN,
                     Tst=eval_occ,Threshold=thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=save_part,
-                    SaveFinal=save_final,per=per,repl=k)
+                    SaveFinal=save_final,sensV=sensV,per=per,repl=k)
         
       #7.10. Create Occurrence Table for Replicates----
         if(rep!=1 || part=="KFOLD"){
