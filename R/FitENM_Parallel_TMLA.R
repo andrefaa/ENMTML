@@ -18,8 +18,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    repl=NULL,
                    Save="N",
                    SaveFinal=SaveFinal,
-                   sensV,
-                   ThRes) {
+                   sensV) {
   
   Ti <- Sys.time()
   options(warn = -1)
@@ -2573,7 +2572,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       #Partial Models Ensemble
       Final <- do.call(Map, c(rbind,RastPart))
-      ThResW <- unlist(ListValidationT[ThRes])
+      ThResW <- unlist(ListValidationT[Threshold])
       Final <- lapply(Final, function(x) sweep(x, 2, ThResW, '*'))
       Final <- lapply(Final, function (x) colMeans(x))
       
@@ -2653,7 +2652,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     if(any(PredictType=='SUP')){
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
-      Best <- ListValidationT[which(unlist(ListValidationT[ThRes])>=mean(unlist(ListValidationT[ThRes]))),"Algorithm"]
+      Best <- ListValidationT[which(unlist(ListValidationT[Threshold])>=mean(unlist(ListValidationT[Threshold]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
       
       #Partial Models
@@ -2818,7 +2817,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     if (any(PredictType == 'PCA_SUP')) {
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
-      Best <- ListValidationT[which(unlist(ListValidationT[ThRes])>=mean(unlist(ListValidationT[ThRes]))),"Algorithm"]
+      Best <- ListValidationT[which(unlist(ListValidationT[Threshold])>=mean(unlist(ListValidationT[Threshold]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
       
       #Partial Models
@@ -2909,7 +2908,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       #Partial Models
       Final <- do.call(Map, c(cbind, RastPart))
-      ValidTHR <- ListValidationT[grepl(ThRes,ListValidationT["THR"],ignore.case = T),"THR_VALUE"]
+      ValidTHR <- ListValidationT[grepl(Threshold,ListValidationT["THR"],ignore.case = T),"THR_VALUE"]
       for (p in 1:length(Final)){
         Final[[p]] <- sapply(seq(1:length(ValidTHR)),function(x){ifelse(Final[[p]][,x]>=ValidTHR[x],Final[[p]][,x],0)})
         Final[[p]] <- as.numeric(princomp(Final[[p]])$scores[,1])
@@ -2942,7 +2941,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Final <- brick(ListRaster)
-        ValidTHR <- ListValidationT[grepl(ThRes,ListValidationT["THR"],ignore.case = T),"THR_VALUE"]
+        ValidTHR <- ListValidationT[grepl(Threshold,ListValidationT["THR"],ignore.case = T),"THR_VALUE"]
         for(k in 1:nlayers(Final)){
           FinalSp <- Final[[k]]
           FinalSp[FinalSp<ValidTHR[k]] <- 0
