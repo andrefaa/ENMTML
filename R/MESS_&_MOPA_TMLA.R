@@ -47,46 +47,61 @@ MESS_and_MOP <- function(Variables,
     for (i in 1:length(DirProj)) {
       foreach (j =1: length(spN),.packages=c("raster","dismo"))%dopar% {
         if (any(algorithm %in% c("BIO", "MAH", "DOM"))) {
-          spOccS <- RecordsData[RecordsData$sp == spN[j], ]
-          MESS <- mess(Variables[[i]], spOccS[spOccS$PresAbse == 1, VarCol])
-          MESS[MESS==Inf] <- NA
-          MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
-          # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
-          writeRaster(
-            MESS,
-            file.path(DirProj[i], paste0(spN[j], "_MESS_Presence.tif")),
-            format = "GTiff",
-            NAflag = -9999,
-            overwrite=TRUE
-          )
+          #Check for existence
+          if (file.exists(file.path(DirProj[i], paste0(spN[j], "_MESS_Presence.tif")))){
+            next
+          }else{
+            spOccS <- RecordsData[RecordsData$sp == spN[j], ]
+            MESS <- mess(Variables[[i]], spOccS[spOccS$PresAbse == 1, VarCol])
+            MESS[MESS==Inf] <- NA
+            MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
+            # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
+            writeRaster(
+              MESS,
+              file.path(DirProj[i], paste0(spN[j], "_MESS_Presence.tif")),
+              format = "GTiff",
+              NAflag = -9999,
+              overwrite=TRUE
+            )
+          }
         }
         if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
-          spOccS <- RecordsData[RecordsData$sp == spN[j], ]
-          MESS <- mess(Variables[[i]], spOccS[VarCol])
-          MESS[MESS==Inf] <- NA
-          MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
-          # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
-          writeRaster(
-            MESS,
-            file.path(DirProj[i], paste0(spN[j], "_MESS_PresAbse.tif")),
-            format = "GTiff",
-            NAflag = -9999,
-            overwrite=TRUE
-          )
+          #Check for existence
+          if (file.exists(file.path(DirProj[i], paste0(spN[j], "_MESS_PresAbse.tif")))){
+            next
+          }else{
+            spOccS <- RecordsData[RecordsData$sp == spN[j], ]
+            MESS <- mess(Variables[[i]], spOccS[VarCol])
+            MESS[MESS==Inf] <- NA
+            MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
+            # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
+            writeRaster(
+              MESS,
+              file.path(DirProj[i], paste0(spN[j], "_MESS_PresAbse.tif")),
+              format = "GTiff",
+              NAflag = -9999,
+              overwrite=TRUE
+            )
+          }
         }
         if (any(algorithm %in% c("MXS", "MXD", "ENF", "MLK"))) {
-          spOccS <- RecordsDataM[RecordsDataM$sp == spN[j], ]
-          MESS <- mess(Variables[[i]], spOccS[VarCol])
-          MESS[MESS==Inf] <- NA
-          MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
-          # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
-          writeRaster(
-            MESS,
-            file.path(DirProj[i], paste0(spN[j], "_MESS_Background.tif")),
-            format = "GTiff",
-            NAflag = -9999,
-            overwrite=TRUE
-          )
+          #Check for existence
+          if (file.exists(file.path(DirProj[i], paste0(spN[j], "_MESS_Background.tif")))){
+            next
+          }else{
+            spOccS <- RecordsDataM[RecordsDataM$sp == spN[j], ]
+            MESS <- mess(Variables[[i]], spOccS[VarCol])
+            MESS[MESS==Inf] <- NA
+            MESS[!is.na(MESS[])] <- 1+(na.omit(MESS[]) - max(na.omit(MESS[])))/(max(na.omit(MESS[])) - min(na.omit(MESS[])))
+            # MESS[!is.na(MESS[])] <- 1 - (na.omit(MESS[]) / min(na.omit(MESS[])))
+            writeRaster(
+              MESS,
+              file.path(DirProj[i], paste0(spN[j], "_MESS_Background.tif")),
+              format = "GTiff",
+              NAflag = -9999,
+              overwrite=TRUE
+            )
+          }
         }
       }
     }
@@ -99,38 +114,53 @@ MESS_and_MOP <- function(Variables,
     for (i in 1:length(DirProj)) {
       foreach (j =1: length(spN),.packages=c("raster","dismo"),.export="mop")%dopar% {
         if (any(algorithm %in% c("BIO", "MAH", "DOM"))) {
-          spOccS <- RecordsData[RecordsData$sp == spN[j],]
-          MOP <-
-            mop(Variables[[i]], spOccS[spOccS$PresAbse == 1, VarCol])
-          writeRaster(
-            MOP,
-            file.path(DirProj[i], paste0(spN[j], "_MOP_Presence.tif")),
-            format = "GTiff",
-            NAflag = -9999,
-            overwrite=TRUE
-          )
+          #Check for existence
+          if (file.exists(file.path(DirProj[i], paste0(spN[j], "_MOP_Presence.tif")))){
+            next
+          }else{
+            spOccS <- RecordsData[RecordsData$sp == spN[j],]
+            MOP <-
+              mop(Variables[[i]], spOccS[spOccS$PresAbse == 1, VarCol])
+            writeRaster(
+              MOP,
+              file.path(DirProj[i], paste0(spN[j], "_MOP_Presence.tif")),
+              format = "GTiff",
+              NAflag = -9999,
+              overwrite=TRUE
+            )
+          }
         }
         if (any(algorithm %in% c("GLM", "GAM", "SVM", "BRT", "RDF", "GAU"))) {
-          spOccS <- RecordsData[RecordsData$sp == spN[j],]
-          MOP <- mop(Variables[[i]], spOccS[VarCol])
-          writeRaster(
-            MOP,
-            file.path(DirProj[i], paste0(spN[j], "_MOP_PresAbse.tif")),
-            format = "GTiff",
-            NAflag = -9999,
-            overwrite=TRUE
-          )
+          #Check for existence
+          if (file.exists(file.path(DirProj[i], paste0(spN[j], "_MOP_PresAbse.tif")))){
+            next
+          }else{
+            spOccS <- RecordsData[RecordsData$sp == spN[j],]
+            MOP <- mop(Variables[[i]], spOccS[VarCol])
+            writeRaster(
+              MOP,
+              file.path(DirProj[i], paste0(spN[j], "_MOP_PresAbse.tif")),
+              format = "GTiff",
+              NAflag = -9999,
+              overwrite=TRUE
+            )
+          }
         }
         if (any(algorithm %in% c("MXS", "MXD", "MLK","ENF"))) {
-          spOccS <- RecordsDataM[RecordsDataM$sp == spN[j],]
-          MOP <- mop(Variables[[i]], spOccS[VarCol])
-          writeRaster(
-            MOP,
-            file.path(DirProj[i], paste0(spN[j], "_MOP_Background.tif")),
-            format = "GTiff",
-            NAflag = -9999,
-            overwrite=TRUE
-          )
+          #Check for existence
+          if (file.exists(file.path(DirProj[i], paste0(spN[j], "_MOP_Background.tif")))){
+            next
+          }else{
+            spOccS <- RecordsDataM[RecordsDataM$sp == spN[j],]
+            MOP <- mop(Variables[[i]], spOccS[VarCol])
+            writeRaster(
+              MOP,
+              file.path(DirProj[i], paste0(spN[j], "_MOP_Background.tif")),
+              format = "GTiff",
+              NAflag = -9999,
+              overwrite=TRUE
+            )
+          }
         }
       }
     }
