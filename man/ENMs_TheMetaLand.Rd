@@ -23,7 +23,7 @@ ENMs_TheMetaLand(pred_dir, occ_dir, sp, x, y, min_occ = 10, thin_occ,
 \item{thin_occ}{chracater. Perform a spatial filtering (Thinning) on the presences? (Y/N)}
 
 \item{colin_var}{character. Method to reduce variable collinearity: 
-\itemize {
+\itemize{
   \item N: Use original variables.
   \item PEARSON: Select variables by Pearson correlation (threshold specified by user).
   \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006).
@@ -43,13 +43,14 @@ ENMs_TheMetaLand(pred_dir, occ_dir, sp, x, y, min_occ = 10, thin_occ,
 \item{pseudoabs_method}{character. Pseudo-absence allocation method:
 \itemize{ 
 \item RND: Random allocation throughout area used to fit models. 
-\item ENV_CONST: Pseudo-absence are environmentally constrained to region with lower suitability values predicted by a Bioclim model. 
-\item GEO_CONST: Pseudo-absence are constrained allocated far from occurrences by a geographical buffer. 
-}}
+\item ENV_CONST: Pseudo-absences are environmentally constrained to a region with lower suitability values predicted by a Bioclim model. 
+\item GEO_CONST: Pseudo-absences are allocated far from occurrences based on a geographical buffer.
+\item GEO_ENV_CONST: Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer.
+\item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-mean cluster analysis. }}
 
 \item{part}{character. Partition method for model's validation:
 \itemize{
-  \item BOOT: Random bootstrap partition (e.g. 70"%" training and 30"%" test).
+  \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test).
   \item KFOLD: Random partition in k-fold cross validation.
   \item BAND: Geographic partition structured as bands (latitudinal or longitudinal).
   \item BLOCK: Geographic partition structured as a checkerboard.
@@ -61,6 +62,7 @@ ENMs_TheMetaLand(pred_dir, occ_dir, sp, x, y, min_occ = 10, thin_occ,
 
 \item{algorithm}{character. Algorithm to construct ecological niche models: 
 \itemize{
+  \item BIO: Bioclim
   \item MAH: Mahalanobis
   \item DOM: Domain
   \item ENF: Ecological Niche Factor Analysis
