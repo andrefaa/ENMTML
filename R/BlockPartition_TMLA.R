@@ -8,8 +8,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
            DirSave = DirB,
            DirM = DirM,
            MRst = sp_accessible_area,
-           type = TipoMoran,
-           Geo_Buf) {
+           type = TipoMoran) {
     
   # RecordsData: matrix or data frame with presences records 
   # N: 2 (dafault). interger  Number of group for data  paritioning 
@@ -21,6 +20,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   # PrAbRatio: numeric. value of PrAbRatio to be computed.
   # evnVariables: Raster object. Variable set to be used in pseusoabsences
   # cellSize: numeric vector. a vector of values with different cell grid sizes
+  
   
   
   KM <- function(cell_coord, variable, NumAbsence) {

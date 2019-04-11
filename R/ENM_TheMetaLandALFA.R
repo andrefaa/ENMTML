@@ -22,14 +22,13 @@
 #' @param pseudoabs_method character. Pseudo-absence allocation method:
 #' \itemize{ 
 #' \item RND: Random allocation throughout area used to fit models. 
-#' \item ENV_CONST: Pseudo-absences are environmentally constrained to region with lower suitability values predicted by a Bioclim model. 
-#' \item GEO_CONST: Pseudo-absences are allocated far from occurrences, constrained by a geographical buffer. 
-#' \item GEO_ENV_CONST: Pseudo-absences are cosntrained both environmentally (Bioclim Model) and geographically (buffer). 
-#' \item GEO_ENV_KM_CONST: Pseudo-absences constrained on a three-level proccedure (Santi). 
-#' }
+#' \item ENV_CONST: Pseudo-absences are environmentally constrained to a region with lower suitability values predicted by a Bioclim model. 
+#' \item GEO_CONST: Pseudo-absences are allocated far from occurrences based on a geographical buffer.
+#' \item GEO_ENV_CONST: Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer.
+#' \item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-mean cluster analysis. }
 #' @param part character. Partition method for model's validation:
 #' \itemize{
-#'   \item BOOT: Random bootstrap partition (e.g. 70"%" training and 30"%" test).
+#'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test).
 #'   \item KFOLD: Random partition in k-fold cross validation.
 #'   \item BAND: Geographic partition structured as bands (latitudinal or longitudinal).
 #'   \item BLOCK: Geographic partition structured as a checkerboard.
@@ -195,7 +194,7 @@ ENMs_TheMetaLand <- function(pred_dir,
     stop("'pres_abs_ratio' Argument is not valid!(pres_abs_ratio>=0)")
   }
   if(!(pseudoabs_method%in%c("RND", "ENV_CONST", "GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST"))){
-    stop("'pseudoabs_method' Argument is not valid!(Rnd/EnvConst/GeoConst)")
+    stop("'pseudoabs_method' Argument is not valid!. Can be used: 'RND', 'ENV_CONST', 'GEO_CONST', 'GEO_ENV_CONST', 'GEO_ENV_KM_CONST')")
   }
   if(length(pseudoabs_method)>1){
     stop("Please choose only one Pseudo-absence allocation method")
@@ -204,7 +203,7 @@ ENMs_TheMetaLand <- function(pred_dir,
     stop("'part' Argument is not valid!(BOOT/KFOLD/BANDS/BLOCK)")
   }
   if(any(!algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"))){
-    stop(paste("Algorithm",algorithm[!(algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"))],"is not valid"))
+    stop(paste("Algorithm", algorithm[!(algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"))],"is not valid"))
   }
   if(any(!thr%in%c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD","SORENSEN"))){
     stop("'thr' Argument is not valid!")
@@ -215,6 +214,8 @@ ENMs_TheMetaLand <- function(pred_dir,
   if(length(msdm)>1){
     stop("Please choose only one 'msdm' method")
   }
+  
+  
   
 #1.Load Packages ----
   
@@ -483,8 +484,10 @@ ENMs_TheMetaLand <- function(pred_dir,
   
     if(grepl("GEO", pseudoabs_method)){
       #Define Buffer distance:
-      cat("Select buffer distance(in km):")
+      cat("Select buffer distance (in km):")
       Geo_Buf <- as.integer(readLines(n = 1))*1000
+    }else{
+      Geo_Buf=NA
     }
     
 #6. Geographical Partition----
@@ -610,8 +613,7 @@ ENMs_TheMetaLand <- function(pred_dir,
               DirSave = DirB,
               DirM = DirM,
               MRst = sp_accessible_area,
-              type = TipoMoran,
-              Geo_Buf=Geo_Buf
+              type = TipoMoran
             )
           
           occINPUT[,4] <- as.numeric(occINPUT[,4])
