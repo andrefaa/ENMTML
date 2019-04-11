@@ -435,7 +435,7 @@ ENMs_TheMetaLand <- function(pred_dir,
     if(thin_occ=="Y"){
       cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
       ThinMet <- as.integer(readLines(n=1))
-      occA <- OccsThin(occA, envT, ThinMet, colin_var, DirR)
+      occA <- OccsThin(occ=occA, envT, ThinMet, colin_var, DirR)
     }
   
     #4.3.Save Thinned & Unique Occurrences
@@ -878,7 +878,7 @@ ENMs_TheMetaLand <- function(pred_dir,
             for (i in 1:length(occTR)) {
               set.seed(i)
               if(EnvMsk=="N"){
-                pseudo.mask <- inverse_bio(envT, occTR[[i]][,c("x","y")])
+                pseudo.mask <- inv_bio(envT, occTR[[i]][,c("x","y")])
                 
                 writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
                 
@@ -1039,7 +1039,7 @@ ENMs_TheMetaLand <- function(pred_dir,
             if(EnvMsk=="N"){
               
               pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-              pseudo.mask1 <- inverse_bio(envT, occTR[[i]][,c("x","y")])
+              pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
               pseudo.mask <- pseudo.mask*pseudo.mask1
               writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
               
@@ -1119,7 +1119,7 @@ ENMs_TheMetaLand <- function(pred_dir,
             if(EnvMsk=="N"){
               
               pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-              pseudo.mask1 <- inverse_bio(envT, occTR[[i]][,c("x","y")])
+              pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
               pseudo.mask <- pseudo.mask*pseudo.mask1
               writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
               

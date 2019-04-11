@@ -121,7 +121,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   
   
   # Backqround points----
-  if (is.null(DirMask) == FALSE) {
+  if (!is.null(DirMask)) {
      if ((any(Algorithm == "MXD") || any(Algorithm == "MXS") || any(Algorithm == "MLK"))) {
        RecordsDataM <- split(RecordsData,f=RecordsData$sp)
        RecordsDataMt <- list()
