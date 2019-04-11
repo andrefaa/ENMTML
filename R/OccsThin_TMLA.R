@@ -87,8 +87,9 @@ OccsThin <- function(occ,
   } else if (ThinMethod==3){
   #3.Based on cellsize----
     #Haversine Transformation
-    D <- rasterToPoints(envT[[1]])[,-3]
-    D <- haversine(D[1,], D[2,], R = 6371.0)*2
+    D <- xyFromCell(envT[[1]],1:ncell(envT[[1]]))
+    df <- tibble::tibble(x=c(D[1,c(2,1)]), y=c(D[2,c(2,1)]))
+    D <- haversine(df$x,df$y)*2
     
     #Data Frame for thining
     occDF <- ldply(occDF,data.frame)
