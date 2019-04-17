@@ -435,6 +435,10 @@ ENMs_TheMetaLand <- function(pred_dir,
     if(thin_occ=="Y"){
       cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
       ThinMet <- as.integer(readLines(n=1))
+      while(!ThinMet%in%c(1,2,3)){
+        cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
+        ThinMet <- as.integer(readLines(n=1))
+      }
       occA <- OccsThin(occ=occA, envT, ThinMet, colin_var, DirR)
     }
   
