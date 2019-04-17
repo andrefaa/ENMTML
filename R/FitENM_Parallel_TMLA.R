@@ -234,7 +234,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
   #For projections
   if(!is.null(Fut)){
-    dir.create(file.path(ModFut,"Extrapolation"))
+    for(i in 1:length(ModFut)){
+      dir.create(file.path(ModFut[i],"Extrapolation"))
+    }
     DirProj <- file.path(ModFut,"Extrapolation")
     MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
                  VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
@@ -251,7 +253,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
                                                       "maxnet","maxlike","GRaF","ecospat","plyr","gam","RStoolbox",
                                                       "adehabitatHS","caret","visreg"),
-                     .export=c("Validation2_0","SUMMRES","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA",
+                     .export=c("Validation2_0","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA",
                                "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv")) %dopar% {
 
     #Results Lists
