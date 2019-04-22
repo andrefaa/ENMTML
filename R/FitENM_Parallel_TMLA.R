@@ -254,7 +254,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                                       "maxnet","maxlike","GRaF","ecospat","plyr","gam","RStoolbox",
                                                       "adehabitatHS","caret","visreg"),
                      .export=c("Validation2_0","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA",
-                               "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv")) %dopar% {
+                               "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval")) %dopar% {
 
     #Results Lists
     ListRaster <- as.list(Algorithm)
@@ -2282,8 +2282,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #BRT model
       for (i in 1:N) {
         dataPr <- PAtrain[[i]]
-        if(nrow(dataPr)*0.75<=21){
-          bagFr <- 1
+        # nTrain * bag.fraction <= 2*n.minobsinnode+1
+        if(nrow(dataPr[dataPr$PresAbse==1,])*0.75<=21){
+          bagFr <- 21/nrow(dataPr[dataPr$PresAbse==1,])
         }else{
           bagFr <- 0.75
         }
@@ -2397,7 +2398,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["BRT"]] <- predict.gbm(Model,VariablesP[[k]],
+              ListFut[[ProjN[k]]][["BRT"]] <- predict(VariablesP[[k]],Model,
                                                           n.trees=Model$gbm.call$best.trees,type="response")
               if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
                 ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
@@ -2411,7 +2412,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["BRT"]] <- predict.gbm(Model,VariablesP[[k]],
+          ListFut[[ProjN[k]]][["BRT"]] <- predict(Model,VariablesP[[k]],
                                                       n.trees=Model$gbm.call$best.trees,type="response")
           if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
             ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
