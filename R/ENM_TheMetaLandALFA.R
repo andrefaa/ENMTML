@@ -259,12 +259,24 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   if(any(env == c('asc', 'bil', 'tif'))){
-    envT<-brick(stack(list.files(pattern=paste0('\\.',env,'$'))))
+    envT<-stack(list.files(pattern=paste0('\\.',env,'$')))
+    try(envT <- brick(envT))
+    if(class(envT)=="RasterBrick"){
+      print("RasterBrick successfully created!")
+    }else{
+      print("Failed to create RasterBrick, using Raster Stack instead!")
+    }
   }
   if(env == 'txt'){
     envT<-read.table(list.files(pattern='\\.txt$'),h=T)
     gridded(envT)<- ~x+y
-    envT<-brick(stack(envT))
+    envT<-stack(envT)
+    try(envT <- brick(envT))
+    if(class(envT)=="RasterBrick"){
+      print("RasterBrick successfully created!")
+    }else{
+      print("Failed to create RasterBrick, using Raster Stack instead!")
+    }
   }
   
   #3.0.Check predictors consistency
