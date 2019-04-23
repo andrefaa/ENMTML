@@ -54,33 +54,18 @@ Eval_Jac_Sor_TMLA <- function(p,a){
   FpbTHR <- tr[which(Fpb==max(Fpb))][1]
   
   #Final Result Object
-  setClass("ModelEvaluation(JAC_SOR_Fpb)",slots=c("presences","absences","Sorensen","SorensenTHR",
-                                           "Jaccard","JaccardTHR","Fpb","t","TPR","TNR"))
-  xc <- new("ModelEvaluation(JAC_SOR_Fpb)")
-  xc@presences <- np
-  xc@absences <- na
-  xc@Sorensen <- SOR
-  xc@SorensenTHR <- SorTHR
-  xc@Jaccard <- JAC
-  xc@JaccardTHR <- JacTHR
-  xc@Fpb <- Fpb
-  xc@t <- tr
-  xc@TPR <- a / (a + c)
-  xc@TNR <- d / (b + d)
+  xc <- list()
+  xc$presences <- np
+  xc$absences <- na
+  xc$Sorensen <- SOR
+  xc$SorensenTHR <- SorTHR
+  xc$Jaccard <- JAC
+  xc$JaccardTHR <- JacTHR
+  xc$Fpb <- Fpb
+  xc$t <- tr
+  xc$TPR <- a / (a + c)
+  xc$TNR <- d / (b + d)
   
-  setMethod ('show' , 'ModelEvaluation(JAC_SOR_Fpb)', 
-             function(object) {
-               cat('class          :' , class(object), '\n')
-               cat('n presences    :' , object@presences, '\n')
-               cat('n absences     :' , object@absences, '\n')
-               cat('max Sorensen at:' , object@SorensenTHR,'\n')
-               # cat('SorensenTHR    :' , object@SorensenTHR,'\n')
-               cat('max Jaccard at :' , object@JaccardTHR,'\n')
-               # cat('JaccardTHR     :' , object@JaccardTHR,'\n')
-               # cat('Fpb            :' , object@Fpb,'\n')
-               # cat('FpbTHR         :' , object@FpbTHR,'\n')
-             }
-  )
   #Return final result
   return(xc)
 }
