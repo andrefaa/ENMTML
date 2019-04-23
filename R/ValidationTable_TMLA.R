@@ -13,9 +13,9 @@ Validation_Table_TMLA<-function(Eval,
     summres[i, ] <- cbind(AUC=Eval[[i]]@auc,
                           Kappa=max(Eval[[i]]@kappa),
                           TSS=sapply(Eval, function(x) max(x@TPR + x@TNR) - 1),
-                          Jaccard=max(Eval_JS[[i]]@Jaccard),
-                          Sorensen=max(Eval_JS[[i]]@Sorensen),
-                          Fpb=max(Eval_JS[[i]]@Fpb))
+                          Jaccard=max(Eval_JS[[i]]$Jaccard),
+                          Sorensen=max(Eval_JS[[i]]$Sorensen),
+                          Fpb=max(Eval_JS[[i]]$Fpb))
     colnames(summres) <- c( "AUC","Kappa", "TSS","Jaccard","Sorensen","Fpb")
   }
   res <- data.frame(matrix(round(colMeans(summres), 3),nrow=1,ncol=6))

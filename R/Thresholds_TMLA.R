@@ -23,15 +23,15 @@ Thresholds_TMLA <- function(Eval,
   res <- rbind(res,resD)
   
   #Jaccard Thresholds
-  PosII <- which(Eval@t == Eval_JS@JaccardTHR)
-  TP_TN <- c(Eval_JS@TPR[PosII],Eval_JS@TNR[PosII])
-  resJ <- cbind.data.frame(THR="JACCARD",THR_VALUE=Eval_JS@JaccardTHR,TPR=TP_TN[1],TNR=TP_TN[2])
+  PosII <- which(Eval@t == Eval_JS$JaccardTHR)
+  TP_TN <- c(Eval_JS$TPR[PosII],Eval_JS$TNR[PosII])
+  resJ <- cbind.data.frame(THR="JACCARD",THR_VALUE=Eval_JS$JaccardTHR,TPR=TP_TN[1],TNR=TP_TN[2])
   res <- rbind(res,resJ)
   
   #Sorensen Thresholds
-  PosIII <- which(Eval@t == Eval_JS@SorensenTHR)
-  TP_TN <- c(Eval_JS@TPR[PosIII],Eval_JS@TNR[PosIII])
-  resS <- cbind.data.frame(THR="SORENSEN",THR_VALUE=Eval_JS@SorensenTHR,TPR=TP_TN[1],TNR=TP_TN[2])
+  PosIII <- which(Eval@t == Eval_JS$SorensenTHR)
+  TP_TN <- c(Eval_JS$TPR[PosIII],Eval_JS$TNR[PosIII])
+  resS <- cbind.data.frame(THR="SORENSEN",THR_VALUE=Eval_JS$SorensenTHR,TPR=TP_TN[1],TNR=TP_TN[2])
   res <- rbind(res,resS)
   
   return(res)
