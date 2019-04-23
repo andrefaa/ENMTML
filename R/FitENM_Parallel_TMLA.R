@@ -253,7 +253,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
                                                       "maxnet","maxlike","GRaF","ecospat","plyr","gam","RStoolbox",
                                                       "adehabitatHS","caret","visreg"),
-                     .export=c("Validation2_0","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA",
+                     .export=c("Validation2_0","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet",
                                "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval")) %dopar% {
 
     #Results Lists
@@ -2288,9 +2288,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }else{
           bagFr <- 0.75
         }
-        Model[[i]] <- gbm.step(data=dataPr, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
-                               tree.complexity= 5, learning.rate= 0.005, bag.fraction= bagFr,silent=T,
-                               plot.main = F)
+        learn.rate <- 0.005
+        while(length(Model)==0){
+          try(Model[[i]] <- gbm.step(data=dataPr, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
+                                     tree.complexity= 5, learning.rate=learn.rate, bag.fraction= bagFr,silent=T,
+                                     plot.main = F))
+          learn.rate <- learn.rate-0.0005
+        }
       }
       
       #BRT evaluation
@@ -2369,9 +2373,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
-                            tree.complexity= 5, learning.rate= 0.005, bag.fraction= bagFr,silent=T,
-                            plot.main = F)
+          learn.rate <- 0.005
+          Model <- NULL
+          while(is.null(Model)){
+            try(Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
+                                       tree.complexity= 5, learning.rate=learn.rate, bag.fraction= bagFr,silent=T,
+                                       plot.main = F))
+            learn.rate <- learn.rate-0.0005
+          }
           PredPoint <- predict.gbm(Model, SpDataT[, VarColT],
                                    n.trees=Model$gbm.call$best.trees)
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
