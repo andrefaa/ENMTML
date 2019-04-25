@@ -593,8 +593,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         
         if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
           print("Partition Already Exist! Using pre-created partitions! ")
-          setwd(DirB)
-          occINPUT <- read.table(file.path(DirB,"OccCheck.txt"),sep="\t",header=T)
+          occINPUT <- read.table(file.path(DirB,"OccBlocks.txt"),sep="\t",header=T)
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
         }else{
@@ -663,16 +662,26 @@ ENMs_TheMetaLand <- function(pred_dir,
         Fut <- NULL
       }
       
-      #6.5.Adjust Checkerboard when using Geographical Restrictions (For Maxent Sampling)
+      #6.5.Adjust Checkerboard when using Geographical Restrictions (For Maxent Sampling)----
       if(sp_accessible_area=="Y"){
         Ms <- stack(file.path(DirM,list.files(DirM)))
         Cs <- stack(file.path(DirB,list.files(DirB,pattern=".tif$")))
+        nomesCs <- gsub("_"," ",names(Cs))
         Cs <- Ms*Cs
-        writeRaster(Cs,file.path(DirB,names(Cs)),format="GTiff",
+        writeRaster(Cs,file.path(DirB,nomesCs),format="GTiff",
                     bylayer=T,overwrite=T,NAflag=-9999)
       }
       
-      #6.5. Fit ENM for Geographical Partition
+      
+      #6.6.Value for Sensitivity Threshold
+      if(any(thr%in%"SENSITIVITY")){
+        cat("Specify the desired sensitivity value (0-1):")
+        sensV <- as.numeric(readLines(n=1))
+      }else{
+        sensV <- NULL
+      }
+      
+      #6.7. Fit ENM for Geographical Partition----
       FitENM_TMLA_Parallel(
         RecordsData = occINPUT,
         Variables = envT,
@@ -689,6 +698,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         DirMSDM = DirPRI,
         Save = save_part,
         SaveFinal = save_final,
+        sensV=sensV,
         repl = NULL,
         per = NULL
       )
@@ -1112,7 +1122,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         
         # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
         if(pseudoabs_method=="GEO_ENV_KM_CONST"){
-          DirCons <- "GeoEnvConstrain"
+          DirCons <- "GeoEnvConstrain_KM"
           if (file.exists(file.path(pred_dir,DirCons))){
             DirCons<-file.path(pred_dir,DirCons)
           } else {
@@ -1182,8 +1192,8 @@ ENMs_TheMetaLand <- function(pred_dir,
                                    (1 / pres_abs_ratio)*nrow(occTS[[i]]))
               }
             }
-            absencesTR[[i]] <- as.data.frame(absencesTR.0)
-            absencesTS[[i]] <- as.data.frame(absencesTS.0)
+            absencesTR[[i]] <- data.frame(x=absencesTR.0[,1],y=absencesTR.0[,2])
+            absencesTS[[i]] <- data.frame(x=absencesTS.0[,1],y=absencesTS.0[,2])
             rm(absencesTR.0,absencesTS.0)
           }
           absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
