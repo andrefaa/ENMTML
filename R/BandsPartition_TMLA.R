@@ -7,7 +7,8 @@ BandsPartition_TMLA <- function(evnVariables,
                                 DirSave = DirB,
                                 DirM=DirM,
                                 MRst=sp_accessible_area,
-                                type=TipoMoran){
+                                type=TipoMoran,
+                                Geo_Buf = Geo_Buf){
 
   #Parameters
     #evnVariables: Predictors

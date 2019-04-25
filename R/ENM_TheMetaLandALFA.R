@@ -572,7 +572,8 @@ ENMs_TheMetaLand <- function(pred_dir,
               DirSave = DirB,
               DirM = DirM,
               MRst = sp_accessible_area,
-              type = TipoMoran
+              type = TipoMoran,
+              Geo_Buf = Geo_Buf
             )
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
@@ -628,7 +629,8 @@ ENMs_TheMetaLand <- function(pred_dir,
               DirSave = DirB,
               DirM = DirM,
               MRst = sp_accessible_area,
-              type = TipoMoran
+              type = TipoMoran,
+              Geo_Buf = Geo_Buf
             )
           
           occINPUT[,4] <- as.numeric(occINPUT[,4])

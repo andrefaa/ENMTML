@@ -8,7 +8,8 @@ BlockPartition_TMLA <- function(evnVariables = NA,
            DirSave = DirB,
            DirM = DirM,
            MRst = sp_accessible_area,
-           type = TipoMoran) {
+           type = TipoMoran,
+           Geo_Buf = Geo_Buf) {
     
   # RecordsData: matrix or data frame with presences records 
   # N: 2 (dafault). interger  Number of group for data  paritioning 
