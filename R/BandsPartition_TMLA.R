@@ -100,7 +100,7 @@ BandsPartition_TMLA <- function(evnVariables,
   results <- foreach(
     x = 1:length(RecordsData),
     .packages = c("raster", "modEvA", "ape", "dismo", "plyr"),
-    .export = c("Moran_for_Quadrants_Pair_TMLA", 'Geo_Buf')
+    .export = c("Moran_for_Quadrants_Pair_TMLA", 'Geo_Buf',"inv_geo","inv_bio")
     ) %dopar% {
     # for(x in 1:length(RecordsData)){
     opt <- NULL

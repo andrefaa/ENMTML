@@ -88,7 +88,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   
   # LOOP----
   results <- foreach(s = 1:length(RecordsData), .packages = c("raster","modEvA","ape","dismo"),
-                     .export=c("Geo_Buf")) %dopar% {
+                     .export=c("Geo_Buf","inv_geo","inv_bio")) %dopar% {
   # for(s in 1:length(RecordsData)){
   print(paste(s, SpNames[s]))
   # Extract coordinates----

@@ -2603,6 +2603,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     if(any(PredictType=="W_MEAN")){
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
+      colnames(ListValidationT) <- c("Sp","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
+                                     "SORENSEN","FPB","BOYCE")
       
       #Partial Models Ensemble
       Final <- do.call(Map, c(rbind,RastPart))
