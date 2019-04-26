@@ -312,13 +312,13 @@ ENMs_TheMetaLand <- function(pred_dir,
   #3.1. Variable Colinearity----
   #3.1.1.VIF----
   if(colin_var=="VIF") {
-    VF <- vifstep(envT, th = nlayers(envT) * 2)
+    VF <- vifstep(envT, th = 10)
     envT <- exclude(envT, VF)
     if (transfer == "Y") {
       RasM <- colMeans(na.omit(values(envT)))
       RasSTD <- apply(na.omit(values(envT)), 2, std)
     }
-    envT <- scale(envT)
+    envT <- raster::scale(envT)
     
     if(transfer=="Y") {
       EnvF <- list()
