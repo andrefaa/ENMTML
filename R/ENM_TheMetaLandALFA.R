@@ -279,11 +279,14 @@ ENMs_TheMetaLand <- function(pred_dir,
     }
   }
   
+  print("Predictos NA check testing...")
   #3.0.Check predictors consistency
   if(length(unique(colSums(!is.na(envT[]))))>1){
     envT[is.na((sum(envT))[])] <- NA
     print("Variables had differences, setting any empty cells to NA in all variables")
   }
+  
+  print("Projection testing...")
   
   #3.1.Projection----
   if(transfer=="Y"){
