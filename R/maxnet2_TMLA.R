@@ -20,7 +20,7 @@ maxnet2 <-
     
     if (length(model$beta) < 200) stop("Error: glmnet failed to complete regularization path")
     
-    bb <- model$beta[,200]
+    bb <- model$beta[,ncol(model$beta)]#Was originally [,200], changed to [,ncol(model$beta)]
     
     model$betas <- bb[bb!=0]
     

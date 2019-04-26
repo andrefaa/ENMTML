@@ -259,7 +259,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                                       "maxnet","maxlike","GRaF","ecospat","plyr","gam","RStoolbox",
                                                       "adehabitatHS","caret","visreg","glmnet"),
                      .export=c("Validation2_0","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet",
-                               "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval")) %dopar% {
+                               "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval","ecospat.boyce")) %dopar% {
 
     #Results Lists
     ListRaster <- as.list(Algorithm)
@@ -1050,7 +1050,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MXD model
       for (i in 1:N) {
         dataPr <- PAtrainM[[i]]
-        Model[[i]] <- maxnet(dataPr[,"PresAbse"], dataPr[,VarColT], f = 
+        Model[[i]] <- maxnet2(p=dataPr[,"PresAbse"], data=dataPr[,VarColT], f = 
                                maxnet.formula(dataPr[,"PresAbse"], 
                                               dataPr[,VarColT], classes="default"))
       }
