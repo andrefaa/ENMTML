@@ -309,6 +309,8 @@ ENMs_TheMetaLand <- function(pred_dir,
     }
   }
   
+  print("Variable colinearity testing...")
+  
   #3.1. Variable Colinearity----
   #3.1.1.VIF----
   if(colin_var=="VIF") {
