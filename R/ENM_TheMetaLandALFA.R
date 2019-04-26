@@ -309,15 +309,20 @@ ENMs_TheMetaLand <- function(pred_dir,
     }
   }
   
+  print("Variable colinearity process...")
+  
   #3.1. Variable Colinearity----
   #3.1.1.VIF----
   if(colin_var=="VIF") {
+    print("CAlculatin VIF....")
     VF <- vifstep(envT, th = 10)
+    print("Removing VIF!")
     envT <- exclude(envT, VF)
     if (transfer == "Y") {
       RasM <- colMeans(na.omit(values(envT)))
       RasSTD <- apply(na.omit(values(envT)), 2, std)
     }
+    print("Scaling VIF")
     envT <- raster::scale(envT)
     
     if(transfer=="Y") {
@@ -344,6 +349,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
       }
     }
+    print("VIF DONE!")
   }
   
   #3.1.2.PCA----
@@ -417,7 +423,7 @@ ENMs_TheMetaLand <- function(pred_dir,
             This may cause some issues while fitting certain algorithms!")
   }
   
-  
+  print("ENV import done!")
 #4.Occurrence Data ----
   
   DirR<-"Result"
