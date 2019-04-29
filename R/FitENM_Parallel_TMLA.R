@@ -186,7 +186,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       names(RecordsDataM) <- spN
       rm(RecordsDataMt)
 
-      RecordsDataM <- foreach (i=1:length(names(RecordsDataM)),.packages=c("dismo","raster","plyr"))%dopar%{
+      ab.0 <- foreach (i=1:length(names(RecordsDataM)),.packages=c("dismo","raster","plyr"))%dopar%{
         msk <- Variables[[1]]
         msk[is.na(msk[])==FALSE] <- 1
 
