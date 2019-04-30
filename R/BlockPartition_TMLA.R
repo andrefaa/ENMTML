@@ -167,7 +167,8 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     }
   pp[pf] <- FALSE 
   grid <- grid[pp]
-  part <- part[,pp]
+  part <- data.frame(part[,pp])
+  names(part) <- names(which(pp==T))
   part2 <- part2[pp]
   
   # Performace of cells ----
