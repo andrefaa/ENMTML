@@ -518,6 +518,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   # Final data.frame result2----
     out <- list(ResultList= result,
                 BestGridList = Opt2)
+    # write.table(result,paste(DirSave, paste0(SpNames[s],".txt"), sep="\\"), sep="\t",row.names=F)
     return(out)
   }
   
