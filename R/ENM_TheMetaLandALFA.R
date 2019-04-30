@@ -404,6 +404,35 @@ ENMs_TheMetaLand <- function(pred_dir,
     }
   }
   
+  #3.3.4.colin_var='N'----
+  if (colin_var == "N") {
+    if (transfer == "Y") {
+      EnvF <- list()
+      for (i in 1:length(Pfol)) {
+        ProjT <- unique(file_ext(list.files(Pfol[i])))
+        form <- c('bil', 'asc', 'txt', 'tif')
+        ProjT <- ProjT[ProjT %in% form]
+        if (length(ProjT) > 1) {
+          stop("More than one file format in DirP")
+        }
+        if (any(ProjT == c('asc', 'bil', 'tif'))) {
+          EnvF[[i]] <-
+            brick(stack(file.path(
+              Pfol[i], list.files(Pfol[i], pattern = paste0('\\.', ProjT, '$'))
+            )))
+        }
+        if (ProjT == 'txt') {
+          ProjTT <-
+            read.table(file.path(Pfol[i], list.files(Pfol[i], pattern = '\\.txt$'), h =
+                                   T))
+          gridded(ProjTT) <- ~ x + y
+          EnvF[[i]] <- brick(stack(ProjTT))
+          rm(ProjTT)
+        }
+      }
+    }
+  }
+  
   #3.3.Erro Futuro e msdm
   if(transfer=="Y" && msdm!="N"){
     warning("msdm can not be used with future projections")
