@@ -429,7 +429,8 @@ ENMs_TheMetaLand <- function(pred_dir,
           EnvF[[i]] <- brick(stack(ProjTT))
           rm(ProjTT)
         }
-      }
+        names(EnvF) <- PfolN
+        }
     }
   }
   
