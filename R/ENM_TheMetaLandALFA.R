@@ -697,9 +697,10 @@ ENMs_TheMetaLand <- function(pred_dir,
         Ms <- stack(file.path(DirM,list.files(DirM)))
         Cs <- stack(file.path(DirB,list.files(DirB,pattern=".tif$")))
         nomesCs <- gsub("_"," ",names(Cs))
-        Cs <- Ms*Cs
-        writeRaster(Cs,file.path(DirB,nomesCs),format="GTiff",
-                    bylayer=T,overwrite=T,NAflag=-9999)
+        for(i in 1:nlayers(Ms)){
+          writeRaster(Ms[[i]]*Cs[[i]], file.path(DirB,nomesCs[i]),format="GTiff",
+                      bylayer=F,overwrite=T,NAflag=-9999)
+        }
       }
       
       
