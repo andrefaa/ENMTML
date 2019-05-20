@@ -479,7 +479,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
         ThinMet <- as.integer(readLines(n=1))
       }
-      occA <- OccsThin(occ=occA, envT, ThinMet, colin_var, DirR)
+      occA <- OccsThin(occ=occA, envT, ThinMet, colin_var, DirR, pred_dir)
     }
   
     #4.3.Save Thinned & Unique Occurrences

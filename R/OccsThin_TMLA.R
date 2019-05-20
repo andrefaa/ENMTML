@@ -2,7 +2,8 @@ OccsThin <- function(occ,
                      envT,
                      ThinMethod,
                      VarColin,
-                     DirR){
+                     DirR,
+                     pred_dir){
   #Function to thin occurrence data for ENM_TMLA
   #Parameters:
     #occ: Species list of occurrence data
