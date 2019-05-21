@@ -2694,8 +2694,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     if(any(PredictType=='SUP')){
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
-      colnames(ListValidationT) <- c("Sp","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
+      if(is.null(repl)){
+        colnames(ListValidationT) <- c("Sp","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
                                      "SORENSEN","FPB","BOYCE")
+      }else{
+        colnames(ListValidationT) <- c("Sp","Replicate","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
+                                       "SORENSEN","FPB","BOYCE")
+      }
       Best <- ListValidationT[which(unlist(ListValidationT[Threshold])>=mean(unlist(ListValidationT[Threshold]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
       
@@ -2861,8 +2866,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     if (any(PredictType == 'PCA_SUP')) {
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
-      colnames(ListValidationT) <- c("Sp","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
-                                     "SORENSEN","FPB","BOYCE")
+      if(is.null(repl)){
+        colnames(ListValidationT) <- c("Sp","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
+                                       "SORENSEN","FPB","BOYCE")
+      }else{
+        colnames(ListValidationT) <- c("Sp","Replicate","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
+                                       "SORENSEN","FPB","BOYCE")
+      }
       Best <- ListValidationT[which(unlist(ListValidationT[Threshold])>=mean(unlist(ListValidationT[Threshold]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
       
