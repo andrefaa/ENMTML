@@ -1205,22 +1205,22 @@ ENMs_TheMetaLand <- function(pred_dir,
               }
               
               absencesTR.0 <- KM(rasterToPoints(SpMask)[,-3],
-                 mask(evnVariables, SpMask),
+                 mask(envTT, SpMask),
                  ((1 / pres_abs_ratio)*nrow(occTR[[i]])))
               absencesTS.0 <- KM(rasterToPoints(SpMaskP)[,-3],
-                 mask(evnVariables, SpMaskP),
+                 mask(envTT, SpMaskP),
                  ((1 / pres_abs_ratio)*nrow(occTS[[i]])))
             }else{
               absencesTR.0 <- KM(cell_coord = rasterToPoints(pseudo.mask)[,-3],
-                                 variable = mask(evnVariables, pseudo.mask),
+                                 variable = mask(envTT, pseudo.mask),
                                  NumAbsence = (1 / pres_abs_ratio)*nrow(occTR[[i]]))
               if(eval_occ=="Y"){
                 absencesTS.0 <- KM(rasterToPoints(pseudo.maskP)[,-3],
-                                   mask(evnVariables, pseudo.mask),
+                                   mask(envTT, pseudo.mask),
                                    (1 / pres_abs_ratio)*nrow(occTS[[i]]))
               }else{
                 absencesTS.0 <- KM(rasterToPoints(pseudo.maskP)[,-3],
-                                   mask(evnVariables, pseudo.mask),
+                                   mask(envTT, pseudo.mask),
                                    (1 / pres_abs_ratio)*nrow(occTS[[i]]))
               }
             }
