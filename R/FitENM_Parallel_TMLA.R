@@ -257,7 +257,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   # Construction of models LOOP-----
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
                                                       "maxnet","maxlike","GRaF","plyr","gam","RStoolbox",
-                                                      "adehabitatHS","caret","visreg","glmnet"),
+                                                      "adehabitatHS","caret","visreg","glmnet","gbm"),
                      .export=c("Validation2_0","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei",
                                "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval","ecospat.boyce")) %dopar% {
 
