@@ -2593,11 +2593,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- calc(Final,mean)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","MEAN",spN[s]),
+                        file.path(ModFut[p],"Ensemble","MEAN",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
               writeRaster(Final>=as.numeric(Thr), 
-                          file.path(ModFut[p],"ENS","MEAN","BIN",paste(spN[s],sep="_")),
+                          file.path(ModFut[p],"Ensemble","MEAN","BIN",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
           }
@@ -2678,11 +2678,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- calc(Final,mean)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","W_MEAN",spN[s]),
+                        file.path(ModFut[p],"Ensemble","W_MEAN",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"ENS","W_MEAN","BIN",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"Ensemble","W_MEAN","BIN",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
           }
@@ -2767,11 +2767,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- calc(Final,mean)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","SUP",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"Ensemble","SUP",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"ENS","SUP","BIN",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"Ensemble","SUP","BIN",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
           }
@@ -2850,11 +2850,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- PCA_ENS_TMLA(Final)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","PCA",spN[s]),
+                        file.path(ModFut[p],"Ensemble","PCA",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
               writeRaster(Final>=as.numeric(Thr), 
-                          file.path(ModFut[p],"ENS","PCA","BIN",paste(spN[s],sep="_")),
+                          file.path(ModFut[p],"Ensemble","PCA","BIN",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
           }
@@ -2945,11 +2945,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Final <- PCA_ENS_TMLA(Final)
             
             writeRaster(Final, 
-                        file.path(ModFut[p],"ENS","PCA_SUP",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"Ensemble","PCA_SUP",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
             writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"ENS","PCA_SUP","BIN",paste(spN[s],sep="_")),
+                        file.path(ModFut[p],"Ensemble","PCA_SUP","BIN",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
           }
@@ -3049,11 +3049,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Final <- PCA_ENS_TMLA(Final)
   
               writeRaster(Final, 
-                          file.path(ModFut[p],"ENS","PCA_THR",paste(spN[s],sep="_")),
+                          file.path(ModFut[p],"Ensemble","PCA_THR",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
                 writeRaster(Final>=unlist(Thr), 
-                            file.path(ModFut[p],"ENS","PCA_THR","BIN",paste(spN[s],sep="_")),
+                            file.path(ModFut[p],"Ensemble","PCA_THR","BIN",paste(spN[s],sep="_")),
                             format='GTiff',
                             overwrite=TRUE)
             }
