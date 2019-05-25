@@ -347,7 +347,6 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   #3.1.2.PCA----
-  
   if (colin_var=="PCA") {
       
     #Projection PCA
@@ -429,8 +428,8 @@ ENMs_TheMetaLand <- function(pred_dir,
           EnvF[[i]] <- brick(stack(ProjTT))
           rm(ProjTT)
         }
-        names(EnvF) <- PfolN
-        }
+      }
+      names(EnvF) <- PfolN
     }
   }
   
