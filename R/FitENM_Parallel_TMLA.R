@@ -233,18 +233,34 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   #MESS & MOPA Calculation----
   #Within the extent (for M-Restriction)
-  dir.create(file.path(DirSave,"Extrapolation"))
-  DirProj <- file.path(DirSave,"Extrapolation")
-  MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
-                VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+  cat("Calculate extrapolation for the current extent?(Y/N)")
+  ansE <- readLines(n=1)
+  while(!ansE%in%c("Y","N")){
+    cat("Calculate extrapolation for the current extent?(Y/N)")
+    ansE <- readLines(n=1)
+  }
+  if(ansE=="Y"){
+    dir.create(file.path(DirSave,"Extrapolation"))
+    DirProj <- file.path(DirSave,"Extrapolation")
+    MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
+                  VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+  }
   #For projections
   if(!is.null(Fut)){
-    for(i in 1:length(ModFut)){
-      dir.create(file.path(ModFut[i],"Extrapolation"))
+    cat("Calculate extrapolation for the projected extent?(Y/N)")
+    ansE <- readLines(n=1)
+    while(!ansE%in%c("Y","N")){
+      cat("Calculate extrapolation for the current extent?(Y/N)")
+      ansE <- readLines(n=1)
     }
-    DirProj <- file.path(ModFut,"Extrapolation")
-    MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
-                 VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+    if(ansE=="Y"){
+      for(i in 1:length(ModFut)){
+        dir.create(file.path(ModFut[i],"Extrapolation"))
+      }
+      DirProj <- file.path(ModFut,"Extrapolation")
+      MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
+                   VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+    }
   }
   
   #Define N due to Partition Method
