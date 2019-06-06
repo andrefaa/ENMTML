@@ -86,9 +86,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(any(PredictType!="N")){
           DirENS <- file.path(ModFut[i],"Ensemble",PredictType)
           sapply(DirENS,function(x) dir.create(x,recursive = T))
+          #Binary ensemble projection
+          DirENSFCat <- file.path(sort(rep(DirENS,length(Threshold))),Threshold)
+          sapply(DirENSFCat,function(x) dir.create(x,recursive = T))
         }
       }
     }
+    DirENSFCat <- file.path(ModFut,"Ensemble",PredictType,Threshold)
   }
   
   # Extracting enviromental variables----
@@ -269,6 +273,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   }else{
     N <- N
   }
+  
+  cat("Fitting Models....")
   
   # Construction of models LOOP-----
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
@@ -2612,10 +2618,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         file.path(ModFut[p],"Ensemble","MEAN",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
-              writeRaster(Final>=as.numeric(Thr), 
-                          file.path(ModFut[p],"Ensemble","MEAN","BIN",paste(spN[s],sep="_")),
+            DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/MEAN/",Threshold),x=DirENSFCat,value=T)
+            for(t in 1:length(Thr_Alg)){
+              writeRaster(Final>=Thr_Alg[t], 
+                          file.path(DirMEANFCat,paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
+            }
           }
         }
       }
@@ -2691,16 +2700,20 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
             Final <- brick(ListFut[[p]])
+            Final <- calc(Final, function(x) x*ThResW)
             Final <- calc(Final,mean)
             
             writeRaster(Final, 
                         file.path(ModFut[p],"Ensemble","W_MEAN",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
-            writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"Ensemble","W_MEAN","BIN",paste(spN[s],sep="_")),
+            DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/W_MEAN/",Threshold),x=DirENSFCat,value=T)
+            for(t in 1:length(Thr_Alg)){
+              writeRaster(Final>=Thr_Alg[t], 
+                        file.path(DirMEANFCat,paste0(spN[s],".tif")),
                         format='GTiff',
                         overwrite=TRUE)
+            }
           }
         }
       }
@@ -2786,10 +2799,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         file.path(ModFut[p],"Ensemble","SUP",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
-            writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"Ensemble","SUP","BIN",paste(spN[s],sep="_")),
+            DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/SUP/",Threshold),x=DirENSFCat,value=T)
+            for(t in 1:length(Thr_Alg)){
+              writeRaster(Final>=Thr_Alg[t], 
+                        file.path(DirMEANFCat,paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
+            }
           }
         }
       }
@@ -2869,10 +2885,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         file.path(ModFut[p],"Ensemble","PCA",spN[s]),
                         format='GTiff',
                         overwrite=TRUE)
-              writeRaster(Final>=as.numeric(Thr), 
-                          file.path(ModFut[p],"Ensemble","PCA","BIN",paste(spN[s],sep="_")),
-                          format='GTiff',
-                          overwrite=TRUE)
+            DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/PCA/",Threshold),x=DirENSFCat,value=T)
+            for(t in 1:length(Thr_Alg)){
+              writeRaster(Final>=Thr_Alg[t], 
+                        file.path(DirMEANFCat,paste(spN[s],sep="_")),
+                        format='GTiff',
+                        overwrite=TRUE)
+            }
           }
         }
       }
@@ -2964,10 +2983,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         file.path(ModFut[p],"Ensemble","PCA_SUP",paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
-            writeRaster(Final>=as.numeric(Thr), 
-                        file.path(ModFut[p],"Ensemble","PCA_SUP","BIN",paste(spN[s],sep="_")),
+            DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/PCA_SUP/",Threshold),x=DirENSFCat,value=T)
+            for(t in 1:length(Thr_Alg)){
+              writeRaster(Final>=Thr_Alg[t], 
+                        file.path(DirMEANFCat,paste(spN[s],sep="_")),
                         format='GTiff',
                         overwrite=TRUE)
+            }
           }
         }
       }
@@ -3068,10 +3090,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           file.path(ModFut[p],"Ensemble","PCA_THR",paste(spN[s],sep="_")),
                           format='GTiff',
                           overwrite=TRUE)
-                writeRaster(Final>=unlist(Thr), 
-                            file.path(ModFut[p],"Ensemble","PCA_THR","BIN",paste(spN[s],sep="_")),
-                            format='GTiff',
-                            overwrite=TRUE)
+              DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/PCA_THR/",Threshold),x=DirENSFCat,value=T)
+              for(t in 1:length(Thr_Alg)){
+                writeRaster(Final>=Thr_Alg[t], 
+                          file.path(DirMEANFCat,paste(spN[s],sep="_")),
+                          format='GTiff',
+                          overwrite=TRUE)
+              }
             }
         }
       }
@@ -3096,6 +3121,8 @@ if(per!=1 && repl==1 || per==1 || N!=1){
   write.table(FinalSummary,paste(DirSave, VALNAMEII, sep = '/'),sep="\t",
               col.names = T,row.names=F)
 }
+
+cat("Models fitted!")
 
   # Save additional information and retuls----
   InfoModeling <- list(c("###########################################################"),
