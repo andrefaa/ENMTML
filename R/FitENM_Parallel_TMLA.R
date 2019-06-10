@@ -1389,7 +1389,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #                       link=c("cloglog"),method="BFGS",
           #                       hessian = TRUE, removeDuplicates=FALSE)
           Model[[i]] <- maxlike(Fmula,x=x,z=z,
-                               link=c("cloglog"),method="BFGS",
+                               link=c("cloglog"),method="Nelder-Mead",
                                hessian = FALSE, removeDuplicates=FALSE)
         }
         
@@ -1471,7 +1471,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             z <- SpDataTM[SpDataTM[,"PresAbse"]==0, VarColT]
             Model <- maxlike(Fmula,x=x,z=z,
                              link=c("cloglog"),hessian = FALSE, 
-                             method="BFGS",removeDuplicates=FALSE)
+                             method="Nelder-Mead",removeDuplicates=FALSE)
             PredPoint <- predict(Model, SpDataT[, VarColT])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
             Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2323,7 +2323,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     
     #BOOSTED REGRESSION TREE (BRT) ----
     if(any(Algorithm == 'BRT')){
-      if(any(lapply(PAtrain, function(x) nrow(x[x$PresAbse==1,])*0.75)<=21)){
+      if(any(lapply(PAtrain, function(x) nrow(x[x$PresAbse==1,])*0.75)<=5)){
         ListValidation[["BRT"]] <- NULL
         ListRaster[["BRT"]] <- NULL
         ListSummary[["BRT"]] <- NULL
@@ -2332,169 +2332,187 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #BRT model
         for (i in 1:N) {
           dataPr <- PAtrain[[i]]
-          
-          learn.rate <- 0.01
+          learn.rate <- 0.005
           ModelT <- NULL
           while(is.null(ModelT)){
-            print(i)
             print(learn.rate)
             try(ModelT <- gbm.step(data=dataPr, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
                                        tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
                                        plot.main = F))
             learn.rate <- learn.rate-0.0005
+            if(learn.rate<=0){
+              ListValidation[["BRT"]] <- NULL
+              ListRaster[["BRT"]] <- NULL
+              ListSummary[["BRT"]] <- NULL
+              break
+            }
           }
-          Model[[i]] <- ModelT
+          if (is.null(ModelT)){
+            Model[[i]] <- NULL
+          }else{
+            Model[[i]] <- ModelT  
+          }
         }
         
-        #BRT evaluation
-        if((is.null(Fut)==F && Tst=="Y")==F){
-          Eval <- list()
-          Boyce <- list()
-          Eval_JS <- list()
-          for (i in 1:N) {
-            RastPart[["BRT"]][[i]] <- predict.gbm(Model[[i]], PAtest[[i]][, VarColT],
-                                                  n.trees=Model[[i]]$gbm.call$best.trees,type="response")
-            PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BRT"]][[i]])
-            Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
-                                         PredPoint[PredPoint$PresAbse == 0,2])
-            Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
-            #Boyce Index
-            Boyce[[i]] <- ecospat.boyce(RastPart[["BRT"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          }
+        #Check BRT Models
+        if (length(Model)==N){
           
-          #BRT Validation 
-          Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-          if(is.null(repl)){
-            ListValidation[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce)
-          }else{
-            ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce)
-          }
-          
-          #Save Partition Predictions
-          if(Save=="Y"){
-            for(i in 1:N){
-              #Partial Thresholds
-              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-              PartRas <- STANDAR(predict(VariablesT,Model[[i]],
-                                             n.trees=Model[[i]]$gbm.call$best.trees,type="response"))
-              if(N!=1){
-                writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
-                for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t], 
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
-                }
-              }
-              if(is.null(repl)==F){
-                writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
-                for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t], 
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
-                }
-              }else{
-                writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
-                for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
-                              paste(grep("BRT",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
-                }
-              }
+          #BRT evaluation
+          if((is.null(Fut)==F && Tst=="Y")==F){
+            Eval <- list()
+            Boyce <- list()
+            Eval_JS <- list()
+            for (i in 1:N) {
+              RastPart[["BRT"]][[i]] <- predict.gbm(Model[[i]], PAtest[[i]][, VarColT],
+                                                    n.trees=Model[[i]]$gbm.call$best.trees,type="response")
+              PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BRT"]][[i]])
+              Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
+                                           PredPoint[PredPoint$PresAbse == 0,2])
+              Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                                a=PredPoint[PredPoint$PresAbse == 0, 2])
+              #Boyce Index
+              Boyce[[i]] <- ecospat.boyce(RastPart[["BRT"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             }
-          }
-        
-          #Save final model
-          if(per!=1 && repl==1 || per==1 || N!=1){
-            learn.rate <- 0.005
-            Model <- NULL
-            while(is.null(Model)){
-              try(Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
-                                         tree.complexity= 5, learning.rate=learn.rate, bag.fraction= bagFr,silent=T,
-                                         plot.main = F))
-              learn.rate <- learn.rate-0.0005
-            }
-            PredPoint <- predict.gbm(Model, SpDataT[, VarColT],
-                                     n.trees=Model$gbm.call$best.trees)
-            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
-            Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                         PredPoint[PredPoint$PresAbse == 0, 2])
-            Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
-                                         PredPoint[PredPoint$PresAbse == 0, 2])
-            #Final Thresholds
-            Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
-            
-            #Variable Importance & Response Curves
-            if(VarImP=="Y"){
-              VarImp_RspCurv(Model=Model,Algorithm='BRT',spN=spN[s],SpDataT = SpDataT,
-                             VarColT=VarColT,Outcome=PredPoint$PredPoint)
-            }
-            
-            #Final Model Rasters
-            ListSummary[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT", Thr)
-            
-            if(SaveFinal=="Y"){
-              ListRaster[["BRT"]] <- STANDAR(predict(VariablesT,Model,
-                                                 n.trees=Model$gbm.call$best.trees,type="response"))
-              names(ListRaster[["BRT"]]) <- spN[s]
-            }
-            if(is.null(Fut)==F){
-              for(k in 1:length(VariablesP)){
-                ListFut[[ProjN[k]]][["BRT"]] <- predict(VariablesP[[k]],Model,
-                                                            n.trees=Model$gbm.call$best.trees,type="response")
-                if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
-                  ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
-                }else{
-                  ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
-                }
-              }
-            }
-          }
-        }else{
-          Eval <- list()
-          Boyce <- list()
-          for(k in 1:length(VariablesP)){
-            ListFut[[ProjN[k]]][["BRT"]] <- predict(Model,VariablesP[[k]],
-                                                        n.trees=Model$gbm.call$best.trees,type="response")
-            if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
-              ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
-            }else{
-              ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
-            }
-            
-            PredPoint <- extract(ListFut[[ProjN[k]]][["BRT"]], PAtest[[i]][, c("x", "y")])
-            PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
-            Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                         PredPoint[PredPoint$PresAbse == 0, 2])
-            Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
-            #Boyce Index
-            Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BRT"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            
             
             #BRT Validation 
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
-              ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce)
+              ListValidation[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce)
             }else{
-              ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce)
+              ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce)
+            }
+            
+            #Save Partition Predictions
+            if(Save=="Y"){
+              for(i in 1:N){
+                #Partial Thresholds
+                Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+                PartRas <- STANDAR(predict(VariablesT,Model[[i]],
+                                               n.trees=Model[[i]]$gbm.call$best.trees,type="response"))
+                if(N!=1){
+                  writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                              format='GTiff',
+                              overwrite=TRUE)
+                  Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                  foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
+                  for(t in 1:length(Thr_Alg)){
+                    writeRaster(PartRas>=Thr_Alg[t], 
+                                paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                format='GTiff',
+                                overwrite=TRUE)
+                  }
+                }
+                if(is.null(repl)==F){
+                  writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                              format='GTiff',
+                              overwrite=TRUE)
+                  Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                  foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
+                  for(t in 1:length(Thr_Alg)){
+                    writeRaster(PartRas>=Thr_Alg[t], 
+                                paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                format='GTiff',
+                                overwrite=TRUE)
+                  }
+                }else{
+                  writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                              format='GTiff',
+                              overwrite=TRUE)
+                  Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                  foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
+                  for(t in 1:length(Thr_Alg)){
+                    writeRaster(PartRas>=Thr_Alg[t],
+                                paste(grep("BRT",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                format='GTiff',
+                                overwrite=TRUE)
+                  }
+                }
+              }
+            }
+          
+            #Save final model
+            if(per!=1 && repl==1 || per==1 || N!=1){
+              learn.rate <- 0.005
+              Model <- NULL
+              while(is.null(Model)){
+                try(Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
+                                           tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
+                                           plot.main = F))
+                learn.rate <- learn.rate-0.0005
+                if(learn.rate<=0){
+                  ListValidation[["BRT"]] <- NULL
+                  ListRaster[["BRT"]] <- NULL
+                  ListSummary[["BRT"]] <- NULL
+                  break
+                }
+              }
+              PredPoint <- predict.gbm(Model, SpDataT[, VarColT],
+                                       n.trees=Model$gbm.call$best.trees)
+              PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+              Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                           PredPoint[PredPoint$PresAbse == 0, 2])
+              Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
+                                           PredPoint[PredPoint$PresAbse == 0, 2])
+              #Final Thresholds
+              Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
+              
+              #Variable Importance & Response Curves
+              if(VarImP=="Y"){
+                VarImp_RspCurv(Model=Model,Algorithm='BRT',spN=spN[s],SpDataT = SpDataT,
+                               VarColT=VarColT,Outcome=PredPoint$PredPoint)
+              }
+              
+              #Final Model Rasters
+              ListSummary[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT", Thr)
+              
+              if(SaveFinal=="Y"){
+                ListRaster[["BRT"]] <- STANDAR(predict(VariablesT,Model,
+                                                   n.trees=Model$gbm.call$best.trees,type="response"))
+                names(ListRaster[["BRT"]]) <- spN[s]
+              }
+              if(is.null(Fut)==F){
+                for(k in 1:length(VariablesP)){
+                  ListFut[[ProjN[k]]][["BRT"]] <- predict(VariablesP[[k]],Model,
+                                                              n.trees=Model$gbm.call$best.trees,type="response")
+                  if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
+                    ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
+                  }else{
+                    ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
+                  }
+                }
+              }
+            }
+          }else{
+            Eval <- list()
+            Boyce <- list()
+            for(k in 1:length(VariablesP)){
+              ListFut[[ProjN[k]]][["BRT"]] <- predict(Model,VariablesP[[k]],
+                                                          n.trees=Model$gbm.call$best.trees,type="response")
+              if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
+                ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
+              }else{
+                ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
+              }
+              
+              PredPoint <- extract(ListFut[[ProjN[k]]][["BRT"]], PAtest[[i]][, c("x", "y")])
+              PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+              Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                           PredPoint[PredPoint$PresAbse == 0, 2])
+              Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                                a=PredPoint[PredPoint$PresAbse == 0, 2])
+              #Boyce Index
+              Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BRT"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+              
+              
+              #BRT Validation 
+              Boyce <- mean(unlist(Boyce))
+              Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+              if(is.null(repl)){
+                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce)
+              }else{
+                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce)
+              }
             }
           }
         }
