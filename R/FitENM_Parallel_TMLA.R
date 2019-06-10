@@ -837,11 +837,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS <- list()
         for (i in 1:N) {
           PredRas <- values(VariablesT)
-          POS <- which(!is.na(PredRas[,1]))
+          POS <- which(is.na(PredRas[,1]))
           Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model[[i]]$co))
           POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-          ZER <- rep(0,length(POS))
+          ZER <- rep(0,nrow(PredRas))
           ZER[POSPRE] <- 1
+          ZER <- ZER[-POS]
           f1 <- function(x) rep(x, ZER)
           Sli <- apply(Zli, 2, f1)
           m <- apply(Sli, 2, mean)
@@ -849,7 +850,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
           XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
           PredRAS <- data.frame(cbind(XY,ENF=NA))
-          PredRAS[POS,"ENF"] <- PredRas
+          PredRAS[-POS,"ENF"] <- PredRas
           gridded(PredRAS) <- ~x+y
           PredRAS <- STANDAR(raster(PredRAS))
           RastPart[["ENF"]][[i]] <- extract(PredRAS,PAtestM[[i]][c("x","y")])
@@ -877,11 +878,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
             PredRas <- values(VariablesT)
-            POS <- which(!is.na(PredRas[,1]))
+            POS <- which(is.na(PredRas[,1]))
             Zli <- as.matrix(scale(na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
             POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-            ZER <- rep(0,length(POS))
+            ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
+            ZER <- ZER[-POS]
             f1 <- function(x) rep(x, ZER)
             Sli <- apply(Zli, 2, f1)
             m <- apply(Sli, 2, mean)
@@ -889,7 +891,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
             XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
             PredRAS <- data.frame(cbind(XY,ENF=NA))
-            PredRAS[POS,"ENF"] <- PredRas
+            PredRAS[-POS,"ENF"] <- PredRas
             gridded(PredRAS) <- ~x+y
             PartRas <- STANDAR(raster(PredRAS))
             rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRAS"))
@@ -939,12 +941,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           dudi <- dudi.pca(SpDataT[, VarColT],scannf = FALSE)
           Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
           PredRas <- values(VariablesT)
-          POS <- which(!is.na(PredRas[,1]))
+          POS <- which(is.na(PredRas[,1]))
           Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
           # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
           POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-          ZER <- rep(0,length(POS))
+          ZER <- rep(0,nrow(PredRas))
           ZER[POSPRE] <- 1
+          ZER <- ZER[-POS]
           f1 <- function(x) rep(x, ZER)
           Sli <- apply(Zli, 2, f1)
           m <- apply(Sli, 2, mean)
@@ -952,7 +955,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
           XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
           PredRAS <- data.frame(cbind(XY,ENF=NA))
-          PredRAS[POS,"ENF"] <- PredRas
+          PredRAS[-POS,"ENF"] <- PredRas
           gridded(PredRAS) <- ~x+y
           ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
           names(ListRaster[["ENF"]]) <- spN[s]

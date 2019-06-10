@@ -45,7 +45,7 @@ VarImp_RspCurv <- function(Model,
     }
   }
   
-  #Maxent & Maximum Likelihood----
+  #Maxent----
   if(Algorithm %in% c("MXD","MXS")){
     warning("Variable importance Evaluated using a filter approach")
     V_IMP <- filterVarImp(SpDataT[,VarColT],Outcome,nonpara = FALSE)
@@ -62,8 +62,12 @@ VarImp_RspCurv <- function(Model,
       png(file.path(DirV,paste0("ResponseCurves_",spN,".png")),width = 3200, height = 3200, units = "px", res = 800)
       plot(Model,type="cloglog")
       dev.off()
+    }else{
+      plot(Model)
     }
   }
+  
+  
   
   #Boosted Regression Tree----
   if(Algorithm %in% "BRT"){
