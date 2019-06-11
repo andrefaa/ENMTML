@@ -1153,7 +1153,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- maxnet(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
+          Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
                             maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
           PredPoint <- c(predict(Model, SpDataTM[, VarColT], clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
