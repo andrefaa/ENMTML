@@ -92,7 +92,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
       }
     }
-    DirENSFCat <- file.path(ModFut,"Ensemble",PredictType,Threshold)
+    DirENSFCat <- file.path(sort(rep(ModFut,length(PredictType))),"Ensemble",PredictType,Threshold)
   }
   
   # Extracting enviromental variables----
@@ -237,33 +237,35 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   #MESS & MOPA Calculation----
   #Within the extent (for M-Restriction)
-  cat("Calculate extrapolation for the current extent?(Y/N)")
-  ansE <- readLines(n=1)
-  while(!ansE%in%c("Y","N")){
+  if(is.null(repl)||repl==1){
     cat("Calculate extrapolation for the current extent?(Y/N)")
-    ansE <- readLines(n=1)
-  }
-  if(ansE=="Y"){
-    dir.create(file.path(DirSave,"Extrapolation"))
-    DirProj <- file.path(DirSave,"Extrapolation")
-    MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
-                  VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
-  }
-  #For projections
-  if(!is.null(Fut)){
-    cat("Calculate extrapolation for the projected extent?(Y/N)")
     ansE <- readLines(n=1)
     while(!ansE%in%c("Y","N")){
       cat("Calculate extrapolation for the current extent?(Y/N)")
       ansE <- readLines(n=1)
     }
     if(ansE=="Y"){
-      for(i in 1:length(ModFut)){
-        dir.create(file.path(ModFut[i],"Extrapolation"))
+      dir.create(file.path(DirSave,"Extrapolation"))
+      DirProj <- file.path(DirSave,"Extrapolation")
+      MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
+                    VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+    }
+    #For projections
+    if(!is.null(Fut)){
+      cat("Calculate extrapolation for the projected extent?(Y/N)")
+      ansE <- readLines(n=1)
+      while(!ansE%in%c("Y","N")){
+        cat("Calculate extrapolation for the current extent?(Y/N)")
+        ansE <- readLines(n=1)
       }
-      DirProj <- file.path(ModFut,"Extrapolation")
-      MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
-                   VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+      if(ansE=="Y"){
+        for(i in 1:length(ModFut)){
+          dir.create(file.path(ModFut[i],"Extrapolation"))
+        }
+        DirProj <- file.path(ModFut,"Extrapolation")
+        MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
+                     VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+      }
     }
   }
   
@@ -462,7 +464,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Variable Importance & Response Curves
         if(VarImP=="Y"){
-          VarImp_RspCurv(Model=Model,Algorithm='BIO',spN=spN[s],SpDataT = SpDataT,
+          VarImp_RspCurv(Model=Model,Algorithm='BIO',folders=folders,spN=spN[s],SpDataT = SpDataT,
                          VarColT=VarColT,Outcome=PredPoint$PredPoint)
         }
 
@@ -612,7 +614,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
-            VarImp_RspCurv(Model=Model,Algorithm='DOM',spN=spN[s],SpDataT = SpDataT,
+            VarImp_RspCurv(Model=Model,Algorithm='DOM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
           
@@ -765,7 +767,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
-            VarImp_RspCurv(Model=Model,Algorithm='MAH',spN=spN[s],SpDataT = SpDataT,
+            VarImp_RspCurv(Model=Model,Algorithm='MAH',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
           
@@ -976,7 +978,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
-            VarImp_RspCurv(Model=Model,Algorithm='ENF',spN=spN[s],SpDataT = SpDataT,
+            VarImp_RspCurv(Model=Model,Algorithm='ENF',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
           #Final Thresholds
@@ -1166,7 +1168,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
-            VarImp_RspCurv(Model=Model,Algorithm='MXD',spN=spN[s],SpDataT = SpDataTM,
+            VarImp_RspCurv(Model=Model,Algorithm='MXD',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
           
@@ -1317,7 +1319,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
-            VarImp_RspCurv(Model=Model,Algorithm='MXS',spN=spN[s],SpDataT = SpDataTM,
+            VarImp_RspCurv(Model=Model,Algorithm='MXS',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
           
@@ -1378,6 +1380,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListValidation[["MLK"]] <- NULL
         ListRaster[["MLK"]] <- NULL
         ListSummary[["MLK"]] <- NULL
+        RastPart[["MLK"]] <- NULL
       }else{ 
         Model <- list()
         Fmula <- paste( " ~ ", paste(c(VarColT, paste("I(",VarColT, "^2)", sep = "")),
@@ -1486,7 +1489,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             
             #Variable Importance & Response Curves
             if(VarImP=="Y"){
-              VarImp_RspCurv(Model=Model,Algorithm='MLK',spN=spN[s],SpDataT = SpDataTM,
+              VarImp_RspCurv(Model=Model,Algorithm='MLK',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
             
@@ -1640,7 +1643,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
-            VarImp_RspCurv(Model=Model,Algorithm='SVM',spN=spN[s],SpDataT = SpDataT,
+            VarImp_RspCurv(Model=Model,Algorithm='SVM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
           
@@ -1798,7 +1801,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
-            VarImp_RspCurv(Model=Model,Algorithm='RDF',spN=spN[s],SpDataT = SpDataT,
+            VarImp_RspCurv(Model=Model,Algorithm='RDF',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
           
@@ -1859,6 +1862,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListValidation[["GAM"]] <- NULL
         ListRaster[["GAM"]] <- NULL
         ListSummary[["GAM"]] <- NULL
+        RastPart[["GAM"]] <- NULL
       }else{
         Model <- list()
         Fmula <- paste("s(", VarColT,",k=3)", sep="")
@@ -1958,7 +1962,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             
             #Variable Importance & Response Curves
             if(VarImP=="Y"){
-              VarImp_RspCurv(Model=Model,Algorithm='GAM',spN=spN[s],SpDataT = SpDataT,
+              VarImp_RspCurv(Model=Model,Algorithm='GAM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
             
@@ -2019,6 +2023,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListValidation[["GLM"]] <- NULL
         ListRaster[["GLM"]] <- NULL
         ListSummary[["GLM"]] <- NULL
+        RastPart[["GLM"]] <- NULL
       }else{
         Model <- list()
         Fmula <- paste( "PresAbse ~ ", paste(c(VarColT, paste("I(",VarColT, "^2)", sep = "")),
@@ -2116,7 +2121,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             
             #Variable Importance & Response Curves
             if(VarImP=="Y"){
-              VarImp_RspCurv(Model=Model,Algorithm='GLM',spN=spN[s],SpDataT = SpDataT,
+              VarImp_RspCurv(Model=Model,Algorithm='GLM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
             
@@ -2267,7 +2272,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Variable Importance & Response Curves
         if(VarImP=="Y"){
-          VarImp_RspCurv(Model=Model,Algorithm='GAU',spN=spN[s],SpDataT = SpDataT,
+          VarImp_RspCurv(Model=Model,Algorithm='GAU',folders=folders,spN=spN[s],SpDataT = SpDataT,
                          VarColT=VarColT,Outcome=PredPoint$PredPoint)
         }
         
@@ -2330,6 +2335,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListValidation[["BRT"]] <- NULL
         ListRaster[["BRT"]] <- NULL
         ListSummary[["BRT"]] <- NULL
+        RastPart[["BRT"]] <- NULL
       }else{
         Model <- list()
         #BRT model
@@ -2347,6 +2353,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               ListValidation[["BRT"]] <- NULL
               ListRaster[["BRT"]] <- NULL
               ListSummary[["BRT"]] <- NULL
+              RastPart[["BRT"]] <- NULL
               break
             }
           }
@@ -2447,6 +2454,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                   ListValidation[["BRT"]] <- NULL
                   ListRaster[["BRT"]] <- NULL
                   ListSummary[["BRT"]] <- NULL
+                  RastPart[["BRT"]] <- NULL
                   break
                 }
               }
@@ -2462,7 +2470,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               
               #Variable Importance & Response Curves
               if(VarImP=="Y"){
-                VarImp_RspCurv(Model=Model,Algorithm='BRT',spN=spN[s],SpDataT = SpDataT,
+                VarImp_RspCurv(Model=Model,Algorithm='BRT',folders=folders,spN=spN[s],SpDataT = SpDataT,
                                VarColT=VarColT,Outcome=PredPoint$PredPoint)
               }
               
@@ -2528,8 +2536,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if((is.null(Fut)==F && Tst=="Y")==F){
           Thr <- lapply(ListSummary, '[', c('THR','THR_VALUE'))
           for(i in 1:length(ListRaster)){
+            foldAlg <- grep(pattern=names(Thr)[i],x=folders,value=T)
             writeRaster(round(ListRaster[[i]], 4),
-                        paste(folders[i], '/',spN[s],".tif", sep=""),
+                        paste(foldAlg, '/',spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[[i]][Thr[[i]]$THR%in%Threshold,2]
@@ -2547,14 +2556,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       if(is.null(Fut)==F){
         Thr <- lapply(ListSummary, '[', c('THR','THR_VALUE'))
         for(p in 1:length(ListFut)){
+          ListFut[[p]] <- ListFut[[p]][unlist(lapply(ListFut[[p]],function(x) class(x)=="RasterLayer"))]
           for(o in 1:length(ListFut[[p]])){
-            writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],Algorithm[o],spN[s]),
+            writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],names(Thr)[o],spN[s]),
                         format='GTiff',overwrite=TRUE)
             Thr_Alg <- Thr[[o]][Thr[[o]]$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern=Algorithm[o],x=foldCat,value=T)
             for(t in 1:length(Thr_Alg)){
               writeRaster(ListFut[[p]][[o]]>=Thr_Alg[t], 
-                          file.path(ModFut[p],Algorithm[o],Threshold[t],paste0(spN[s],".tif")),
+                          file.path(ModFut[p],names(Thr)[o],Threshold[t],paste0(spN[s],".tif")),
                           format='GTiff',
                           overwrite=TRUE)
             }
@@ -2627,24 +2637,24 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         format='GTiff',
                         overwrite=TRUE)
           }
-        }
         
-        #Future Projection
-        if(is.null(Fut)==F && Tst!="Y"){
-          for(p in 1:length(ListFut)){
-            Final <- brick(ListFut[[p]])
-            Final <- calc(Final,mean)
-            
-            writeRaster(Final, 
-                        file.path(ModFut[p],"Ensemble","MEAN",spN[s]),
-                        format='GTiff',
-                        overwrite=TRUE)
-            DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/MEAN/",Threshold),x=DirENSFCat,value=T)
-            for(t in 1:length(Thr_Alg)){
-              writeRaster(Final>=Thr_Alg[t], 
-                          file.path(DirMEANFCat,paste(spN[s],sep="_")),
+          #Future Projection
+          if(is.null(Fut)==F && Tst!="Y"){
+            for(p in 1:length(ListFut)){
+              Final <- brick(ListFut[[p]])
+              Final <- calc(Final,mean)
+              
+              writeRaster(Final, 
+                          file.path(ModFut[p],"Ensemble","MEAN",spN[s]),
                           format='GTiff',
                           overwrite=TRUE)
+              DirMEANFCat <- grep(pattern=paste0(names(ListFut)[p],"/Ensemble/MEAN/",Threshold),x=DirENSFCat,value=T)
+              for(t in 1:length(DirMEANFCat)){
+                writeRaster(Final>=Thr_Alg[t], 
+                            file.path(DirMEANFCat,paste(spN[s],sep="_")),
+                            format='GTiff',
+                            overwrite=TRUE)
+              }
             }
           }
         }
@@ -2720,7 +2730,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Future Projection
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
-            Final <- brick(ListFut[[p]])
+            Final <- brick(stack(ListFut[[p]]))
             Final <- calc(Final, function(x) x*ThResW)
             Final <- calc(Final,mean)
             

@@ -1,5 +1,6 @@
 VarImp_RspCurv <- function(Model,
                            Algorithm,
+                           folders,
                            spN,
                            SpDataT,
                            VarColT,
