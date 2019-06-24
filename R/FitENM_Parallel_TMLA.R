@@ -460,7 +460,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences  
           FinalModel <- STANDAR(predict(Model, VariablesT))
           PredPoint <- extract(FinalModel,SpDataT[,2:3])
-          PredPoint <- predict(Model, SpDataT[, VarColT])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         }
         #Final Model "Evaluation"
@@ -620,7 +619,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             FinalModel <- STANDAR(predict(VariablesT,Model))
             PredPoint <- extract(FinalModel,SpDataT[,2:3])
-            PredPoint <- predict(Model, SpDataT[, VarColT])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
           #Full Model Thresholds
@@ -640,7 +638,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Final Model Rasters
           ListSummary[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM", Thr)
           if(SaveFinal=="Y"){
-            ListRaster[["DOM"]] <- STANDAR(predict(Model, VariablesT))
+            ListRaster[["DOM"]] <- FinalModel
             names(ListRaster[["DOM"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
