@@ -1747,18 +1747,22 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model <- ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
             FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
-            FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
-            gridded(FinalModel) <- ~ x+y
-            FinalModel <- STANDAR(raster(FinalModel))
+            FinalGrid <- Variables[[1]]
+            FinalGrid[!is.na(FinalGrid[])] <- FinalModel
+            # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
+            # gridded(FinalModel) <- ~ x+y
+            FinalModel <- STANDAR(FinalGrid)
             PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)  
           }else{
             Model <- ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
             FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
-            FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
-            gridded(FinalModel) <- ~ x+y
-            FinalModel <- STANDAR(raster(FinalModel))
+            FinalGrid <- Variables[[1]]
+            FinalGrid[!is.na(FinalGrid[])] <- FinalModel
+            # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
+            # gridded(FinalModel) <- ~ x+y
+            FinalModel <- STANDAR(FinalGrid)
             PredPoint <- extract(FinalModel,SpDataT[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)  
           }
