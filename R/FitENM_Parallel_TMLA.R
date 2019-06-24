@@ -1751,6 +1751,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
             # gridded(FinalModel) <- ~ x+y
+            # FinalModel <- STANDAR(raster(FinalModel))
             FinalModel <- STANDAR(FinalGrid)
             PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)  
