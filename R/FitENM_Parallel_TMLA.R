@@ -126,7 +126,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   
   # Backqround points----
   if (!is.null(DirMask)) {
-     if ((any(Algorithm == "MXD") || any(Algorithm == "MXS") || any(Algorithm == "MLK"))) {
+    if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
        RecordsDataM <- split(RecordsData,f=RecordsData$sp)
        RecordsDataMt <- list()
        
@@ -177,7 +177,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
        RecordsDataM[,cols] <-  apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
      }
    }else{
-    if ((any(Algorithm == "MXD") || any(Algorithm == "MXS") || any(Algorithm == "MLK"))) {
+     if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
       RecordsDataM <- split(RecordsData,f=RecordsData$sp)
       RecordsDataMt <- list()
 
@@ -309,7 +309,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     # Ocurrences filtter by species and splited by partition----
     SpData <- RecordsData[RecordsData[, "sp"] == spN[s], ]
-    if ((any(Algorithm == "MXD") | any(Algorithm == "MXS"))) {
+    if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
       SpDataM <- RecordsDataM[RecordsDataM[, "sp"] == spN[s], ]
     }
     
@@ -325,7 +325,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       SpDataT <- cbind(SpData,extract(MSDM,SpData[c("x","y")]))
       colnames(SpDataT) <- c(colnames(SpData),names(MSDM))
       VariablesT <- stack(Variables,MSDM)
-      if ((any(Algorithm == "MXD") | any(Algorithm == "MXS"))) {
+      if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
         SpDataTM <- cbind(SpDataM,extract(MSDM,SpDataM[c("x","y")]))
         colnames(SpDataTM) <- c(colnames(SpDataM),names(MSDM))
       }
@@ -334,7 +334,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       VariablesT <- Variables
       VarColT <- VarCol
       SpDataT <- SpData
-      if ((any(Algorithm == "MXD") | any(Algorithm == "MXS"))) {
+      if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
         SpDataTM <- SpDataM
       }
     }
@@ -356,7 +356,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
     
     #Maxent Input
-    if ((any(Algorithm == "MXD") | any(Algorithm == "MXS"))) {
+    if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
       PAtrainM <- list()
       PAtestM <- list()
       for (i in 1:N) {
@@ -451,10 +451,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       # Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
+        if(is.null(repl)){
+          Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
+          FinalModel <- STANDAR(predict(Model, VariablesT))
+          PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
+          PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
+        }else{
+          Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences  
+          FinalModel <- STANDAR(predict(Model, VariablesT))
+          PredPoint <- extract(FinalModel,SpDataT[,2:3])
+          PredPoint <- predict(Model, SpDataT[, VarColT])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+        }
         #Final Model "Evaluation"
-        PredPoint <- predict(Model, SpDataT[, VarColT])
-        PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                          PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -471,7 +480,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Final Model Rasters
         ListSummary[["BIO"]] <- data.frame(Sp=spN[s], Algorithm="BIO", Thr)
         if(SaveFinal=="Y"){
-          ListRaster[["BIO"]] <- STANDAR(predict(Model, VariablesT))
+          ListRaster[["BIO"]] <- FinalModel
           names(ListRaster[["BIO"]]) <- spN[s]
         }
         #Future Projections
@@ -602,9 +611,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-          PredPoint <- predict(Model, SpDataT[, VarColT])
-          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          if(is.null(repl)){
+            Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
+            FinalModel <- STANDAR(predict(VariablesT,Model))
+            PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
+            PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
+          }else{
+            Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
+            FinalModel <- STANDAR(predict(VariablesT,Model))
+            PredPoint <- extract(FinalModel,SpDataT[,2:3])
+            PredPoint <- predict(Model, SpDataT[, VarColT])
+            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          }
+          #Full Model Thresholds
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -683,7 +702,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          Ras <- STANDAR(predict(Model[[i]],VariablesT))
+          Ras <- dismo::predict(object=Model[[i]],x=VariablesT)
+          Ras[Ras <= -10] <- -10
+          Ras <- STANDAR(Ras)
           RastPart[["MAH"]][[i]] <- extract(Ras,PAtest[[i]][,c("x","y")])
           rm(Ras)
           # RastPart[["MAH"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
@@ -754,10 +775,35 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-          Ras <- STANDAR(predict(Model,VariablesT))
-          PredPoint <- extract(Ras,SpDataT[,c("x","y")])
-          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          if(is.null(repl)){
+            Model <- mahal(x=VariablesT,p=SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, 2:3]) # only presences  
+            Model <- mahalanobis(x=rasterToPoints(VariablesT)[,-c(1,2)],
+                                 center=colMeans(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]),
+                                 cov=cov(rasterToPoints(VariablesT)[,-c(1,2)]),
+                                 inverted=F) # only presences  
+            Ras <- rasterToPoints(VariablesT[[1]])[,1:2]
+            Ras <- data.frame(cbind(Ras,Model))
+            gridded(Ras) <- ~ x+y
+            Ras <- raster(Ras)
+            Ras <- Ras*-1
+            Ras[Ras< -10] <- -10
+            Ras <- STANDAR(Ras)
+            
+            
+            Ras <- predict(Model,VariablesT)
+            Ras[Ras <= -10] <- -10
+            # Ras <- STANDAR(Ras)
+            PredPoint <- extract(Ras,SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
+            PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
+          }else{
+            Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
+            Ras <- predict(Model,VariablesT)
+            Ras[Ras <= -10] <- -10
+            Ras <- STANDAR(Ras)
+            PredPoint <- extract(Ras,SpDataT[,c("x","y")])
+            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          }
+          #Final Model Thresholds
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -940,37 +986,74 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          dudi <- dudi.pca(SpDataT[, VarColT],scannf = FALSE)
-          Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
-          PredRas <- values(VariablesT)
-          POS <- which(is.na(PredRas[,1]))
-          Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-          # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
-          POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-          ZER <- rep(0,nrow(PredRas))
-          ZER[POSPRE] <- 1
-          ZER <- ZER[-POS]
-          f1 <- function(x) rep(x, ZER)
-          Sli <- apply(Zli, 2, f1)
-          m <- apply(Sli, 2, mean)
-          cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-          PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-          XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
-          PredRAS <- data.frame(cbind(XY,ENF=NA))
-          PredRAS[-POS,"ENF"] <- PredRas
-          gridded(PredRAS) <- ~x+y
-          ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
-          names(ListRaster[["ENF"]]) <- spN[s]
-          PredPoint <- extract(ListRaster[["ENF"]],SpDataT[,c("x","y")])
-          
-          # Zli <- (as.matrix(SpDataT[, VarColT]) %*% as.matrix(Model$co))*-1
-          # # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
-          # f1 <- function(x) rep(x, SpDataT$PresAbse)
-          # Sli <- apply(Zli, 2, f1)
-          # m <- apply(Sli, 2, mean)
-          # cov <- t(as.matrix(Sli)) %*% as.matrix(Sli)/nrow(Sli)
-          # PredPoint <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = T))
-          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          if(is.null(repl)){
+            Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
+            PredPoint <- predict(Model, SpDataT[SpDataT[,"Partition"]==1, VarColT])
+            
+            dudi <- dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
+            Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, PresAbse],scannf = FALSE)
+            PredRas <- values(VariablesT)
+            POS <- which(is.na(PredRas[,1]))
+            Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
+            # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
+            POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+            ZER <- rep(0,nrow(PredRas))
+            ZER[POSPRE] <- 1
+            ZER <- ZER[-POS]
+            f1 <- function(x) rep(x, ZER)
+            Sli <- apply(Zli, 2, f1)
+            m <- apply(Sli, 2, mean)
+            cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+            PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+            XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+            PredRAS <- data.frame(cbind(XY,ENF=NA))
+            PredRAS[-POS,"ENF"] <- PredRas
+            gridded(PredRAS) <- ~x+y
+            ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
+            names(ListRaster[["ENF"]]) <- spN[s]
+            PredPoint <- extract(ListRaster[["ENF"]],SpDataT[,c("x","y")])
+            # Zli <- (as.matrix(SpDataT[, VarColT]) %*% as.matrix(Model$co))*-1
+            # # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
+            # f1 <- function(x) rep(x, SpDataT$PresAbse)
+            # Sli <- apply(Zli, 2, f1)
+            # m <- apply(Sli, 2, mean)
+            # cov <- t(as.matrix(Sli)) %*% as.matrix(Sli)/nrow(Sli)
+            # PredPoint <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = T))
+            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          }else{
+            dudi <- dudi.pca(SpDataT[, VarColT],scannf = FALSE)
+            Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
+            PredRas <- values(VariablesT)
+            POS <- which(is.na(PredRas[,1]))
+            Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
+            # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
+            POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+            ZER <- rep(0,nrow(PredRas))
+            ZER[POSPRE] <- 1
+            ZER <- ZER[-POS]
+            f1 <- function(x) rep(x, ZER)
+            Sli <- apply(Zli, 2, f1)
+            m <- apply(Sli, 2, mean)
+            cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+            PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+            XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+            PredRAS <- data.frame(cbind(XY,ENF=NA))
+            PredRAS[-POS,"ENF"] <- PredRas
+            gridded(PredRAS) <- ~x+y
+            ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
+            names(ListRaster[["ENF"]]) <- spN[s]
+            PredPoint <- extract(ListRaster[["ENF"]],SpDataT[,c("x","y")])
+            
+            # Zli <- (as.matrix(SpDataT[, VarColT]) %*% as.matrix(Model$co))*-1
+            # # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
+            # f1 <- function(x) rep(x, SpDataT$PresAbse)
+            # Sli <- apply(Zli, 2, f1)
+            # m <- apply(Sli, 2, mean)
+            # cov <- t(as.matrix(Sli)) %*% as.matrix(Sli)/nrow(Sli)
+            # PredPoint <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = T))
+            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          }
+          #Final Model Thresholds
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1155,10 +1238,20 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
-                            maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
-          PredPoint <- c(predict(Model, SpDataTM[, VarColT], clamp=F, type="cloglog"))
-          PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
+          if(is.null(repl)){
+            Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
+                               maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
+                                              classes="default"))
+            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
+          }else{
+            Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
+                               maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
+            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
+          }
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                            PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1176,7 +1269,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["MXD"]] <- data.frame(Sp=spN[s], Algorithm="MXD", Thr)
           
           if(SaveFinal=="Y"){
-            ListRaster[["MXD"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            ListRaster[["MXD"]] <- FinalModel
             names(ListRaster[["MXD"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
@@ -1306,10 +1399,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
-                            maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
-          PredPoint <- c(predict(Model, SpDataTM[, VarColT], clamp=F, type="cloglog"))
-          PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
+          if(is.null(repl)){
+            Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
+                               maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
+                                              classes="lq"))
+            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
+          }else{
+            Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
+                               maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
+            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
+          }
+          
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                            PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1327,7 +1431,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["MXS"]] <- data.frame(Sp=spN[s], Algorithm="MXS", Thr)
           
           if(SaveFinal=="Y"){
-            ListRaster[["MXS"]] <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            ListRaster[["MXS"]] <- FinalModel
             names(ListRaster[["MXS"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
@@ -1388,15 +1492,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Fmula <- as.formula(Fmula)
         #MLK model
         for (i in 1:N) {
-          # dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
-          x <- PAtrain[[i]][PAtrain[[i]][,"PresAbse"]==1, VarColT]
-          z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
-          # Model[[i]] <- maxlike(Fmula, stack(Variables), dataPr,
-          #                       link=c("cloglog"),method="BFGS",
-          #                       hessian = TRUE, removeDuplicates=FALSE)
-          Model[[i]] <- maxlike(Fmula,x=x,z=z,
-                               link=c("cloglog"),method="Nelder-Mead",
-                               hessian = FALSE, removeDuplicates=FALSE)
+          dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
+          # x <- PAtrain[[i]][PAtrainM[[i]][,"PresAbse"]==1, VarColT]
+          # z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
+          Model[[i]] <- maxlike(Fmula, stack(Variables), dataPr,
+                                link=c("cloglog"),method="BFGS",
+                                hessian = FALSE, removeDuplicates=FALSE)
+          # Model[[i]] <- maxlike(Fmula,x=x,z=z,
+          #                      link=c("cloglog"),method="Nelder-Mead",
+          #                      hessian = FALSE, removeDuplicates=FALSE)
         }
         
         #Evaluate Model
@@ -1473,13 +1577,24 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Save final model
           if(per!=1 && repl==1 || per==1 || N!=1){
-            x <- SpDataTM[SpDataTM[,"PresAbse"]==1, VarColT]
-            z <- SpDataTM[SpDataTM[,"PresAbse"]==0, VarColT]
-            Model <- maxlike(Fmula,x=x,z=z,
-                             link=c("cloglog"),hessian = FALSE, 
-                             method="Nelder-Mead",removeDuplicates=FALSE)
-            PredPoint <- predict(Model, SpDataT[, VarColT])
-            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+            if(is.null(repl)){
+              Model <- maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=stack(VariablesT),
+                               link=c("cloglog"),hessian = FALSE,savedata=TRUE,
+                               method="BFGS",removeDuplicates=FALSE)
+              FinalModel <- STANDAR(predict(Model))
+              PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
+              PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
+            }else{
+              Model <- maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=stack(VariablesT),
+                               link=c("cloglog"),hessian = FALSE,savedata=TRUE,
+                               method="BFGS",removeDuplicates=FALSE)
+              FinalModel <- STANDAR(predict(Model))
+              PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
+              PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+            }
+            # x <- SpDataTM[SpDataTM[,"PresAbse"]==1, VarColT]
+            # z <- SpDataTM[SpDataTM[,"PresAbse"]==0, VarColT]
+
             Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1497,7 +1612,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ListSummary[["MLK"]] <- data.frame(Sp=spN[s], Algorithm="MLK", Thr)
             
             if(SaveFinal=="Y"){
-              ListRaster[["MLK"]] <- STANDAR(predict(VariablesT, Model))
+              ListRaster[["MLK"]] <- FinalModel
               names(ListRaster[["MLK"]]) <- spN[s]
             }
             if(is.null(Fut)==F){
@@ -1630,10 +1745,25 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          Model <- ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
-                        kernel = "rbfdot",C = 1, prob.model=T)
-          PredPoint <- as.numeric(kernlab::predict(object=Model, newdata=SpDataT[, VarColT],type="probabilities")[,2])
-          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          if(is.null(repl)){
+            Model <- ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
+                          kernel = "rbfdot",C = 1, prob.model=T)
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
+            gridded(FinalModel) <- ~ x+y
+            FinalModel <- STANDAR(raster(FinalModel))
+            PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)  
+          }else{
+            Model <- ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
+                          kernel = "rbfdot",C = 1, prob.model=T)
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
+            gridded(FinalModel) <- ~ x+y
+            FinalModel <- STANDAR(raster(FinalModel))
+            PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)  
+          }
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1651,7 +1781,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["SVM"]] <- data.frame(Sp=spN[s], Algorithm="SVM", Thr)
           
           if(SaveFinal=="Y"){
-            ListRaster[["SVM"]] <- STANDAR(predict(VariablesT,Model))
+            ListRaster[["SVM"]] <- FinalModel
             names(ListRaster[["SVM"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
@@ -1785,13 +1915,24 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           set.seed(0)
-          Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[,c("PresAbse",VarColT)],
-                                importance=T, type="classification")
-          # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
-          #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
-
-          PredPoint <- predict(Model, SpDataT[, VarColT],type="prob")[,2]
-          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          if(is.null(repl)){
+            Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[SpDataT$Partition==1,c("PresAbse",VarColT)],
+                                  importance=T, type="classification")
+            # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
+            #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
+            FinalModel <- STANDAR(1-predict(VariablesT,Model,type="prob"))
+            PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          }else{
+            Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[,c("PresAbse",VarColT)],
+                                  importance=T, type="classification")
+            # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
+            #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
+            FinalModel <- STANDAR(1-predict(VariablesT,Model,type="prob"))
+            PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+          }
+          
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1809,7 +1950,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["RDF"]] <- data.frame(Sp=spN[s], Algorithm="RDF", Thr)
           
           if(SaveFinal=="Y"){
-            ListRaster[["RDF"]] <- STANDAR(predict(VariablesT,Model))
+            ListRaster[["RDF"]] <- FinalModel
             names(ListRaster[["RDF"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
@@ -1949,10 +2090,20 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           # Save final model
           if(per!=1 && repl==1 || per==1 || N!=1){
-            Model <- mgcv::gam(formula=Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
-                         select = T, family = binomial)
-            PredPoint <- c(predict(Model, SpDataT[, VarColT],type="response"))
-            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+            if(is.null(repl)){
+              Model <- mgcv::gam(formula=Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
+                                 select = T, family = binomial)
+              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+              PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
+            }else{
+              Model <- mgcv::gam(formula=Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
+                                 select = T, family = binomial)
+              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+              PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)  
+            }
+            #Final Model Threshold
             Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1969,7 +2120,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Final Model Rasters
             ListSummary[["GAM"]] <- data.frame(Sp=spN[s], Algorithm="GAM", Thr)
             if(SaveFinal=="Y"){
-              ListRaster[["GAM"]] <- STANDAR(predict(VariablesT,Model,type="response"))
+              ListRaster[["GAM"]] <- FinalModel
               names(ListRaster[["GAM"]]) <- spN[s]
             }
             if(is.null(Fut)==F){
@@ -2109,9 +2260,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           # Save final model
           if(per!=1 && repl==1 || per==1 || N!=1){
-            Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family = binomial)
-            PredPoint <- c(predict(Model, SpDataT[, VarColT],type="response"))
-            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+            if(is.null(repl)){
+              # Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family = binomial(link = "logit"))
+              Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
+              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+              PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
+            }else{
+              Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
+              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+              PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)  
+            }
             Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2128,7 +2288,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Final Model Rasters
             ListSummary[["GLM"]] <- data.frame(Sp=spN[s], Algorithm="GLM", Thr)
             if(SaveFinal=="Y"){
-              ListRaster[["GLM"]] <- STANDAR(predict(VariablesT,Model,type="response"))
+              ListRaster[["GLM"]] <- FinalModel
               names(ListRaster[["GLM"]]) <- spN[s]
             }
             if(is.null(Fut)==F){
@@ -2260,9 +2420,20 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       #Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
-        PredPoint <- data.frame(predict(Model, SpDataT[, VarColT]))$posterior.mode
-        PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+        if(is.null(repl)){
+          Model <- graf(SpDataT[SpDataT$Partition==1,"PresAbse"], SpDataT[SpDataT$Partition==1,VarColT])
+          FinalModel <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
+                                                    CI = 0.95, maxn = NULL)$posterior.mode)
+          PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+          PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
+        }else{
+          Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
+          FinalModel <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
+                                                    CI = 0.95, maxn = NULL)$posterior.mode)
+          PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+          PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+        }
+        
         Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2280,8 +2451,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListSummary[["GAU"]] <- data.frame(Sp=spN[s], Algorithm="GAU", Thr)
         
         if(SaveFinal=="Y"){
-          ListRaster[["GAU"]] <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
-                                                             CI = 0.95, maxn = NULL)$posterior.mode)
+          ListRaster[["GAU"]] <- FinalModel
           names(ListRaster[["GAU"]]) <- spN[s]
         }
         if(is.null(Fut)==F){
@@ -2445,22 +2615,43 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(per!=1 && repl==1 || per==1 || N!=1){
               learn.rate <- 0.005
               Model <- NULL
-              while(is.null(Model)){
-                try(Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
-                                           tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
-                                           plot.main = F))
-                learn.rate <- learn.rate-0.0005
-                if(learn.rate<=0){
-                  ListValidation[["BRT"]] <- NULL
-                  ListRaster[["BRT"]] <- NULL
-                  ListSummary[["BRT"]] <- NULL
-                  RastPart[["BRT"]] <- NULL
-                  break
+              if(is.null(repl)){
+                while(is.null(Model)){
+                  try(Model <- gbm.step(data=SpDataT[SpDataT$Partition==1,], gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
+                                        tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
+                                        plot.main = F))
+                  learn.rate <- learn.rate-0.0005
+                  if(learn.rate<=0){
+                    ListValidation[["BRT"]] <- NULL
+                    ListRaster[["BRT"]] <- NULL
+                    ListSummary[["BRT"]] <- NULL
+                    RastPart[["BRT"]] <- NULL
+                    break
+                  }
                 }
+                FinalModel <- STANDAR(predict(VariablesT,Model,
+                                              n.trees=Model$gbm.call$best.trees,type="response"))
+                PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+                PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
+              }else{
+                while(is.null(Model)){
+                  try(Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
+                                        tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
+                                        plot.main = F))
+                  learn.rate <- learn.rate-0.0005
+                  if(learn.rate<=0){
+                    ListValidation[["BRT"]] <- NULL
+                    ListRaster[["BRT"]] <- NULL
+                    ListSummary[["BRT"]] <- NULL
+                    RastPart[["BRT"]] <- NULL
+                    break
+                  }
+                }
+                FinalModel <- STANDAR(predict(VariablesT,Model,
+                                              n.trees=Model$gbm.call$best.trees,type="response"))
+                PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+                PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
               }
-              PredPoint <- predict.gbm(Model, SpDataT[, VarColT],
-                                       n.trees=Model$gbm.call$best.trees)
-              PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
               Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                            PredPoint[PredPoint$PresAbse == 0, 2])
               Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2478,8 +2669,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               ListSummary[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT", Thr)
               
               if(SaveFinal=="Y"){
-                ListRaster[["BRT"]] <- STANDAR(predict(VariablesT,Model,
-                                                   n.trees=Model$gbm.call$best.trees,type="response"))
+                ListRaster[["BRT"]] <- FinalModel
                 names(ListRaster[["BRT"]]) <- spN[s]
               }
               if(is.null(Fut)==F){

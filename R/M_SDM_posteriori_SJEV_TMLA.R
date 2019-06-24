@@ -4,6 +4,7 @@ MSDM_Posterior <- function(RecordsData,
                            Threshold=Thr,
                            cutoff=c('OBR','PRES','LR','MCP','MCP-B'),
                            PredictType=ENS,
+                           CUT_Buf=CUT_Buf,
                            DirSave=NULL,
                            DirRaster=NULL){
   # Arguments-----
@@ -26,7 +27,7 @@ MSDM_Posterior <- function(RecordsData,
   }
   
   # Vector with species names
-  SpNames <- as.character(unique(RecordsData[, "sp"]))
+  SpNames <- substr(list.files(DirRaster,pattern = '.tif$'),1,nchar(list.files(DirRaster,pattern = '.tif$'))-4)
   
   # Data.frame wiht two columns 1-names of the species 
   # 2-the directory of raster of each species
@@ -38,44 +39,47 @@ MSDM_Posterior <- function(RecordsData,
     RasterList <- list.files(DirRaster, pattern = '.tif$', full.names = T)
     RasterList <- data.frame(sp, RasterList, stringsAsFactors = F)
     colnames(RasterList) <- c("sp",'RasterList')
+    #Bianries
+    RasterListBin <- list.files(file.path(DirRaster,thr), pattern = '.tif$', full.names = T)
+    RasterListBin <- data.frame(sp, RasterListBin, stringsAsFactors = F)
+    colnames(RasterListBin) <- c("sp",'RasterList')
   }
-  
-  if(cutoff=="MCP-B"){
-    cat("Select buffer distance (km):")
-    CUT_Buf <- (as.numeric(readLines(n = 1)))*1000
-  }
-  
+
   # loop to process each species
   for(s in 1:length(SpNames)){
     print(paste(s, "from", length(SpNames),":", SpNames[s]))
     # Read the raster of the species
     Adeq <- raster(RasterList[RasterList[,"sp"]==SpNames[s],'RasterList'])
+    Bin <- raster(RasterListBin[RasterListBin[,"sp"]==SpNames[s],'RasterList'])
     if(is.na(crs(Adeq))){
       crs(Adeq) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
     }
 
-    # Extract values for one species and calculate the threshold
-    SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
-    PredPoint <- extract(Adeq, SpData[, c("x", "y")])
-    PredPoint <- data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
-    Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                     PredPoint[PredPoint$PresAbse == 0, 2])
-    Thr <- unlist(c(threshold(Eval))[Threshold])
+    # # Extract values for one species and calculate the threshold
+    # SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
+    # PredPoint <- extract(Adeq, SpData[, c("x", "y")])
+    # PredPoint <- data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
+    # Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+    #                  PredPoint[PredPoint$PresAbse == 0, 2])
+    # Eval_JS <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+    #                                 a=PredPoint[PredPoint$PresAbse == 0, 2])
+    # Boyce <- ecospat.boyce(Adeq,PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+    # Thr <- unlist(c(threshold(Eval))[Threshold])
 
     #### Cutoff MCP----
     if(cutoff=="MCP"){
       hull <- convHull(SpData[SpData[,"PresAbse"]==1, c("x", "y")], lonlat=TRUE)
       hull <- predict(Adeq, hull, mask=TRUE)
       Adeq[(hull[]==0)] <- 0
+      Bin[(hull[]==0)] <- 0
       writeRaster(Adeq, paste(DirSave, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
                   format = "GTiff",
                   NAflag = -9999,
                   overwrite = TRUE)
-        Mask <- Adeq>Thr
-        writeRaster(Mask, paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
-                    format = "GTiff",
-                    NAflag = -9999,
-                    overwrite = TRUE)
+      writeRaster(Bin, paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
+                  format = "GTiff",
+                  NAflag = -9999,
+                  overwrite = TRUE)
     }
     if(cutoff=="MCP-B"){
       hull <- convHull(SpData[SpData[,"PresAbse"]==1, c("x", "y")], lonlat=TRUE)
@@ -99,16 +103,16 @@ MSDM_Posterior <- function(RecordsData,
       buf[(hull[]==1)] <- 1
       buf[(!is.na(Adeq[])&is.na(buf[]))] <- 0
       Adeq[which(buf[]!=1)] <- 0
+      Bin[which(buf[]!=1)] <- 0
 
       writeRaster(Adeq, paste(DirSave, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
                   format = "GTiff",
                   NAflag = -9999,
                   overwrite = TRUE)
-        Mask <- (Adeq>Thr)
-        writeRaster(Mask, paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
-                    format = "GTiff",
-                    NAflag = -9999,
-                    overwrite = TRUE)
+      writeRaster(Bin, paste(foldCat, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
+                  format = "GTiff",
+                  NAflag = -9999,
+                  overwrite = TRUE)
     }
     
     if(cutoff%in%c("OBR","LR","PRES")){
@@ -119,17 +123,18 @@ MSDM_Posterior <- function(RecordsData,
       crs(pts1) <- crs(Adeq)
       
       # Raster with areas equal or grater than the threshold
-        AdeqBin <- Adeq >= as.numeric(Thr)
+        AdeqBin <- Adeq*Bin
         AdeqBin[AdeqBin[] == 0] <- NA
         # A "SpatialPolygonsDataFrame" which each adequability patch is a feature
-        AdeqBin2 <- rasterToPolygons(AdeqBin, fun=NULL, n=8, na.rm=TRUE, digits=12, dissolve=TRUE)
+        AdeqBin2 <- rasterToPolygons(AdeqBin, fun=NULL, n=8, na.rm=TRUE, digits=5, dissolve=TRUE)
         AdeqBin2 <- disaggregate(AdeqBin2)
         AdeqBin2$layer <- NULL
         # Individualize each patch with a number
         AdeqBin2$ID <- 1:length(AdeqBin2)
         # create a data.frame wiht coordinate and patch number
-        AdeqPoints <- rasterToPoints(AdeqBin)[,1:2]
-        AdeqPoints <- cbind(AdeqPoints, ID=extract(AdeqBin2, AdeqPoints)[,'ID'])
+        AdeqPoints <- data.frame(rasterToPoints(AdeqBin)[,1:2])
+        AdeqBin3 <- rasterize(AdeqBin2,AdeqBin)
+        AdeqPoints <- cbind(AdeqPoints,ID=extract(AdeqBin3,AdeqPoints))
         # Find the patches that contain presences records
         polypoint<-raster::intersect(AdeqBin2,pts1)
         if(cutoff=="PRES"){

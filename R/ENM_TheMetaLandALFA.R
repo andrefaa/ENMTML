@@ -1350,27 +1350,31 @@ ENMs_TheMetaLand <- function(pred_dir,
     
     if(msdm=="POST"){
       
-      cat("Choose L-MSDM type (OBR/LR/PRES/MCP/MCP-B)")
+      cat("Choose Posterior MSDM type (OBR/LR/PRES/MCP/MCP-B)")
       Q0 <- as.character(readLines(n = 1))
       while(Q0 %in% c("OBR","LR","PRES","MCP","MCP-B")==F){
-        warning("Choose a valid L-MSDM type!(OBR/LR/PRES/MCP/MCP-B)")
+        warning("Choose a valid Posterior MSDM type!(OBR/LR/PRES/MCP/MCP-B)")
         Q0 <- as.character(readLines(n = 1))
       }
+      if(Q0=="MCP-B"){
+        cat("Select buffer distance (km):")
+        CUT_Buf <- (as.numeric(readLines(n = 1)))*1000
+      }
       
-      if(any(list.files(DirR)=="ENS")){
-        cat("Perform L-MSDM only on Ensemble?(Y/N)")
+      if(any(list.files(DirR)=="Ensemble")){
+        cat("Perform Posterior MSDM only on Ensemble?(Y/N)")
         Q1 <- as.character(readLines(n = 1))
         while(!(Q1 %in% c("Y","N"))){
           warning("Select a valid response (Y/N):")
           Q1 <-as.character(readLines(n = 1))
         }
         if(Q1=="Y"){
-          DirT <- file.path(DirR,"ENS",ensemble[ensemble!="N"])
+          DirT <- file.path(DirR,"Ensemble",ensemble[ensemble!="N"])
           DirPost <- "MSDMPosterior"
           DirPost <- file.path(DirT,DirPost)
         }
         if(Q1=="N"){
-          DirT <- file.path(DirR,Alg)
+          DirT <- file.path(DirR,"Algorithm",algorithm)
           DirPost <- "MSDMPosterior"
           DirPost <- file.path(DirT,DirPost)
         }
@@ -1379,7 +1383,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         }
         for(i in 1:length(DirPost)){
           print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
-          MSDM_Posterior(RecordsData=occINPUT,Threshold=thr,cutoff=Q0,PredictType=ensemble,
+          MSDM_Posterior(RecordsData=occINPUT,Threshold=thr,cutoff=Q0,PredictType=ensemble,CUT_Buf=CUT_Buf,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
       }else{
@@ -1392,11 +1396,11 @@ ENMs_TheMetaLand <- function(pred_dir,
         }
         for(i in 1:length(DirPost)){
           print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
-          MSDM_Posterior(RecordsData=occINPUT,Threshold=thr,cutoff=Q0,PredictType=ensemble,
+          MSDM_Posterior(RecordsData=occINPUT,Threshold=thr,cutoff=Q0,PredictType=ensemble,CUT_Buf=CUT_Buf,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
       }
-      if(Q1=="N" ||!("ensemble"%in%list.files(DirR))){
+      if(Q1=="N" ||!("Ensemble"%in%list.files(DirR))){
         
         cat("Perform Ensemble on Algorithm L-MSDM?(Y/N)")
         Q4 <- as.character(readLines(n = 1))
@@ -1406,9 +1410,9 @@ ENMs_TheMetaLand <- function(pred_dir,
         }
         
         if(Q4=="Y"){
-          DirT <- file.path(DirR,Alg,"MSDMPosterior")
+          DirT <- file.path(DirR,"Algorithm",algorithm,"MSDMPosterior")
           DirPost <- file.path(DirR,"ENS",ensemble,"MSDMPosterior")
-          ENS_Posterior(RecordsData=occINPUT,Algorithm=Alg,PredictType=ensemble,Threshold=thr,DirAlg=DirT,DirSave=DirR)
+          ENS_Posterior(RecordsData=occINPUT,Algorithm=algorithm,PredictType=ensemble,Threshold=thr,DirAlg=DirT,DirSave=DirR)
         }
       }
     }
