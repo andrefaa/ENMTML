@@ -40,7 +40,7 @@ MSDM_Posterior <- function(RecordsData,
     RasterList <- data.frame(sp, RasterList, stringsAsFactors = F)
     colnames(RasterList) <- c("sp",'RasterList')
     #Bianries
-    RasterListBin <- list.files(file.path(DirRaster,thr), pattern = '.tif$', full.names = T)
+    RasterListBin <- list.files(file.path(DirRaster,Threshold), pattern = '.tif$', full.names = T)
     RasterListBin <- data.frame(sp, RasterListBin, stringsAsFactors = F)
     colnames(RasterListBin) <- c("sp",'RasterList')
   }

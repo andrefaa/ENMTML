@@ -451,7 +451,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       # Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        if(is.null(repl)){
+        if(is.null(repl) && N==1){
           Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
           FinalModel <- STANDAR(predict(Model, VariablesT))
           PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
@@ -610,7 +610,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          if(is.null(repl)){
+          if(is.null(repl) && N==1){
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
             FinalModel <- STANDAR(predict(VariablesT,Model))
             PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
@@ -1236,7 +1236,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          if(is.null(repl)){
+          if(is.null(repl) && N==1){
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
                                maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
                                               classes="default"))
@@ -1397,7 +1397,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         #Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          if(is.null(repl)){
+          if(is.null(repl) && N==1){
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
                                maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
                                               classes="lq"))
@@ -1575,7 +1575,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Save final model
           if(per!=1 && repl==1 || per==1 || N!=1){
-            if(is.null(repl)){
+            if(is.null(repl) && N==1){
               Model <- maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=stack(VariablesT),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
                                method="BFGS",removeDuplicates=FALSE)
@@ -1743,7 +1743,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          if(is.null(repl)){
+          if(is.null(repl) && N==1){
             Model <- ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
             FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
@@ -1918,7 +1918,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           set.seed(0)
-          if(is.null(repl)){
+          if(is.null(repl) && N==1){
             Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[SpDataT$Partition==1,c("PresAbse",VarColT)],
                                   importance=T, type="classification")
             # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
@@ -2093,7 +2093,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           # Save final model
           if(per!=1 && repl==1 || per==1 || N!=1){
-            if(is.null(repl)){
+            if(is.null(repl) && N==1){
               Model <- mgcv::gam(formula=Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
                                  select = T, family = binomial)
               FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
@@ -2263,7 +2263,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           # Save final model
           if(per!=1 && repl==1 || per==1 || N!=1){
-            if(is.null(repl)){
+            if(is.null(repl) && N==1){
               # Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family = binomial(link = "logit"))
               Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
               FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
@@ -2423,7 +2423,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       #Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
-        if(is.null(repl)){
+        if(is.null(repl) && N==1){
           Model <- graf(SpDataT[SpDataT$Partition==1,"PresAbse"], SpDataT[SpDataT$Partition==1,VarColT])
           FinalModel <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
                                                     CI = 0.95, maxn = NULL)$posterior.mode)
@@ -2618,7 +2618,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(per!=1 && repl==1 || per==1 || N!=1){
               learn.rate <- 0.005
               Model <- NULL
-              if(is.null(repl)){
+              if(is.null(repl) && N==1){
                 while(is.null(Model)){
                   try(Model <- gbm.step(data=SpDataT[SpDataT$Partition==1,], gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli", 
                                         tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
