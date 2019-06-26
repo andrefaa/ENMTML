@@ -56,7 +56,7 @@ MSDM_Posterior <- function(RecordsData,
     }
 
     # # Extract values for one species and calculate the threshold
-    # SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
+    SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
     # PredPoint <- extract(Adeq, SpData[, c("x", "y")])
     # PredPoint <- data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
     # Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
