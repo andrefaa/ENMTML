@@ -282,7 +282,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
                                                       "maxnet","maxlike","GRaF","plyr","gam","RStoolbox",
                                                       "adehabitatHS","caret","visreg","glmnet","gbm"),
-                     .export=c("Validation2_0","STANDAR","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei",
+                     .export=c("Validation2_0","","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei",
                                "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval","ecospat.boyce")) %dopar% {
 
     #Results Lists
@@ -407,7 +407,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(i in 1:N){
           #Partial Thresholds
           Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-          PartRas <- STANDAR(predict(Model[[i]], VariablesT))
+          PartRas <- (predict(Model[[i]], VariablesT))
           if(N!=1){
             writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                         format='GTiff',
@@ -453,12 +453,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       if(per!=1 && repl==1 || per==1 || N!=1){
         if(is.null(repl) && N==1){
           Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
-          FinalModel <- STANDAR(predict(Model, VariablesT))
+          FinalModel <- (predict(Model, VariablesT))
           PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
         }else{
           Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences  
-          FinalModel <- STANDAR(predict(Model, VariablesT))
+          FinalModel <- (predict(Model, VariablesT))
           PredPoint <- extract(FinalModel,SpDataT[,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         }
@@ -489,7 +489,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(maxValue(ListFut[[ProjN[k]]][["BIO"]])==0){
               ListFut[[ProjN[k]]][["BIO"]] <- ListFut[[ProjN[k]]][["BIO"]]
             }else{
-              ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(ListFut[[ProjN[k]]][["BIO"]])
+              ListFut[[ProjN[k]]][["BIO"]] <- (ListFut[[ProjN[k]]][["BIO"]])
             }
           }
         }
@@ -502,7 +502,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["BIO"]])==0){
             ListFut[[ProjN[k]]][["BIO"]] <- ListFut[[ProjN[k]]][["BIO"]]
           }else{
-            ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(ListFut[[ProjN[k]]][["BIO"]])
+            ListFut[[ProjN[k]]][["BIO"]] <- (ListFut[[ProjN[k]]][["BIO"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["BIO"]], PAtest[[i]][, c("x", "y")])
@@ -566,7 +566,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-            PartRas <- STANDAR(predict(Model[[i]], VariablesT))
+            PartRas <- (predict(Model[[i]], VariablesT))
             if(N!=1){
               writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
@@ -612,12 +612,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(per!=1 && repl==1 || per==1 || N!=1){
           if(is.null(repl) && N==1){
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
-            FinalModel <- STANDAR(predict(VariablesT,Model))
+            FinalModel <- (predict(VariablesT,Model))
             PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-            FinalModel <- STANDAR(predict(VariablesT,Model))
+            FinalModel <- (predict(VariablesT,Model))
             PredPoint <- extract(FinalModel,SpDataT[,2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
@@ -647,7 +647,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               if(maxValue(ListFut[[ProjN[k]]][["DOM"]])==0){
                 ListFut[[ProjN[k]]][["DOM"]] <- ListFut[[ProjN[k]]][["DOM"]]
               }else{
-                ListFut[[ProjN[k]]][["DOM"]] <- STANDAR(ListFut[[ProjN[k]]][["DOM"]])
+                ListFut[[ProjN[k]]][["DOM"]] <- (ListFut[[ProjN[k]]][["DOM"]])
               }
             }
           }
@@ -660,7 +660,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["DOM"]])==0){
             ListFut[[ProjN[k]]][["DOM"]] <- ListFut[[ProjN[k]]][["DOM"]]
           }else{
-            ListFut[[ProjN[k]]][["DOM"]] <- STANDAR(ListFut[[ProjN[k]]][["DOM"]])
+            ListFut[[ProjN[k]]][["DOM"]] <- (ListFut[[ProjN[k]]][["DOM"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["DOM"]], PAtest[[i]][, c("x", "y")])
@@ -702,7 +702,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for (i in 1:N) {
           Ras <- dismo::predict(object=Model[[i]],x=VariablesT)
           Ras[Ras <= -10] <- -10
-          Ras <- STANDAR(Ras)
+          Ras <- (Ras)
           RastPart[["MAH"]][[i]] <- extract(Ras,PAtest[[i]][,c("x","y")])
           rm(Ras)
           # RastPart[["MAH"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
@@ -729,7 +729,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-            PartRas <- STANDAR(predict(Model[[i]], VariablesT))
+            PartRas <- (predict(Model[[i]], VariablesT))
             if(N!=1){
               writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
@@ -785,19 +785,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Ras <- raster(Ras)
             Ras <- Ras*-1
             Ras[Ras< -10] <- -10
-            Ras <- STANDAR(Ras)
+            Ras <- (Ras)
             
             
             Ras <- predict(Model,VariablesT)
             Ras[Ras <= -10] <- -10
-            # Ras <- STANDAR(Ras)
+            # Ras <- (Ras)
             PredPoint <- extract(Ras,SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             Ras <- predict(Model,VariablesT)
             Ras[Ras <= -10] <- -10
-            Ras <- STANDAR(Ras)
+            Ras <- (Ras)
             PredPoint <- extract(Ras,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
@@ -828,7 +828,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               if(maxValue(ListFut[[ProjN[k]]][["MAH"]])==0){
                 ListFut[[ProjN[k]]][["MAH"]] <- ListFut[[ProjN[k]]][["MAH"]]
               }else{
-                ListFut[[ProjN[k]]][["MAH"]] <- STANDAR(ListFut[[ProjN[k]]][["MAH"]])
+                ListFut[[ProjN[k]]][["MAH"]] <- (ListFut[[ProjN[k]]][["MAH"]])
               }
             }
           }
@@ -841,7 +841,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["MAH"]])==0){
             ListFut[[ProjN[k]]][["MAH"]] <- ListFut[[ProjN[k]]][["MAH"]]
           }else{
-            ListFut[[ProjN[k]]][["MAH"]] <- STANDAR(ListFut[[ProjN[k]]][["MAH"]])
+            ListFut[[ProjN[k]]][["MAH"]] <- (ListFut[[ProjN[k]]][["MAH"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["MAH"]], PAtest[[i]][, c("x", "y")])
@@ -898,7 +898,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           PredRAS <- data.frame(cbind(XY,ENF=NA))
           PredRAS[-POS,"ENF"] <- PredRas
           gridded(PredRAS) <- ~x+y
-          PredRAS <- STANDAR(raster(PredRAS))
+          PredRAS <- (raster(PredRAS))
           RastPart[["ENF"]][[i]] <- extract(PredRAS,PAtestM[[i]][c("x","y")])
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["ENF"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -939,7 +939,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
             gridded(PredRAS) <- ~x+y
-            PartRas <- STANDAR(raster(PredRAS))
+            PartRas <- (raster(PredRAS))
             rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRAS"))
             if(N!=1){
               writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -1007,7 +1007,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
             gridded(PredRAS) <- ~x+y
-            ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
+            ListRaster[["ENF"]] <- (raster(PredRAS))
             names(ListRaster[["ENF"]]) <- spN[s]
             PredPoint <- extract(ListRaster[["ENF"]],SpDataT[,c("x","y")])
             # Zli <- (as.matrix(SpDataT[, VarColT]) %*% as.matrix(Model$co))*-1
@@ -1038,7 +1038,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
             gridded(PredRAS) <- ~x+y
-            ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
+            ListRaster[["ENF"]] <- (raster(PredRAS))
             names(ListRaster[["ENF"]]) <- spN[s]
             PredPoint <- extract(ListRaster[["ENF"]],SpDataT[,c("x","y")])
             
@@ -1085,8 +1085,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             # PredRAS <- data.frame(cbind(XY,ENF=NA))
             # PredRAS[POS,"ENF"] <- PredRas
             # gridded(PredRAS) <- ~x+y
-            # ListRaster[["ENF"]] <- STANDAR(raster(PredRAS))
-            # # ListRaster[["ENF"]] <- (((STANDAR(raster(PredRAS)) - max(STANDAR(raster(PredRAS)))) * -1) + min(STANDAR(raster(PredRAS))))
+            # ListRaster[["ENF"]] <- (raster(PredRAS))
+            # # ListRaster[["ENF"]] <- ((((raster(PredRAS)) - max((raster(PredRAS)))) * -1) + min((raster(PredRAS))))
             # rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRAS"))
             # names(ListRaster[["ENF"]]) <- spN[s]
           # }
@@ -1108,13 +1108,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               PredRAS <- data.frame(cbind(XY,ENF=NA))
               PredRAS[POS,"ENF"] <- PredRas
               gridded(PredRAS) <- ~x+y
-              ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(raster(PredRAS))
+              ListFut[[ProjN[k]]][["ENF"]] <- (raster(PredRAS))
               rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRas",
                         "PredRAS"))
               if(maxValue(ListFut[[ProjN[k]]][["ENF"]])==0){
                 ListFut[[ProjN[k]]][["ENF"]] <- ListFut[[ProjN[k]]][["ENF"]]
               }else{
-                ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(ListFut[[ProjN[k]]][["ENF"]])
+                ListFut[[ProjN[k]]][["ENF"]] <- (ListFut[[ProjN[k]]][["ENF"]])
               }
             }
           }
@@ -1127,7 +1127,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["ENF"]])==0){
             ListFut[[ProjN[k]]][["ENF"]] <- ListFut[[ProjN[k]]][["ENF"]]
           }else{
-            ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(ListFut[[ProjN[k]]][["ENF"]])
+            ListFut[[ProjN[k]]][["ENF"]] <- (ListFut[[ProjN[k]]][["ENF"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["ENF"]], PAtest[[i]][, c("x", "y")])
@@ -1192,7 +1192,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-            PartRas <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
+            PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
               writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
@@ -1240,13 +1240,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
                                maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
                                               classes="default"))
-            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            FinalModel <- (predict(VariablesT,Model, clamp=F, type="cloglog"))
             PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
           }else{
             Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
                                maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
-            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            FinalModel <- (predict(VariablesT,Model, clamp=F, type="cloglog"))
             PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }
@@ -1276,7 +1276,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               if(maxValue(ListFut[[ProjN[k]]][["MXD"]])==0){
                 ListFut[[ProjN[k]]][["MXD"]] <- ListFut[[ProjN[k]]][["MXD"]]
               }else{
-                ListFut[[ProjN[k]]][["MXD"]] <- STANDAR(ListFut[[ProjN[k]]][["MXD"]])
+                ListFut[[ProjN[k]]][["MXD"]] <- (ListFut[[ProjN[k]]][["MXD"]])
               }
             }
           }
@@ -1289,7 +1289,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["MXD"]])==0){
             ListFut[[ProjN[k]]][["MXD"]] <- ListFut[[ProjN[k]]][["MXD"]]
           }else{
-            ListFut[[ProjN[k]]][["MXD"]] <- STANDAR(ListFut[[ProjN[k]]][["MXD"]])
+            ListFut[[ProjN[k]]][["MXD"]] <- (ListFut[[ProjN[k]]][["MXD"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["MXD"]], PAtest[[i]][, c("x", "y")])
@@ -1353,7 +1353,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-            PartRas <- STANDAR(predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
+            PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
               writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
@@ -1401,13 +1401,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
                                maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
                                               classes="lq"))
-            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            FinalModel <- (predict(VariablesT,Model, clamp=F, type="cloglog"))
             PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
           }else{
             Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f = 
                                maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
-            FinalModel <- STANDAR(predict(VariablesT,Model, clamp=F, type="cloglog"))
+            FinalModel <- (predict(VariablesT,Model, clamp=F, type="cloglog"))
             PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }
@@ -1438,7 +1438,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               if(maxValue(ListFut[[ProjN[k]]][["MXS"]])==0){
                 ListFut[[ProjN[k]]][["MXS"]] <- ListFut[[ProjN[k]]][["MXS"]]
               }else{
-                ListFut[[ProjN[k]]][["MXS"]] <- STANDAR(ListFut[[ProjN[k]]][["MXS"]])
+                ListFut[[ProjN[k]]][["MXS"]] <- (ListFut[[ProjN[k]]][["MXS"]])
               }
             }
           }
@@ -1451,7 +1451,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["MXS"]])==0){
             ListFut[[ProjN[k]]][["MXS"]] <- ListFut[[ProjN[k]]][["MXS"]]
           }else{
-            ListFut[[ProjN[k]]][["MXS"]] <- STANDAR(ListFut[[ProjN[k]]][["MXS"]])
+            ListFut[[ProjN[k]]][["MXS"]] <- (ListFut[[ProjN[k]]][["MXS"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["MXS"]], PAtest[[i]][, c("x", "y")])
@@ -1531,7 +1531,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             for(i in 1:N){
               #Partial Thresholds
               Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-              PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
+              PartRas <- (predict(VariablesT,Model[[i]]))
               if(N!=1){
                 writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
@@ -1579,14 +1579,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Model <- maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=stack(VariablesT),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
                                method="BFGS",removeDuplicates=FALSE)
-              FinalModel <- STANDAR(predict(Model))
+              FinalModel <- (predict(Model))
               PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
             }else{
               Model <- maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=stack(VariablesT),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
                                method="BFGS",removeDuplicates=FALSE)
-              FinalModel <- STANDAR(predict(Model))
+              FinalModel <- (predict(Model))
               PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
             }
@@ -1619,7 +1619,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 if(maxValue(ListFut[[ProjN[k]]][["MLK"]])==0){
                   ListFut[[ProjN[k]]][["MLK"]] <- ListFut[[ProjN[k]]][["MLK"]]
                 }else{
-                  ListFut[[ProjN[k]]][["MLK"]] <- STANDAR(ListFut[[ProjN[k]]][["MLK"]])
+                  ListFut[[ProjN[k]]][["MLK"]] <- (ListFut[[ProjN[k]]][["MLK"]])
                 }
               }
             }
@@ -1632,7 +1632,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(maxValue(ListFut[[ProjN[k]]][["MLK"]])==0){
               ListFut[[ProjN[k]]][["MLK"]] <- ListFut[[ProjN[k]]][["MLK"]]
             }else{
-              ListFut[[ProjN[k]]][["MLK"]] <- STANDAR(ListFut[[ProjN[k]]][["MLK"]])
+              ListFut[[ProjN[k]]][["MLK"]] <- (ListFut[[ProjN[k]]][["MLK"]])
             }
             
             PredPoint <- extract(ListFut[[ProjN[k]]][["MLK"]], PAtest[[i]][, c("x", "y")])
@@ -1699,7 +1699,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-            PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
+            PartRas <- (predict(VariablesT,Model[[i]]))
             if(N!=1){
               writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
@@ -1751,8 +1751,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
             # gridded(FinalModel) <- ~ x+y
-            # FinalModel <- STANDAR(raster(FinalModel))
-            FinalModel <- STANDAR(FinalGrid)
+            # FinalModel <- (raster(FinalModel))
+            FinalModel <- (FinalGrid)
             PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)  
           }else{
@@ -1763,7 +1763,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
             # gridded(FinalModel) <- ~ x+y
-            FinalModel <- STANDAR(FinalGrid)
+            FinalModel <- (FinalGrid)
             PredPoint <- extract(FinalModel,SpDataT[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)  
           }
@@ -1793,7 +1793,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               if(maxValue(ListFut[[ProjN[k]]][["SVM"]])==0){
                 ListFut[[ProjN[k]]][["SVM"]] <- ListFut[[ProjN[k]]][["SVM"]]
               }else{
-                ListFut[[ProjN[k]]][["SVM"]] <- STANDAR(ListFut[[ProjN[k]]][["SVM"]])
+                ListFut[[ProjN[k]]][["SVM"]] <- (ListFut[[ProjN[k]]][["SVM"]])
               }
             }
           }
@@ -1806,7 +1806,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["SVM"]])==0){
             ListFut[[ProjN[k]]][["SVM"]] <- ListFut[[ProjN[k]]][["SVM"]]
           }else{
-            ListFut[[ProjN[k]]][["SVM"]] <- STANDAR(ListFut[[ProjN[k]]][["SVM"]])
+            ListFut[[ProjN[k]]][["SVM"]] <- (ListFut[[ProjN[k]]][["SVM"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["SVM"]], PAtest[[i]][, c("x", "y")])
@@ -1873,7 +1873,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-            PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
+            PartRas <- (predict(VariablesT,Model[[i]]))
             if(N!=1){
               writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
@@ -1923,7 +1923,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   importance=T, type="classification")
             # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
             #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
-            FinalModel <- STANDAR(1-predict(VariablesT,Model,type="prob"))
+            FinalModel <- (1-predict(VariablesT,Model,type="prob"))
             PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }else{
@@ -1931,7 +1931,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   importance=T, type="classification")
             # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
             #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
-            FinalModel <- STANDAR(1-predict(VariablesT,Model,type="prob"))
+            FinalModel <- (1-predict(VariablesT,Model,type="prob"))
             PredPoint <- extract(FinalModel,SpDataT[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
@@ -1962,7 +1962,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               if(maxValue(ListFut[[ProjN[k]]][["RDF"]])==0){
                 ListFut[[ProjN[k]]][["RDF"]] <- ListFut[[ProjN[k]]][["RDF"]]
               }else{
-                ListFut[[ProjN[k]]][["RDF"]] <- STANDAR(ListFut[[ProjN[k]]][["RDF"]])
+                ListFut[[ProjN[k]]][["RDF"]] <- (ListFut[[ProjN[k]]][["RDF"]])
               }
             }
           }
@@ -1975,7 +1975,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(maxValue(ListFut[[ProjN[k]]][["RDF"]])==0){
             ListFut[[ProjN[k]]][["RDF"]] <- ListFut[[ProjN[k]]][["RDF"]]
           }else{
-            ListFut[[ProjN[k]]][["RDF"]] <- STANDAR(ListFut[[ProjN[k]]][["RDF"]])
+            ListFut[[ProjN[k]]][["RDF"]] <- (ListFut[[ProjN[k]]][["RDF"]])
           }
           
           PredPoint <- extract(ListFut[[ProjN[k]]][["RDF"]], PAtest[[i]][, c("x", "y")])
@@ -2049,7 +2049,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             for(i in 1:N){
               #Partial Thresholds
               Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-              PartRas <- STANDAR(predict(VariablesT,Model[[i]],type="response"))
+              PartRas <- (predict(VariablesT,Model[[i]],type="response"))
               if(N!=1){
                 writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
@@ -2096,13 +2096,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(is.null(repl) && N==1){
               Model <- mgcv::gam(formula=Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
                                  select = T, family = binomial)
-              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              FinalModel <- (predict(VariablesT,Model,type="response"))
               PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
             }else{
               Model <- mgcv::gam(formula=Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
                                  select = T, family = binomial)
-              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              FinalModel <- (predict(VariablesT,Model,type="response"))
               PredPoint <- extract(FinalModel,SpDataT[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)  
             }
@@ -2132,7 +2132,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 if(maxValue(ListFut[[ProjN[k]]][["GAM"]])==0){
                   ListFut[[ProjN[k]]][["GAM"]] <- ListFut[[ProjN[k]]][["GAM"]]
                 }else{
-                  ListFut[[ProjN[k]]][["GAM"]] <- STANDAR(ListFut[[ProjN[k]]][["GAM"]])
+                  ListFut[[ProjN[k]]][["GAM"]] <- (ListFut[[ProjN[k]]][["GAM"]])
                 }
               }
             }
@@ -2145,7 +2145,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(maxValue(ListFut[[ProjN[k]]][["GAM"]])==0){
               ListFut[[ProjN[k]]][["GAM"]] <- ListFut[[ProjN[k]]][["GAM"]]
             }else{
-              ListFut[[ProjN[k]]][["GAM"]] <- STANDAR(ListFut[[ProjN[k]]][["GAM"]])
+              ListFut[[ProjN[k]]][["GAM"]] <- (ListFut[[ProjN[k]]][["GAM"]])
             }
             
             PredPoint <- extract(ListFut[[ProjN[k]]][["GAM"]], PAtest[[i]][, c("x", "y")])
@@ -2219,7 +2219,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             for(i in 1:N){
               #Partial Thresholds
               Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-              PartRas <- STANDAR(predict(VariablesT,Model[[i]],type="response"))
+              PartRas <- (predict(VariablesT,Model[[i]],type="response"))
               if(N!=1){
                 writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
@@ -2266,12 +2266,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(is.null(repl) && N==1){
               # Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family = binomial(link = "logit"))
               Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
-              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              FinalModel <- (predict(VariablesT,Model,type="response"))
               PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
             }else{
               Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
-              FinalModel <- STANDAR(predict(VariablesT,Model,type="response"))
+              FinalModel <- (predict(VariablesT,Model,type="response"))
               PredPoint <- extract(FinalModel,SpDataT[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)  
             }
@@ -2300,7 +2300,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 if(maxValue(ListFut[[ProjN[k]]][["GLM"]])==0){
                   ListFut[[ProjN[k]]][["GLM"]] <- ListFut[[ProjN[k]]][["GLM"]]
                 }else{
-                  ListFut[[ProjN[k]]][["GLM"]] <- STANDAR(ListFut[[ProjN[k]]][["GLM"]])
+                  ListFut[[ProjN[k]]][["GLM"]] <- (ListFut[[ProjN[k]]][["GLM"]])
                 }
               }
             }
@@ -2313,7 +2313,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(maxValue(ListFut[[ProjN[k]]][["GLM"]])==0){
               ListFut[[ProjN[k]]][["GLM"]] <- ListFut[[ProjN[k]]][["GLM"]]
             }else{
-              ListFut[[ProjN[k]]][["GLM"]] <- STANDAR(ListFut[[ProjN[k]]][["GLM"]])
+              ListFut[[ProjN[k]]][["GLM"]] <- (ListFut[[ProjN[k]]][["GLM"]])
             }
             
             PredPoint <- extract(ListFut[[ProjN[k]]][["GLM"]], PAtest[[i]][, c("x", "y")])
@@ -2379,7 +2379,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(i in 1:N){
           #Partial Thresholds
           Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-          PartRas <- STANDAR(predict(VariablesT,Model[[i]]))
+          PartRas <- (predict(VariablesT,Model[[i]]))
           if(N!=1){
             writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                         format='GTiff',
@@ -2425,13 +2425,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       if(per!=1 && repl==1 || per==1 || N!=1){
         if(is.null(repl) && N==1){
           Model <- graf(SpDataT[SpDataT$Partition==1,"PresAbse"], SpDataT[SpDataT$Partition==1,VarColT])
-          FinalModel <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
+          FinalModel <- (predict.graf.raster(Model, VariablesT, type = "response", 
                                                     CI = 0.95, maxn = NULL)$posterior.mode)
           PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
         }else{
           Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
-          FinalModel <- STANDAR(predict.graf.raster(Model, VariablesT, type = "response", 
+          FinalModel <- (predict.graf.raster(Model, VariablesT, type = "response", 
                                                     CI = 0.95, maxn = NULL)$posterior.mode)
           PredPoint <- extract(FinalModel,SpDataT[, 2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -2464,7 +2464,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(maxValue(ListFut[[ProjN[k]]][["GAU"]])==0){
               ListFut[[ProjN[k]]][["GAU"]] <- ListFut[[ProjN[k]]][["GAU"]]
             }else{
-              ListFut[[ProjN[k]]][["GAU"]] <- STANDAR(ListFut[[ProjN[k]]][["GAU"]])
+              ListFut[[ProjN[k]]][["GAU"]] <- (ListFut[[ProjN[k]]][["GAU"]])
             }
           }
         }
@@ -2477,7 +2477,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(maxValue(ListFut[[ProjN[k]]][["GAU"]])==0){
           ListFut[[ProjN[k]]][["GAU"]] <- ListFut[[ProjN[k]]][["GAU"]]
         }else{
-          ListFut[[ProjN[k]]][["GAU"]] <- STANDAR(ListFut[[ProjN[k]]][["GAU"]])
+          ListFut[[ProjN[k]]][["GAU"]] <- (ListFut[[ProjN[k]]][["GAU"]])
         }
         
         PredPoint <- extract(ListFut[[ProjN[k]]][["GAU"]], PAtest[[i]][, c("x", "y")])
@@ -2571,7 +2571,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               for(i in 1:N){
                 #Partial Thresholds
                 Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
-                PartRas <- STANDAR(predict(VariablesT,Model[[i]],
+                PartRas <- (predict(VariablesT,Model[[i]],
                                                n.trees=Model[[i]]$gbm.call$best.trees,type="response"))
                 if(N!=1){
                   writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -2632,7 +2632,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                     break
                   }
                 }
-                FinalModel <- STANDAR(predict(VariablesT,Model,
+                FinalModel <- (predict(VariablesT,Model,
                                               n.trees=Model$gbm.call$best.trees,type="response"))
                 PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
                 PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
@@ -2650,7 +2650,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                     break
                   }
                 }
-                FinalModel <- STANDAR(predict(VariablesT,Model,
+                FinalModel <- (predict(VariablesT,Model,
                                               n.trees=Model$gbm.call$best.trees,type="response"))
                 PredPoint <- extract(FinalModel,SpDataT[, 2:3])
                 PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -2682,7 +2682,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                   if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
                     ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
                   }else{
-                    ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
+                    ListFut[[ProjN[k]]][["BRT"]] <- (ListFut[[ProjN[k]]][["BRT"]])
                   }
                 }
               }
@@ -2696,7 +2696,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
                 ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
               }else{
-                ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(ListFut[[ProjN[k]]][["BRT"]])
+                ListFut[[ProjN[k]]][["BRT"]] <- (ListFut[[ProjN[k]]][["BRT"]])
               }
               
               PredPoint <- extract(ListFut[[ProjN[k]]][["BRT"]], PAtest[[i]][, c("x", "y")])
