@@ -2345,7 +2345,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #GAU model
     for (i in 1:N) {
       dataPr <- PAtrain[[i]]
-      Model[[i]] <- graf(dataPr[,"PresAbse"], dataPr[,VarColT])
+      Model[[i]] <- graf(dataPr[,"PresAbse"], dataPr[,VarColT],opt.l=F,method="Laplace")
     }
       
     #GAU evaluation
@@ -2424,13 +2424,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Save final model
       if(per!=1 && repl==1 || per==1 || N!=1){
         if(is.null(repl) && N==1){
-          Model <- graf(SpDataT[SpDataT$Partition==1,"PresAbse"], SpDataT[SpDataT$Partition==1,VarColT])
+          Model <- graf(SpDataT[SpDataT$Partition==1,"PresAbse"], SpDataT[SpDataT$Partition==1,VarColT],opt.l=F,method="Laplace")
           FinalModel <- (predict.graf.raster(Model, VariablesT, type = "response", 
                                                     CI = 0.95, maxn = NULL)$posterior.mode)
           PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
         }else{
-          Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT])
+          Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT],opt.l=F,method="Laplace")
           FinalModel <- (predict.graf.raster(Model, VariablesT, type = "response", 
                                                     CI = 0.95, maxn = NULL)$posterior.mode)
           PredPoint <- extract(FinalModel,SpDataT[, 2:3])
