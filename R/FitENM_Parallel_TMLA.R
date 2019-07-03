@@ -214,7 +214,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
             var.0 <- extract(Variables, ab.0)
           }
-          ab.0 <- cbind(rep(i,nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
+          ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
           colnames(ab.0) <- colnames(RecordsData)
           ab0L[[x]] <- na.omit(ab.0)
           rm(var.0)
@@ -282,7 +282,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
                                                       "maxnet","maxlike","GRaF","plyr","gam","RStoolbox",
                                                       "adehabitatHS","caret","visreg","glmnet","gbm"),
-                     .export=c("Validation2_0","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei",
+                     .export=c("Validation2_0","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei","STANDAR",
                                "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval","ecospat.boyce")) %dopar% {
 
     #Results Lists
@@ -1320,7 +1320,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MXS model
       for (i in 1:N) {
         dataPr <- PAtrainM[[i]]
-        Model[[i]] <- maxnet2(dataPr[,"PresAbse"], dataPr[,VarColT], f = 
+        Model[[i]] <- maxnet2(p=dataPr[,"PresAbse"], data=dataPr[,VarColT], f = 
                                 maxnet.formula(dataPr[,"PresAbse"],dataPr[,VarColT], classes="lq"))
       }
       #MXS evaluation
@@ -2426,13 +2426,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(is.null(repl) && N==1){
           Model <- graf(SpDataT[SpDataT$Partition==1,"PresAbse"], SpDataT[SpDataT$Partition==1,VarColT],opt.l=F,method="Laplace")
           FinalModel <- (predict.graf.raster(Model, VariablesT, type = "response", 
-                                                    CI = 0.95, maxn = NULL)$posterior.mode)
+                                                    CI = NULL, maxn = NULL)$posterior.mode)
           PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
         }else{
           Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT],opt.l=F,method="Laplace")
           FinalModel <- (predict.graf.raster(Model, VariablesT, type = "response", 
-                                                    CI = 0.95, maxn = NULL)$posterior.mode)
+                                                    CI = NULL, maxn = NULL)$posterior.mode)
           PredPoint <- extract(FinalModel,SpDataT[, 2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         }
@@ -2460,7 +2460,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(is.null(Fut)==F){
           for(k in 1:length(VariablesP)){
             ListFut[[ProjN[k]]][["GAU"]] <- predict.graf.raster(Model, VariablesP[[k]], type = "response", 
-                                                                CI = 0.95, maxn = NULL)$posterior.mode
+                                                                CI = NULL, maxn = NULL)$posterior.mode
             if(maxValue(ListFut[[ProjN[k]]][["GAU"]])==0){
               ListFut[[ProjN[k]]][["GAU"]] <- ListFut[[ProjN[k]]][["GAU"]]
             }else{
