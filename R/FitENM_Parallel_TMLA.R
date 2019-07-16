@@ -406,7 +406,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       if(Save=="Y"){
         for(i in 1:N){
           #Partial Thresholds
-          Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+          Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
           PartRas <- (predict(Model[[i]], VariablesT))
           if(N!=1){
             writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -565,7 +565,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(Save=="Y"){
           for(i in 1:N){
             #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(Model[[i]], VariablesT))
             if(N!=1){
               writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -728,7 +728,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(Save=="Y"){
           for(i in 1:N){
             #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(Model[[i]], VariablesT))
             if(N!=1){
               writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -922,7 +922,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(Save=="Y"){
           for(i in 1:N){
             #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
             Zli <- as.matrix(scale(na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
@@ -1191,7 +1191,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(Save=="Y"){
           for(i in 1:N){
             #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
               writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -1352,7 +1352,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(Save=="Y"){
           for(i in 1:N){
             #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
               writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -1530,7 +1530,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(Save=="Y"){
             for(i in 1:N){
               #Partial Thresholds
-              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
               PartRas <- (predict(VariablesT,Model[[i]]))
               if(N!=1){
                 writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -1698,7 +1698,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(Save=="Y"){
           for(i in 1:N){
             #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]]))
             if(N!=1){
               writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -1872,7 +1872,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(Save=="Y"){
           for(i in 1:N){
             #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]]))
             if(N!=1){
               writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -2048,7 +2048,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(Save=="Y"){
             for(i in 1:N){
               #Partial Thresholds
-              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
               PartRas <- (predict(VariablesT,Model[[i]],type="response"))
               if(N!=1){
                 writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -2218,7 +2218,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(Save=="Y"){
             for(i in 1:N){
               #Partial Thresholds
-              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
               PartRas <- (predict(VariablesT,Model[[i]],type="response"))
               if(N!=1){
                 writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -2378,7 +2378,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       if(Save=="Y"){
         for(i in 1:N){
           #Partial Thresholds
-          Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+          Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
           PartRas <- (predict(VariablesT,Model[[i]]))
           if(N!=1){
             writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
@@ -2570,7 +2570,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(Save=="Y"){
               for(i in 1:N){
                 #Partial Thresholds
-                Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS,sensV)
+                Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
                 PartRas <- (predict(VariablesT,Model[[i]],
                                                n.trees=Model[[i]]$gbm.call$best.trees,type="response"))
                 if(N!=1){
