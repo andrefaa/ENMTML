@@ -1588,7 +1588,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                method="BFGS",removeDuplicates=FALSE)
               FinalModel <- (predict(Model))
               PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
-              PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+              PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
             }
             # x <- SpDataTM[SpDataTM[,"PresAbse"]==1, VarColT]
             # z <- SpDataTM[SpDataTM[,"PresAbse"]==0, VarColT]
