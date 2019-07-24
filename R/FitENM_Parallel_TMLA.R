@@ -2863,7 +2863,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       #Partial Models Ensemble
       Final <- do.call(Map, c(rbind,RastPart))
-      ThResW <- unlist(ListValidationT[Threshold])
+      ThResW <- unlist(ListValidationT['MAX_TSS'])
       Final <- lapply(Final, function(x) sweep(x, 2, ThResW, '*'))
       Final <- lapply(Final, function (x) colMeans(x))
       
@@ -3132,7 +3132,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         colnames(ListValidationT) <- c("Sp","Replicate","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
                                        "SORENSEN","FPB","BOYCE")
       }
-      Best <- ListValidationT[which(unlist(ListValidationT[Threshold])>=mean(unlist(ListValidationT[Threshold]))),"Algorithm"]
+      Best <- ListValidationT[which(unlist(ListValidationT["MAX_TSS"])>=mean(unlist(ListValidationT["MAX_TSS"]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
       
       #Partial Models
@@ -3226,7 +3226,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       
       #Partial Models
       Final <- do.call(Map, c(cbind, RastPart))
-      ValidTHR <- ListValidationT[grepl(Threshold,ListValidationT["THR"],ignore.case = T),"THR_VALUE"]
+      ValidTHR <- ListValidationT[grepl(Threshold,ListValidationT[,"THR"],ignore.case = T),"THR_VALUE"]
       for (p in 1:length(Final)){
         Final[[p]] <- sapply(seq(1:length(ValidTHR)),function(x){ifelse(Final[[p]][,x]>=ValidTHR[x],Final[[p]][,x],0)})
         Final[[p]] <- as.numeric(princomp(Final[[p]])$scores[,1])
