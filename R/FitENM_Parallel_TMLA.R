@@ -2954,7 +2954,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         colnames(ListValidationT) <- c("Sp","Replicate","Algorithm","Partition","AUC","MAX_KAPPA","MAX_TSS","JACCARD",
                                        "SORENSEN","FPB","BOYCE")
       }
-      Best <- ListValidationT[which(unlist(ListValidationT[Threshold])>=mean(unlist(ListValidationT[Threshold]))),"Algorithm"]
+      Best <- ListValidationT[which(unlist(ListValidationT["MAX_TSS"])>=mean(unlist(ListValidationT["MAX_TSS"]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
       
       #Partial Models
