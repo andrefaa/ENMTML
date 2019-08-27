@@ -1,7 +1,8 @@
 S_SDM <- function(DirENM,
                   DirMSDM,
                   DirProj,
-                  spN){
+                  spN,
+                  Threshold){
   #Function to create S-SDMs
   #Written by Andre Andrade
   
@@ -17,13 +18,13 @@ S_SDM <- function(DirENM,
   registerDoParallel(cl)
   
   #Create S-SDM Folders
-  sapply(DirT,function(x) dir.create(file.path(x,"S_SDM")))
-  DirSSDM <- file.path(DirT,"S_SDM")
-  DirENM <- file.path(DirENM,"BIN")
+  sapply(DirENM,function(x) dir.create(file.path(x,"S_SDM")))
+  DirSSDM <- file.path(DirENM,"S_SDM")
+  DirENM <- file.path(DirENM,Threshold)
 
   #Calculate S-SDM
   foreach(s = 1:length(DirSSDM), .packages = "raster") %dopar% {
-    ENM <- sum(stack(list.files(DirENM[s],full.names=T)))
+    ENM <- sum(stack(list.files(DirENM[s],pattern=".tif",full.names=T)))
     writeRaster(ENM,file.path(DirSSDM[s],"S-SDM.tif"),format="GTiff",NAflag=-9999,overwrite=T)
   }
   
@@ -31,11 +32,11 @@ S_SDM <- function(DirENM,
   if(!is.null(DirMSDM)){
     sapply(DirMSDM,function(x) dir.create(file.path(x,"S_SDM")))
     DirSSDM2 <- file.path(DirMSDM,"S_SDM")
-    DirMSDM <- file.path(DirMSDM,"BIN")
+    DirMSDM <- file.path(DirMSDM,Threshold)
     
     #Calculate S-SDM
     foreach(s = 1:length(DirSSDM2), .packages = "raster") %dopar% {
-      ENM <- sum(stack(list.files(DirMSDM[s],full.names=T)))
+      ENM <- sum(stack(list.files(DirMSDM[s],pattern=".tif",full.names=T)))
       writeRaster(ENM,file.path(DirSSDM2[s],"S-SDM.tif"),format="GTiff",NAflag=-9999,overwrite=T)
     }
   }
@@ -44,11 +45,11 @@ S_SDM <- function(DirENM,
   if(!is.null(DirProj)){
     sapply(DirProj,function(x) dir.create(file.path(x,"S_SDM")))
     DirSSDM3 <- file.path(DirProj,"S_SDM")
-    DirProj <- file.path(DirProj,"BIN")
+    DirProj <- file.path(DirProj,Threshold)
     
     #Calculate S-SDM
     foreach(s = 1:length(DirSSDM3), .packages = "raster") %dopar% {
-      ENM <- sum(stack(list.files(DirProj[s],full.names=T)))
+      ENM <- sum(stack(list.files(DirProj[s],pattern=".tif",full.names=T)))
       writeRaster(ENM,file.path(DirSSDM3[s],"S-SDM.tif"),format="GTiff",NAflag=-9999,overwrite=T)
     }
   }

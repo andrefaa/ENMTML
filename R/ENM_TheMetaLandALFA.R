@@ -248,7 +248,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   algorithm <- Ord[Ord%in%algorithm]
 
 #3.Predictors ----
-  options(warn = -1)
+  options(warn = 1)
   setwd(pred_dir)
   
   env <- unique(file_ext(list.files()))
@@ -741,7 +741,7 @@ ENMs_TheMetaLand <- function(pred_dir,
       
       #7.0.Dataset for evaluation
       if(eval_occ=="Y"){
-        cat("Select the occurrence dataset for evaluation:")
+        cat("Select the occurrence dataset for evaluation:\n")
         OccTst <- read.table(file.choose(),sep="\t",h=T)
         OccTst<-OccTst[,c(sp,x,y)]
         colnames(OccTst) <- c("sp","x","y")
@@ -1352,13 +1352,15 @@ ENMs_TheMetaLand <- function(pred_dir,
       
       cat("Choose Posterior MSDM type (OBR/LR/PRES/MCP/MCP-B)")
       Q0 <- as.character(readLines(n = 1))
-      while(Q0 %in% c("OBR","LR","PRES","MCP","MCP-B")==F){
-        warning("Choose a valid Posterior MSDM type!(OBR/LR/PRES/MCP/MCP-B)")
+      while(!Q0 %in% c("OBR","LR","PRES","MCP","MCP-B")){
+        cat("Choose a valid Posterior MSDM type!(OBR/LR/PRES/MCP/MCP-B)")
         Q0 <- as.character(readLines(n = 1))
       }
       if(Q0=="MCP-B"){
         cat("Select buffer distance (km):")
         CUT_Buf <- (as.numeric(readLines(n = 1)))*1000
+      }else{
+        CUT_Buf <- NULL
       }
       
       if(any(list.files(DirR)=="Ensemble")){
@@ -1382,7 +1384,7 @@ ENMs_TheMetaLand <- function(pred_dir,
           dir.create(i)
         }
         for(i in 1:length(DirPost)){
-          print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
+          print(paste("Folder.....",i,"/",length(DirPost),sep=""))
           MSDM_Posterior(RecordsData=occINPUT,Threshold=thr,cutoff=Q0,PredictType=ensemble,CUT_Buf=CUT_Buf,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
@@ -1395,7 +1397,7 @@ ENMs_TheMetaLand <- function(pred_dir,
           dir.create(i)
         }
         for(i in 1:length(DirPost)){
-          print(paste("Diretorio.....",i,"/",length(DirPost),sep=""))
+          print(paste("Folder.....",i,"/",length(DirPost),sep=""))
           MSDM_Posterior(RecordsData=occINPUT,Threshold=thr,cutoff=Q0,PredictType=ensemble,CUT_Buf=CUT_Buf,
                          DirSave=DirPost[i],DirRaster=DirT[i])
         }
@@ -1425,13 +1427,13 @@ ENMs_TheMetaLand <- function(pred_dir,
         cat("Create S-SDM only for Ensemble?(Y/N)")
         Q1 <- as.character(readLines(n=1))
         if(Q1=="Y"){
-          DirT <- file.path(DirR,"ENS",ensemble)
+          DirT <- file.path(DirR,"Ensemble",ensemble)
         }else{
-          DirT <- file.path(DirR,Alg)
+          DirT <- file.path(DirR,algorithm)
         }
       }else{
         cat("Creating S-SDM for each Algorithm")
-        DirT <- file.path(DirR,Alg)
+        DirT <- file.path(DirR,algorithm)
       }
       
       #S-SDM on MSDM?
@@ -1453,12 +1455,12 @@ ENMs_TheMetaLand <- function(pred_dir,
           DirT3 <- file.path(DirR,names(EnvF),Alg)
         }else if (Q3=="Y" && Q1=="Y"){
           DirT3 <- file.path(DirR,names(EnvF),ensemble)
-        }else{
-          DirT3 <- NULL
         }
+      }else{
+        DirT3 <- NULL
       }
       
       #Calculate S-SDM
-      S_SDM(DirENM=DirT,DirMSDM=DirT2,DirProj=DirT3,spN)
+      S_SDM(DirENM=DirT,DirMSDM=DirT2,DirProj=DirT3,spN,Threshold=thr) 
     }
 }

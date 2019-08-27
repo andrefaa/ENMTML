@@ -4,6 +4,11 @@ STANDAR <- function(x){
   return(result)
 }
 
+STANDAR_FUT <- function(ModelFut,ModelPre){
+  result <- (ModelFut-cellStats(ModelPre, min))/(cellStats(ModelPre, max)-cellStats(ModelPre, min))
+  return(result)
+}
+
 # Prediction of different algorithm------
 PREDICT <- function(Variables, Models_List){
 ListRaster <- as.list(names(Models_List))
