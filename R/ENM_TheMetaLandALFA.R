@@ -231,7 +231,7 @@ ENMs_TheMetaLand <- function(pred_dir,
          "maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
-         "usdm","pracma","gbm","caret","adehabitatHS"))
+         "usdm","pracma","gbm","caret","adehabitatHS", "visreg"))
 
   #1.1. Choose.dir correction for Linux and MAC
   if(Sys.info()['sysname']!="Windows"){
@@ -287,11 +287,11 @@ ENMs_TheMetaLand <- function(pred_dir,
   
   #3.1.Projection----
   if(transfer=="Y"){
-    print("Select folder containing GCM folders:")
+    print("Select folder containing folders with environment conditions for different regions or time periods to model transferring:")
     DirP<-choose.dir(getwd())
     Pfol<-file.path(DirP,list.files(DirP))
     if(any(file_ext(list.files(DirP))%in%form)){
-      stop("Select a folder containing GCM folders, NOT a folder with GCM variables!")
+      stop("Select a folder containing folders with environment conditions for different regions or time periods, NOT a folder with this variables!")
     }
     
     PfolN <- list.files(DirP)
