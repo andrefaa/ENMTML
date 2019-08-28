@@ -3199,7 +3199,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Final <- brick(ListRaster)
-        ValidTHR <- ListValidationT[grepl(Threshold,ListValidationT["THR"],ignore.case = T),"THR_VALUE"]
+        ValidTHR <- ListValidationT[grepl(Threshold,ListValidationT[,"THR"],ignore.case = T),"THR_VALUE"]
         for(k in 1:nlayers(Final)){
           FinalSp <- Final[[k]]
           FinalSp[FinalSp<ValidTHR[k]] <- 0
