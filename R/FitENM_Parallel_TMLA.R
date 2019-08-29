@@ -18,13 +18,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    repl=NULL,
                    Save="N",
                    SaveFinal=SaveFinal,
-                   sensV) {
+                   sensV, 
+                   cores) {
   
   Ti <- Sys.time()
   options(warn = -1)
   
   #Start Cluster
-  cl <- makeCluster(detectCores()-1,outfile="")
+  cl <- makeCluster(cores,outfile="")
   registerDoParallel(cl)
 
   # Directory to save----
@@ -154,11 +155,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
            NCell <- sum(!is.na(msk2[]))
            if (NCell > 10000) {
              ab.0 <- data.frame(randomPoints(msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],10000))
-             var.0 <- data.frame(extract(Variables,ab.0))
+             var.0 <- data.frame(raster::extract(Variables,ab.0))
            }else{
              ab.0 <-
                randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],abs(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
-             var.0 <- data.frame(extract(Variables, ab.0))
+             var.0 <- data.frame(raster::extract(Variables, ab.0))
            }
            ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
            colnames(ab.0) <- colnames(RecordsData)
@@ -231,11 +232,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       RecordsDataM[,cols] = apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
     }
    }
+  
   if(!exists("RecordsDataM")){
     RecordsDataM <- NULL
   }
 
-  #MESS & MOPA Calculation----
+  #MOP Calculation----
   #Within the extent (for M-Restriction)
   if(is.null(repl)||repl==1){
     cat("Calculate extrapolation for the current extent?(Y/N)")
@@ -247,8 +249,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     if(ansE=="Y"){
       dir.create(file.path(DirSave,"Extrapolation"))
       DirProj <- file.path(DirSave,"Extrapolation")
-      MESS_and_MOP(Variables=list(Variables),RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
-                    VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+      MOP(
+        Variables = list(Variables),
+        RecordsDataM = RecordsDataM,
+        VarCol = VarCol,
+        DirProj = DirProj
+      )
     }
     #For projections
     if(!is.null(Fut)){
@@ -263,8 +269,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           dir.create(file.path(ModFut[i],"Extrapolation"))
         }
         DirProj <- file.path(ModFut,"Extrapolation")
-        MESS_and_MOP(Variables=Fut,RecordsData=RecordsData,RecordsDataM=RecordsDataM,algorithm=Algorithm,
-                     VarCol=VarCol,DirProj=DirProj,Methods=c("MESS","MOP"))
+        MOP(
+          Variables = Fut,
+          RecordsDataM = RecordsDataM,
+          VarCol = VarCol,
+          DirProj = DirProj
+        )
       }
     }
   }
