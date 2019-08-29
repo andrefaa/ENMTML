@@ -93,7 +93,9 @@
 #'   \item PCA_SUP: PCA of the best models (TSS over the average)
 #'   \item PCA_THR: PCA only with cells above the threshold
 #'   }
-#' 
+#'   
+#' @param cores numeric. Define the number number of CPU cores to run modeling procedures in parallel.
+#'  
 #' @param s_sdm character. Perform a stacked of Species Distribution Model (richness map)? (Y/N)
 #'
 #' 
@@ -132,6 +134,7 @@ ENMs_TheMetaLand <- function(pred_dir,
                              thr,
                              msdm,
                              ensemble,
+                             cores=1,
                              s_sdm) {
   
 #1.Check Function Arguments  
@@ -731,7 +734,8 @@ ENMs_TheMetaLand <- function(pred_dir,
         SaveFinal = save_final,
         sensV=sensV,
         repl = NULL,
-        per = NULL
+        per = NULL,
+        cores=cores
       )
     }
     
@@ -1290,10 +1294,28 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
           
       #7.9. Run FitENM----
-        FitENM_TMLA_Parallel(RecordsData=occINPUT,Variables=envT,VarImP=imp_var,Fut=Fut,Part=part,Algorithm=algorithm,PredictType=ensemble,spN=spN,
-                    Tst=eval_occ,Threshold=thr,DirSave=DirR,DirMask=DirB,DirMSDM=DirPRI,Save=save_part,
-                    SaveFinal=save_final,sensV=sensV,per=per,repl=k)
-        
+          FitENM_TMLA_Parallel(
+            RecordsData = occINPUT,
+            Variables = envT,
+            VarImP = imp_var,
+            Fut = Fut,
+            Part = part,
+            Algorithm = algorithm,
+            PredictType = ensemble,
+            spN = spN,
+            Tst = eval_occ,
+            Threshold = thr,
+            DirSave = DirR,
+            DirMask = DirB,
+            DirMSDM = DirPRI,
+            Save = save_part,
+            SaveFinal = save_final,
+            sensV = sensV,
+            per = per,
+            repl = k, 
+            cores=cores
+          )
+          
       #7.10. Create Occurrence Table for Replicates----
         if(rep!=1 || part=="KFOLD"){
           occTREINO[[k]] <- occINPUT[occINPUT$Partition==1,]
