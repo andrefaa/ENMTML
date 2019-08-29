@@ -559,7 +559,7 @@ ENMs_TheMetaLand <- function(pred_dir,
         if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
           warning("Partition Already Exist! Using pre-created partitions! ")
           setwd(DirB)
-          occINPUT <- read.table(file.path(DirB,"OccBands.txt"),sep="\t",header=T)
+          occINPUT <- read.table(file.path(DirB,"OccBands.txt"),sep="\t",header=T, stringsAsFactors = F)
           occINPUT[,4] <- as.numeric(occINPUT[,4])
           occINPUT[,5] <- as.numeric(occINPUT[,5])
         }else{
