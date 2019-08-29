@@ -18,13 +18,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    repl=NULL,
                    Save="N",
                    SaveFinal=SaveFinal,
-                   sensV) {
+                   sensV, 
+                   cores) {
   
   Ti <- Sys.time()
   options(warn = -1)
   
   #Start Cluster
-  cl <- makeCluster(detectCores()-1,outfile="")
+  cl <- makeCluster(cores,outfile="")
   registerDoParallel(cl)
 
   # Directory to save----
