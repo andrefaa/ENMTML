@@ -1,8 +1,9 @@
 MOP <- function(Variables,
-                         RecordsDataM,
+                         RecordsData,
                          Algorithm,
                          VarCol,
-                         DirProj) {
+                         DirProj,
+                         DirMask) {
   #Function to calculate MOP metrics
   #Variables: Raster stack in which MESS\MOP will be calculated (from upper function)
   #RecordsData: Species occurrence data\absence (from upper function)
@@ -38,11 +39,25 @@ MOP <- function(Variables,
   spN <- unique(RecordsData$sp)
   #Initialisation
   for (i in 1:length(DirProj)) {
-    foreach (j =1:length(spN),.packages=c("raster","dismo"),.export="mop")%dopar% {
+    foreach (j = 2:length(spN),.packages=c("raster","dismo"),.export="mop")%dopar% {
       #Check for existence
       if (!file.exists(file.path(DirProj[i], paste0(spN[j], "_MOP.tif")))){
-        spOccS <- RecordsDataM[RecordsDataM$sp == spN[j],]
-        MOPr <- mop(g_raster = Variables[[i]], m_occ = spOccS[VarCol])
+        spOccS <- RecordsData[RecordsData$sp == spN[j],]
+        MM <- raster(file.path(DirMask, paste0(spN[j], ".tif")))
+        MP <- rasterize(spOccS[,2:3], MM)
+        MM[!is.na(MP[])] <- NA
+        if(cellStats(MM, sum)<10000){
+          occM <- raster::sampleRandom(MM, size = cellStats(MM, sum),xy=T)[,1:2]
+          occM <- raster::extract(Variables[[i]],occM)
+        }else{
+          occM <- raster::sampleRandom(MM, size = 10000, xy=T)[,1:2]
+          occM <- raster::extract(Variables[[i]],occM)
+        }
+        rm(MP);rm(MM)
+        occM <- rbind(spOccS[VarCol], occM[VarCol])
+        occM <- na.omit(occM)
+        MOPr <- mop(g_raster = Variables[[i]], m_occ = occM)
+        plot(MOPr<0.8)
         writeRaster(
           MOPr,
           file.path(DirProj[i], paste0(spN[j], "_MOP.tif")),
