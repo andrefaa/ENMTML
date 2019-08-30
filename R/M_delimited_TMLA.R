@@ -19,10 +19,16 @@ M_delimited <- function(var,
   }
   
   #Check if GeoMasks already exist----
-  if(all(paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif"))){
-    print("GeoMasks Already Exist! Using already-created restrictions! ")
-    return(Dir_M)
+  if(any(paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif"))){
+    if(all(paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif"))){
+      print("GeoMasks already exist for all species! Using already-created restrictions!")
+      return(Dir_M)
+    }else{
+      print("GeoMasks already exist for some species! Creating GeoMasks for the rest of species")
+      spN <- spN[!paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif")]
+    }
   }
+  
   
   #Extent Restriction----
   if (method == 'buffer') {
