@@ -141,15 +141,17 @@ MSDM_Posterior <- function(RecordsData,
         AdeqPoints <- cbind(AdeqPoints,ID=extract(AdeqBin,AdeqPoints))
         # Find the patches that contain presences records
         # polypoint<-raster::intersect(AdeqBin2,pts1)
-        polypoint <- extract(AdeqBin,pts1)
-        polypoint <- AdeqBin%in%polypoint
+        polypoint <- as.numeric(unique(extract(AdeqBin,pts1)))
+        AdeqBin2 <- AdeqBin
+        AdeqBin2[!AdeqBin2[] %in% polypoint] <- NA
+        AdeqBin2 <- !is.na(AdeqBin2)
         if(cutoff=="PRES"){
           # Mask2 <- Adeq
           # Msk <- rasterize(polypoint,Adeq,background=0)
           # Msk[is.na(Adeq[])] <- NA
           # Mask2 <- Msk>0
           # Mask <- Adeq*Mask2
-          Mask <- polypoint
+          Mask <- AdeqBin2
           Mask[is.na(Mask)] <- 0
           Mask[is.na(Adeq[])] <- NA
           Mask2 <- Adeq*Mask
@@ -170,7 +172,7 @@ MSDM_Posterior <- function(RecordsData,
         # Create a vector wich contain the number (e.i. ID) of the patches 
         # with presences
         # filter1 <- unique(polypoint$ID)
-        filter1 <- unique(na.omit(values(polypoint)))
+        filter1 <- unique(na.omit(values(AdeqBin2)))
         # In this step are created two data.frame one with the patches coordinates 
         # that contain presences and another with patches coordinates without presences
         CoordPathP <- as.data.frame(AdeqPoints[AdeqPoints[,3]%in%filter1,])
