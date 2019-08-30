@@ -282,6 +282,11 @@ ENMs_TheMetaLand <- function(pred_dir,
     }
   }
   
+  #CRS
+  if(is.na(crs(envT))){
+    crs(envT) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+  }
+  
   #3.0.Check predictors consistency
   if(length(unique(colSums(!is.na(envT[]))))>1){
     envT[is.na((sum(envT))[])] <- NA
@@ -1486,4 +1491,4 @@ ENMs_TheMetaLand <- function(pred_dir,
       S_SDM(DirENM=DirT,DirMSDM=DirT2,DirProj=DirT3,spN,Threshold=thr) 
     }
 }
-print("Isso é um teste")
+print("Isso é um teste2")
