@@ -35,7 +35,7 @@ BandsPartition_TMLA <- function(evnVariables,
     if (sum(is.na(ppaNA)) != 0) {
       ppaNA1 <- which(is.na(ppaNA))
       # Wich pseudo absence is a environmental NA
-      ppaNA2 <- as.data.frame(cbind(ppa2$Clusters, rasterToPoints(variable[[1]])[,-3]))
+      ppaNA2 <- data.frame(cbind(ppa2$Clusters, rasterToPoints(variable[[1]])[,-3]), stringsAsFactors = F)
       ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
       ppa.clustres <- ppa.clustres[ppaNA1]
       nearest.point <- list()
@@ -50,9 +50,9 @@ BandsPartition_TMLA <- function(evnVariables,
       nearest.point <- list()
       for (eee in 1:length(ppaNA1)) {
         x <- flexclust::dist2(ppa.clustres[[eee]], error, method = "euclidean", p = 2)
-        x <- as.data.frame(x)
+        x <- data.frame(x, stringsAsFactors = F)
         nearest.point[[eee]] <-
-          as.data.frame(ppa.clustres[[eee]][which.min(x[, eee]),])
+          data.frame(ppa.clustres[[eee]][which.min(x[, eee]),], stringsAsFactors = F)
       }
       nearest.point <- t(matrix(unlist(nearest.point), 2))
       abse[ppaNA1,] <- nearest.point
@@ -126,7 +126,7 @@ BandsPartition_TMLA <- function(evnVariables,
       #Moran's I----
       Moran<-Moran_for_Quadrants_Pair_TMLA(occ=RecordsData.st,pc1=evnVariables[[1]],
                                            quad=quad,type=type)
-      Moran <- data.frame(cbind(quad, Moran))
+      Moran <- data.frame(cbind(quad, Moran), stringsAsFactors = F)
         
       #MESS----
       RecordsData_e <- cbind(RecordsData.st,extract(evnVariables, RecordsData.st[,1:2]))
@@ -141,7 +141,7 @@ BandsPartition_TMLA <- function(evnVariables,
           mean(table(pa))
         
       #Combine calculations in a data frame
-      res.t<-data.frame(cbind(Moran,mess,Sd))
+      res.t<-data.frame(cbind(Moran,mess,Sd), stringsAsFactors = F)
       colnames(res.t) <- c("Partition","Moran","MESS","SD")
       opt <- rbind(opt,res.t)
     }
@@ -284,7 +284,7 @@ BandsPartition_TMLA <- function(evnVariables,
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
-          absences[[i]] <- as.data.frame(absences.0)
+          absences[[i]] <- data.frame(absences.0, stringsAsFactors = F)
           rm(absences.0)
         }
         for (i in 1:length(absences)){
@@ -329,7 +329,7 @@ BandsPartition_TMLA <- function(evnVariables,
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
-          absences[[i]] <- as.data.frame(absences.0)
+          absences[[i]] <- data.frame(absences.0, stringsAsFactors = F)
           rm(absences.0)
         }
         for (i in 1:length(absences)){
@@ -374,7 +374,7 @@ BandsPartition_TMLA <- function(evnVariables,
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
-          absences[[i]] <- as.data.frame(absences.0)
+          absences[[i]] <- data.frame(absences.0, stringsAsFactors = F)
           rm(absences.0)
         }
         for (i in 1:length(absences)){
@@ -421,7 +421,7 @@ BandsPartition_TMLA <- function(evnVariables,
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
-          absences[[i]] <- as.data.frame(absences.0)
+          absences[[i]] <- data.frame(absences.0, stringsAsFactors = F)
           rm(absences.0)
         }
         for (i in 1:length(absences)){
@@ -510,7 +510,7 @@ BandsPartition_TMLA <- function(evnVariables,
           #   absences.0[ppaNA1,] <- nearest.point
           # }
           
-          absences[[i]] <- as.data.frame(absences.0)
+          absences[[i]] <- data.frame(absences.0, stringsAsFactors = F)
           rm(absences.0)
         }
         
@@ -533,12 +533,12 @@ BandsPartition_TMLA <- function(evnVariables,
       return(out)
   }
   
-  FinalResult <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResultList"))))
-  FinalInfoGrid <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResOptm"))))
+  FinalResult <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResultList"))), stringsAsFactors = F)
+  FinalInfoGrid <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResOptm"))), stringsAsFactors = F)
   
   write.table(FinalInfoGrid,paste(DirSave,"Band_Moran_MESS.txt",sep="\\"),sep="\t",row.names=F)
   write.table(FinalResult,paste(DirSave,"OccBands.txt",sep="\\"),sep="\t",row.names=F)
   stopCluster(cl)
-  return(FinalResult) ########### nao seria return(FinalResult)
+  return(FinalResult) 
 }
 
