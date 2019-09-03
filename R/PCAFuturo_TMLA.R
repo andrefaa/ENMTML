@@ -6,6 +6,17 @@ PCAFuturo<-function(Env,
   #0.Create PCA Folder
   DirPCA <- file.path(Dir,"PCA")
   dir.create(DirPCA)
+  #PCA Tables Folder
+  DirPCATab <- file.path(DirPCA,"Tables")
+  dir.create(DirPCATab)
+  
+  #Projection Folders
+  
+  DirP_PCA <- file.path(dirname(Dir),'Projection_PCA')
+  dir.create(DirP_PCA)
+  FoldersProj <- list.files(dirname(DirP[[1]]))
+  FoldersProj <- as.list(file.path(DirP_PCA,FoldersProj))
+  lapply(FoldersProj, function(x) dir.create(x))
   
   #1.Present PCA
   DF<-rasterToPoints(Env)
@@ -24,13 +35,13 @@ PCAFuturo<-function(Env,
   #Coefficients
   Coef<-DPca$rotation
   Coef2 <- data.frame(cbind(Variable=names(Env),Coef))
-  write.table(Coef2,file.path(DirPCA,"Coeficient.txt"),sep="\t",row.names=F)
+  write.table(Coef2,file.path(DirPCATab,"Coeficient.txt"),sep="\t",row.names=F)
   
   #Cummulative Variance
   NEixos<-length(summary(DPca)$importance[3,])
   CumVar<-summary(DPca)$importance[3,]
   VarEx<-data.frame(CumVar)
-  write.table(VarEx,file.path(DirPCA,"CumulativeVariance.txt"),sep="\t",row.names=F)
+  write.table(VarEx,file.path(DirPCATab,"CumulativeVariance.txt"),sep="\t",row.names=F)
   
   #Save PCsthat account for 95% of total variability
   Eix<-as.data.frame(DPca$x)
@@ -44,38 +55,41 @@ PCAFuturo<-function(Env,
   
   #2.Project PCA
   
-  ProjEX <- unique(file_ext(list.files(DirP)))
+  Pfol <- as.list(Pfol)
+  ProjEX <- lapply(Pfol, function(x) unique(file_ext(list.files(x))))
   form <- c('bil','asc','txt','tif')
   ProjEX <- ProjEX[ProjEX%in%form]
-  
-  if(any(ProjEX == c('asc', 'bil', 'tif'))){
-    ProjT<-brick(stack(file.path(DirP,list.files(DirP,paste0('\\.',ProjEX,'$')))))
+
+  if(any(ProjEX %in% c('asc', 'bil', 'tif'))){
+    ProjT<-lapply(Pfol, function(x) brick(stack(file.path(x,list.files(x,paste0('\\.',ProjEX,'$'))))))
   }
 
-  if(ProjEX == 'txt'){
-    ProjT<-read.table(file.path(DirP,list.files(DirP,pattern='.txt'),h=T))
-    gridded(ProjT)<- ~x+y
-    ProjT<-brick(stack(ProjT))
+  if(any(ProjEX %in% 'txt')){
+    ProjT <- list()
+    for(j in Pfol){
+      ProjT[[i]]<-read.table(file.path(Pfol[[i]],list.files(Pfol[[i]],pattern='.txt'),h=T))
+      gridded(ProjT[[i]])<- ~x+y
+      ProjT[[i]]<-brick(stack(ProjT[[i]]))
+    }
   }
 
-  ProjE<-rasterToPoints(ProjT)
-  ProjE<-na.omit(ProjE)
-  ProjER<-ProjE[,-c(1:2)]
+  ProjE<-lapply(ProjT, function(x) rasterToPoints(x))
+  ProjE<-lapply(ProjE, function(x) na.omit(x))
+  ProjER <- lapply(ProjE, function(z) z[,!(colnames(z) %in% c("x", "y"))])
   
-  scale<-sweep(ProjER,2,means)
-  scale<-scale %*% diag(1/stds)
-  PCAFut<-scale %*% Coef
-  colnames(PCAFut) <- colnames(Coef)
-  PCAFut <- data.frame(cbind(ProjE[,(1:2)],PCAFut))
-  gridded(PCAFut)<- ~x+y
-  PCAFut<-stack(PCAFut)
-  names(PCAFut) <- names(PCAPr)
-  PCAFut.95 <- PCAFut[[1:nlayers(PCA.95)]]
-  DirPCAF <- file.path(DirP,"PCA")
-  dir.create(DirPCAF)
-
-  if(Save=="Y"){
-    writeRaster(PCAFut.95,paste(DirPCAF,names(PCAFut.95),sep="/"),bylayer=T,format="GTiff",overwrite=T)
+  scale<-lapply(ProjER, function(x) sweep(x,2,means))
+  scale<-lapply(scale, function(x) x %*% diag(1/stds))
+  PCAFut<-lapply(scale, function(x) x %*% Coef)
+  PCAFut <- lapply(PCAFut, function(x) data.frame(cbind(ProjE[[1]][,(1:2)],x)))
+  PCAFut.95 <- list()
+  for(j in 1:length(PCAFut)){
+    gridded(PCAFut[[j]])<- ~x+y
+    PCAFut[[j]]<-stack(PCAFut[[j]])
+    names(PCAFut[[j]]) <- names(PCAPr)
+    PCAFut.95[[j]] <- PCAFut[[j]][[1:nlayers(PCA.95)]]
+    if(Save=="Y"){
+      writeRaster(PCAFut.95[[j]],paste(FoldersProj[[j]],names(PCAFut.95[[j]]),sep="/"),bylayer=T,format="GTiff",overwrite=T)
+    }
   }
   return(PCAFut.95)
 }
