@@ -251,9 +251,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       DirProj <- file.path(DirSave,"Extrapolation")
       MOP(
         Variables = list(Variables),
-        RecordsDataM = RecordsDataM,
+        RecordsData = RecordsData,
         VarCol = VarCol,
-        DirProj = DirProj
+        DirProj = DirProj,
+        DirMask=DirMask
       )
     }
     #For projections
