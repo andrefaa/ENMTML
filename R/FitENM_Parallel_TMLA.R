@@ -293,7 +293,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
                                                       "maxnet","maxlike","GRaF","plyr","gam","RStoolbox",
                                                       "adehabitatHS","caret","visreg","glmnet","gbm"),
-                     .export=c("Validation2_0","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei","STANDAR",
+                     .export=c("Validation2_0","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei","STANDAR","STANDAR_FUT",
                                "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval","ecospat.boyce")) %dopar% {
 
     #Results Lists
@@ -404,13 +404,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["BIO"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
 
-        #BIO Validation 
+        #BIO Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
         if(is.null(repl)){
-          ListValidation[["BIO"]] <- data.frame(Sp=spN[s], Algorithm="BIO",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["BIO"]] <- data.frame(Sp=spN[s], Algorithm="BIO",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BIO",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BIO",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
       
       #Save Partition Predictions
@@ -518,13 +519,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BIO"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
         
-          #BIO Validation 
+          #BIO Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce)
+            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce)
+            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -555,13 +557,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["DOM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
           
-        #DOM Validation 
+        #DOM Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="DOM",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="DOM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
         
         #Save Partition Predictions
@@ -668,13 +671,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["DOM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #DOM Validation 
+          #DOM Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce)
+            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce)
+            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -710,13 +714,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["MAH"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
         
-        #MAH Validation 
+        #MAH Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["MAH"]] <- data.frame(Sp=spN[s], Algorithm="MAH",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["MAH"]] <- data.frame(Sp=spN[s], Algorithm="MAH",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MAH",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MAH",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
         
         #Save Partition Predictions
@@ -840,13 +845,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MAH"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #MAH Validation 
+          #MAH Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce)
+            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce)
+            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -895,13 +901,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["ENF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
         
-        #ENF Validation 
+        #ENF Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["ENF"]] <- data.frame(Sp=spN[s], Algorithm="ENF",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["ENF"]] <- data.frame(Sp=spN[s], Algorithm="ENF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="ENF",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="ENF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
         
         #Save Partition Predictions
@@ -1126,13 +1133,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["ENF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #ENF Validation 
+          #ENF Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce)
+            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce)
+            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1164,13 +1172,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXD"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
         
-        #MXD Validation 
+        #MXD Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["MXD"]] <- data.frame(Sp=spN[s], Algorithm="MXD",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["MXD"]] <- data.frame(Sp=spN[s], Algorithm="MXD",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXD",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXD",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
         
         #Save Partition Predictions
@@ -1280,13 +1289,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXD"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #MXD Validation 
+          #MXD Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce)
+            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce)
+            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1318,10 +1328,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         #MXS Validation 
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["MXS"]] <- data.frame(Sp=spN[s], Algorithm="MXS",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["MXS"]] <- data.frame(Sp=spN[s], Algorithm="MXS",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
           ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXS",Partition=Part, Validation,Boyce=Boyce)
         }
@@ -1434,13 +1445,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXS"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #MXS Validation 
+          #MXS Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce)
+            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce)
+            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1487,13 +1499,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Boyce[[i]] <- ecospat.boyce(RastPart[["MLK"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           }
           
-          #MXS Validation 
+          #MXS Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["MLK"]] <- data.frame(Sp=spN[s], Algorithm="MLK",Partition=Part, Validation,Boyce=Boyce)
+            ListValidation[["MLK"]] <- data.frame(Sp=spN[s], Algorithm="MLK",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MLK",Partition=Part, Validation,Boyce=Boyce)
+            ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MLK",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
           
           #Save Partition Predictions
@@ -1606,13 +1619,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MLK"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
-            #MLK Validation 
+            #MLK Validation
+            BoyceSD <- sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
-              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce)
+              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }else{
-              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce)
+              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
           }
         }
@@ -1647,13 +1661,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["SVM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
         
-        #SVM Validation 
+        #SVM Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["SVM"]] <- data.frame(Sp=spN[s], Algorithm="SVM",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["SVM"]] <- data.frame(Sp=spN[s], Algorithm="SVM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SVM",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SVM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
         
         #Save Partition Predictions
@@ -1773,13 +1788,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["SVM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #SVM Validation 
+          #SVM Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce)
+            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce)
+            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1813,13 +1829,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["RDF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
         
-        #RDF Validation 
+        #RDF Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["RDF"]] <- data.frame(Sp=spN[s], Algorithm="RDF",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["RDF"]] <- data.frame(Sp=spN[s], Algorithm="RDF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="RDF",Partition=Part, Validation,Boyce=Boyce)
+          ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="RDF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
         
         #Save Partition Predictions
@@ -1944,13 +1961,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["RDF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #RDF Validation 
+          #RDF Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce)
+            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce)
+            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1991,13 +2009,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Boyce[[i]] <- ecospat.boyce(RastPart[["GAM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           }
           
-          #GAM Validation 
+          #GAM Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["GAM"]] <- data.frame(Sp=spN[s], Algorithm="GAM",Partition=Part, Validation,Boyce=Boyce)
+            ListValidation[["GAM"]] <- data.frame(Sp=spN[s], Algorithm="GAM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAM",Partition=Part, Validation,Boyce=Boyce)
+            ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
           
           #Save Partition Predictions
@@ -2111,13 +2130,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
             
-            #GAM Validation 
+            #GAM Validation
+            BoyceSD <- sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
-              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce)
+              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }else{
-              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce)
+              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
           }
         }
@@ -2158,13 +2178,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Boyce[[i]] <- ecospat.boyce(RastPart[["GLM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           }
           
-          #GLM Validation 
+          #GLM Validation
+          BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
-            ListValidation[["GLM"]] <- data.frame(Sp=spN[s], Algorithm="GLM",Partition=Part, Validation,Boyce=Boyce)
+            ListValidation[["GLM"]] <- data.frame(Sp=spN[s], Algorithm="GLM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GLM",Partition=Part, Validation,Boyce=Boyce)
+            ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GLM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
           
           #Save Partition Predictions
@@ -2276,13 +2297,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GLM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
             
-            #GLM Validation 
+            #GLM Validation
+            BoyceSD <- sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
-              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce)
+              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }else{
-              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce)
+              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
           }
         }
@@ -2315,13 +2337,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce[[i]] <- ecospat.boyce(RastPart[["GAU"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
       
-      #GAU Validation 
+      #GAU Validation
+      BoyceSD <- sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
       if(is.null(repl)){
-        ListValidation[["GAU"]] <- data.frame(Sp=spN[s], Algorithm="GAU",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["GAU"]] <- data.frame(Sp=spN[s], Algorithm="GAU",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
       }else{
-        ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAU",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAU",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
       
       #Save Partition Predictions
@@ -2437,13 +2460,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAU"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
         
-        #GAU Validation 
+        #GAU Validation
+        BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
-          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce)
+          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce)
+          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
       }
     }
@@ -2504,13 +2528,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Boyce[[i]] <- ecospat.boyce(RastPart[["BRT"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             }
             
-            #BRT Validation 
+            #BRT Validation
+            BoyceSD <- sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
-              ListValidation[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce)
+              ListValidation[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }else{
-              ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce)
+              ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
             
             #Save Partition Predictions
@@ -2653,13 +2678,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BRT"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
               
               
-              #BRT Validation 
+              #BRT Validation
+              BoyceSD <- sd(unlist(Boyce))
               Boyce <- mean(unlist(Boyce))
               Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
               if(is.null(repl)){
-                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce)
+                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
               }else{
-                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce)
+                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
               }
             }
           }

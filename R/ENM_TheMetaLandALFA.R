@@ -359,12 +359,9 @@ ENMs_TheMetaLand <- function(pred_dir,
       
     #Projection PCA
     if(transfer=="Y"){
-      EnvF <- list()
-      for(i in 1:length(Pfol)){
-        EnvF[[i]] <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol[i],Save="Y")
-      }
+      EnvF <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol,Save="Y")
       names(EnvF) <- PfolN
-      envT <- brick(stack(file.path(pred_dir,"PCA",list.files(file.path(pred_dir,"PCA"),pattern='PC'))))
+      envT <- brick(stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
     }else{
       envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
     }
@@ -529,7 +526,7 @@ ENMs_TheMetaLand <- function(pred_dir,
                   method = method,
                   BufferDistanceKm=NULL,
                   EcoregionsFile=NULL,
-                  Dir=pred_dir,
+                  Dir=DirR,
                   spN=spN,
                   SaveM = TRUE)
     }
@@ -924,11 +921,11 @@ ENMs_TheMetaLand <- function(pred_dir,
         if(pseudoabs_method=="ENV_CONST"){
             
             DirCons <- "EnvConstrain"
-            if (file.exists(file.path(pred_dir,DirCons))){
-              DirCons<-file.path(pred_dir,DirCons)
+            if (file.exists(file.path(DirR,DirCons))){
+              DirCons<-file.path(DirR,DirCons)
             } else {
-              dir.create(file.path(pred_dir,DirCons))
-              DirCons<-file.path(pred_dir,DirCons)
+              dir.create(file.path(DirR,DirCons))
+              DirCons<-file.path(DirR,DirCons)
             }
             
             #Check for Environmental Constrain Existence
@@ -1004,11 +1001,11 @@ ENMs_TheMetaLand <- function(pred_dir,
         if(pseudoabs_method=="GEO_CONST"){
           
           DirCons <- "GeoConstrain"
-          if (file.exists(file.path(pred_dir,DirCons))){
-            DirCons<-file.path(pred_dir,DirCons)
+          if (file.exists(file.path(DirR,DirCons))){
+            DirCons<-file.path(DirR,DirCons)
           } else {
-            dir.create(file.path(pred_dir,DirCons))
-            DirCons<-file.path(pred_dir,DirCons)
+            dir.create(file.path(DirR,DirCons))
+            DirCons<-file.path(DirR,DirCons)
           }
           
           #Check for Environmental Constrain Existence
@@ -1083,11 +1080,11 @@ ENMs_TheMetaLand <- function(pred_dir,
         # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
         if(pseudoabs_method=="GEO_ENV_CONST"){
           DirCons <- "GeoEnvConstrain"
-          if (file.exists(file.path(pred_dir,DirCons))){
-            DirCons<-file.path(pred_dir,DirCons)
+          if (file.exists(file.path(DirR,DirCons))){
+            DirCons<-file.path(DirR,DirCons)
           } else {
-            dir.create(file.path(pred_dir,DirCons))
-            DirCons<-file.path(pred_dir,DirCons)
+            dir.create(file.path(DirR,DirCons))
+            DirCons<-file.path(DirR,DirCons)
           }
           
           #Check for Environmental Constrain Existence
@@ -1163,11 +1160,11 @@ ENMs_TheMetaLand <- function(pred_dir,
         # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
         if(pseudoabs_method=="GEO_ENV_KM_CONST"){
           DirCons <- "GeoEnvConstrain_KM"
-          if (file.exists(file.path(pred_dir,DirCons))){
-            DirCons<-file.path(pred_dir,DirCons)
+          if (file.exists(file.path(DirR,DirCons))){
+            DirCons<-file.path(DirR,DirCons)
           } else {
-            dir.create(file.path(pred_dir,DirCons))
-            DirCons<-file.path(pred_dir,DirCons)
+            dir.create(file.path(DirR,DirCons))
+            DirCons<-file.path(DirR,DirCons)
           }
           
           #Check for Environmental Constrain Existence
@@ -1333,8 +1330,8 @@ ENMs_TheMetaLand <- function(pred_dir,
           #Save Final Occurrence Table
           occTREINO <- ldply(occTREINO,data.frame,.id=NULL)
           occTESTE <- ldply(occTESTE,data.frame,.id=NULL)
-          write.table(occTREINO,file.path(DirR,"OcorrenciasTreino.txt"),sep="\t",row.names=F)
-          write.table(occTESTE,file.path(DirR,"OcorrenciasTeste.txt"),sep="\t",row.names=F)
+          write.table(occTREINO,file.path(DirR,"Occurrences_Fitting.txt"),sep="\t",row.names=F)
+          write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
         
           #Save Final Validation File
           val <- list.files(DirR,pattern="Validation_Partition")
@@ -1344,6 +1341,13 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
           valF <- ldply(valF,data.frame,.id=NULL)
           valF <- valF[order(as.character(valF[,1])),]
+          valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
+          valF_SD <- aggregate(.~Sp+Algorithm, data=valF, sd)
+          valF_SD <- valF_SD[,-c(1:4)]
+          colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
+          valF <- cbind(valF_Mean,valF_SD)
+          valF$Replicate <- NULL
+          valF$Partition <- part
           unlink(file.path(DirR,val))
           write.table(valF,file.path(DirR,"PartialModels_Validation.txt"),sep="\t",row.names=F)
           
@@ -1362,6 +1366,12 @@ ENMs_TheMetaLand <- function(pred_dir,
             }
             BootF <- ldply(BootF,data.frame,.id=NULL)
             BootF <- BootF[order(as.character(BootF[,1])),]
+            BootF_Mean <- aggregate(.~sp, data=BootF, mean)
+            BootF_SD <- aggregate(.~sp, data=BootF, sd)
+            BootF_SD <- BootF_SD[,-c(1,4)]
+            colnames(BootF_SD) <- paste0(colnames(BootF_SD),"_SD")
+            BootF <- cbind(BootF_Mean,BootF_SD)
+            BootF$Replicate <- NULL
             unlink(file.path(DirR,Boot))
             if(part=="BOOT"){
               write.table(BootF,file.path(DirR,"Bootstrap_Moran_MESS.txt"),sep="\t",row.names=F)
@@ -1491,4 +1501,3 @@ ENMs_TheMetaLand <- function(pred_dir,
       S_SDM(DirENM=DirT,DirMSDM=DirT2,DirProj=DirT3,spN,Threshold=thr) 
     }
 }
-print("Isso é um teste2")

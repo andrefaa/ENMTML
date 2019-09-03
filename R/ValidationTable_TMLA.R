@@ -18,7 +18,15 @@ Validation_Table_TMLA<-function(Eval,
                           Fpb=max(Eval_JS[[i]]$Fpb))
     colnames(summres) <- c( "AUC","Kappa", "TSS","Jaccard","Sorensen","Fpb")
   }
-  res <- data.frame(matrix(round(colMeans(summres), 3),nrow=1,ncol=6))
-  colnames(res) <- colnames(summres)
+  if(N!=1){
+    resSD <- data.frame(matrix(round(apply(summres,2,sd), 3),nrow=1,ncol=6))
+    res <- data.frame(matrix(round(colMeans(summres), 3),nrow=1,ncol=6))
+    colnames(res) <- colnames(summres)
+    colnames(resSD) <- paste0(colnames(res),"_SD")
+    res <- cbind(res,resSD)
+  }else{
+    res <- data.frame(matrix(round(colMeans(summres), 3),nrow=1,ncol=6))
+    colnames(res) <- colnames(summres)
+  }
   return(res)
 }
