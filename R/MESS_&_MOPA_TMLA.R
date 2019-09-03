@@ -36,17 +36,6 @@ MOP <- function(Variables,
     return(mopr)
   }
   
-  rem_out <- function(r){
-    # Function to rmove outliers from MOP values
-    ss <- quantile(r[], na.rm=T)
-    me <- median(r[], na.rm=T)
-    out <- boxplot.stats(r[])[[4]]
-    # r[which(r[]%in%out[out>=me])]
-    r[which(r[]%in%out[out<=me])] <- ss[2]
-    return(r)
-  }
-  
-  
   spN <- unique(RecordsData$sp)
   #Initialisation
   for (i in 1:length(DirProj)) {
@@ -68,8 +57,7 @@ MOP <- function(Variables,
         occM <- rbind(spOccS[VarCol], occM[VarCol])
         occM <- na.omit(occM)
         MOPr <- mop(g_raster = Variables[[i]], m_occ = occM)
-        MOPr <- STANDAR(rem_out(MOPr)) 
-        
+        plot(MOPr<0.8)
         writeRaster(
           MOPr,
           file.path(DirProj[i], paste0(spN[j], "_MOP.tif")),
