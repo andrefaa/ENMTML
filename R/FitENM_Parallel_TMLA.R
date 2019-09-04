@@ -428,7 +428,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="BIO",x=foldCat,value=T)
+            foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               writeRaster(PartRas>=Thr_Alg[t], 
                           paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -441,7 +441,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="BIO",x=foldCat,value=T)
+            foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               writeRaster(PartRas>=Thr_Alg[t], 
                           paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
@@ -453,7 +453,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="BIO",x=foldCat,value=T)
+            foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               writeRaster(PartRas>=Thr_Alg[t],
                           paste(grep("BIO",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -538,19 +538,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #DOMAIN (DOM)----- 
     if (any(Algorithm == "DOM")) {
       Model <- list()
-      #DOM model
+      #MAH model
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][PAtrain[[i]][, "PresAbse"] == 1,]
         Model[[i]] <- dismo::domain(dataPr[, VarColT])
       }
       
-      #DOM evaluation
+      #MAH evaluation
       if((is.null(Fut)==F && Tst=="Y")==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          RastPart[["DOM"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
+          RastPart[["DOM"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["DOM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -559,8 +559,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["DOM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
-          
-        #DOM Validation
+        
+        #MAH Validation
         BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
@@ -575,13 +575,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- (predict(Model[[i]], VariablesT))
+            PartRas <- rem_out(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)) 
             if(N!=1){
-              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              writeRaster(
+                PartRas,
+                paste(grep("DOM", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
+                format = 'GTiff',
+                overwrite = TRUE )
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="DOM",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -590,26 +592,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="DOM",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
-                            paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
+                            paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
+              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="DOM",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("DOM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                            paste(grep("DOM",foldCatAlg[t],value=T), '/',spN[s],sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -619,22 +621,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
-          if(is.null(repl) && N==1){
-            Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
-            FinalModelT <- predict(Model, VariablesT)
+          if(is.null(repl)){
+            Model <-
+              dismo::domain(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
+                                                  SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
+            FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
+            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
+            PredPoint <- extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-            FinalModelT <- predict(Model, VariablesT)
+            FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
+            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[,2:3])
+            PredPoint <- extract(FinalModel,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
-          #Full Model Thresholds
+          #Final Model Thresholds
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
           #Final Thresholds
@@ -648,13 +654,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           
           #Final Model Rasters
           ListSummary[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM", Thr)
+          
           if(SaveFinal=="Y"){
             ListRaster[["DOM"]] <- FinalModel
             names(ListRaster[["DOM"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["DOM"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+              ListFut[[ProjN[k]]][["DOM"]] <-
+                STANDAR_FUT(rem_out(PREDICT_DomainMahal(VariablesP[[k]], Model)), FinalModelT)
             }
           }
         }
@@ -662,9 +670,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["DOM"]] <- STANDAR(predict(VariablesP[[k]], Model[[i]]))
-
-          PredPoint <- extract(ListFut[[ProjN[k]]][["DOM"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -674,7 +680,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["DOM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           
-          #DOM Validation
+          #MAH Validation
           BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
@@ -735,7 +741,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 format = 'GTiff',
                 overwrite = TRUE )
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MAH",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -748,7 +754,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MAH",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
@@ -760,7 +766,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MAH",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("MAH",foldCatAlg[t],value=T), '/',spN[s],sep=""),
