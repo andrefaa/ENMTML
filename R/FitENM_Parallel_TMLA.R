@@ -576,7 +576,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- rem_out(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)) 
+            PartRas <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT) 
             if(N!=1){
               writeRaster(
                 PartRas,
@@ -627,14 +627,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               dismo::domain(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
                                                   SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
-            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
-            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -663,7 +661,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["DOM"]] <-
-                STANDAR_FUT(rem_out(PREDICT_DomainMahal(VariablesP[[k]], Model)), FinalModelT)
+                STANDAR_FUT(PREDICT_DomainMahal(VariablesP[[k]], Model), FinalModelT)
             }
           }
         }
@@ -933,7 +931,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="ENF",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -946,7 +944,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="ENF",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
@@ -958,7 +956,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="ENF",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("ENF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -1187,7 +1185,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MXD",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1200,7 +1198,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MXD",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1212,7 +1210,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MXD",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("MXD",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -1342,7 +1340,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MXS",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1355,7 +1353,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MXS",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1367,7 +1365,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="MXS",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("MXS",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -1514,7 +1512,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="MLK",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t], 
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1527,7 +1525,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="MLK",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t], 
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1539,7 +1537,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="MLK",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t],
                               paste(grep("MLK",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -1676,7 +1674,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="SVM",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1689,7 +1687,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="SVM",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1701,7 +1699,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="SVM",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("SVM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -1844,7 +1842,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="RDF",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1857,7 +1855,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="RDF",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -1869,7 +1867,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-              foldCatAlg <- grep(pattern="RDF",x=foldCat,value=T)
+              foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("RDF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -2024,7 +2022,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="GAM",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t], 
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2037,7 +2035,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="GAM",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t], 
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2049,7 +2047,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="GAM",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t],
                               paste(grep("GAM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -2193,7 +2191,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="GLM",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t], 
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2206,7 +2204,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="GLM",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t], 
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2218,7 +2216,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                foldCatAlg <- grep(pattern="GLM",x=foldCat,value=T)
+                foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   writeRaster(PartRas>=Thr_Alg[t],
                               paste(grep("GLM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -2352,7 +2350,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="GAU",x=foldCat,value=T)
+            foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               writeRaster(PartRas>=Thr_Alg[t], 
                           paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2365,7 +2363,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="GAU",x=foldCat,value=T)
+            foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               writeRaster(PartRas>=Thr_Alg[t], 
                           paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2377,7 +2375,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="GAU",x=foldCat,value=T)
+            foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               writeRaster(PartRas>=Thr_Alg[t],
                           paste(grep("GAU",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
@@ -2544,7 +2542,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                               format='GTiff',
                               overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                  foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
+                  foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
                     writeRaster(PartRas>=Thr_Alg[t], 
                                 paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2557,7 +2555,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                               format='GTiff',
                               overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                  foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
+                  foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
                     writeRaster(PartRas>=Thr_Alg[t], 
                                 paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
@@ -2569,7 +2567,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                               format='GTiff',
                               overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-                  foldCatAlg <- grep(pattern="BRT",x=foldCat,value=T)
+                  foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
                     writeRaster(PartRas>=Thr_Alg[t],
                                 paste(grep("BRT",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
