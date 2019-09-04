@@ -576,7 +576,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- rem_out(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)) 
+            PartRas <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT) 
             if(N!=1){
               writeRaster(
                 PartRas,
@@ -627,14 +627,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               dismo::domain(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
                                                   SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
-            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
-            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -663,7 +661,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               ListFut[[ProjN[k]]][["DOM"]] <-
-                STANDAR_FUT(rem_out(PREDICT_DomainMahal(VariablesP[[k]], Model)), FinalModelT)
+                STANDAR_FUT(PREDICT_DomainMahal(VariablesP[[k]], Model), FinalModelT)
             }
           }
         }
