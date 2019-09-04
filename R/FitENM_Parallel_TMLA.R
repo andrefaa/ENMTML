@@ -602,7 +602,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         # Save final model
-        if(per!=1 && repl==1 || per==1 || N!=1){
+        if(repl==1 || N!=1){
           if(is.null(repl)){
             Model <-
               dismo::domain(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
@@ -1781,10 +1781,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][, c("PresAbse", VarColT)]
         set.seed(1)
-        Model[[i]] <- randomForest(as.factor(PresAbse)~.,data=dataPr[,c("PresAbse",VarColT)],
-                                    importance=T, type="regression")
-        # Model[[i]] <- tuneRF(dataPr[,-1], (dataPr[,1]), trace=F,
-        #                      stepFactor=2, ntreeTry=1000, doBest=T, plot=F)
+        # Model[[i]] <- randomForest(as.factor(PresAbse)~.,data=dataPr[,c("PresAbse",VarColT)],
+        #                             importance=T, type="regression")
+        Model[[i]] <- tuneRF(dataPr[,-1], (dataPr[,1]), trace=F,
+                             stepFactor=2, ntreeTry=1000, doBest=T, plot=F)
       }
       #RDF evaluation
       if((is.null(Fut)==F && Tst=="Y")==F){
@@ -1792,7 +1792,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT],type="prob")[,2])
+          RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT]))
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["RDF"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1863,20 +1863,22 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(repl==1 || N!=1){
           set.seed(0)
           if(is.null(repl) && N==1){
-            Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[SpDataT$Partition==1,c("PresAbse",VarColT)],
-                                  importance=T, type="classification")
-            # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
-            #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
-            FinalModelT <- 1-predict(VariablesT,Model,type="prob")
+            # Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[SpDataT$Partition==1,c("PresAbse",VarColT)],
+            #                       importance=T, type="classification")
+            # FinalModelT <- 1-predict(VariablesT,Model,type="prob")
+            Model <- tuneRF(SpDataT[SpDataT$Partition==1,VarColT], (SpDataT[SpDataT$Partition==1,"PresAbse"]), trace=F,
+                            stepFactor=2, ntreeTry=500, doBest=T, plot = F)
+            FinalModelT <- predict(VariablesT,Model)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }else{
-            Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[,c("PresAbse",VarColT)],
-                                  importance=T, type="classification")
-            # Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
-            #                 stepFactor=2, ntreeTry=500, doBest=T, plot = F)
-            FinalModelT <- 1-predict(VariablesT,Model,type="prob")
+            # Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[,c("PresAbse",VarColT)],
+            #                       importance=T, type="classification")
+            # FinalModelT <- 1-predict(VariablesT,Model,type="prob")
+            Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
+                            stepFactor=2, ntreeTry=500, doBest=T, plot = F)
+            FinalModelT <- predict(VariablesT,Model)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel,SpDataT[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
