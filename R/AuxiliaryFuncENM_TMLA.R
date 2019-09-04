@@ -9,6 +9,29 @@ STANDAR_FUT <- function(ModelFut,ModelPre){
   return(result)
 }
 
+
+# Function to remove outliers from MAH and DOMAIN preiction
+rem_out <- function(r){
+  ss <- quantile(r[], na.rm=T)
+  me <- median(r[], na.rm=T)
+  out <- boxplot.stats(r[])[[4]]
+  r[which(r[]%in%out[out<=me])] <- ss[2]
+  return(r)
+}
+
+
+# Prediction for Mahalanobis and Domaint------
+PREDICT_DomainMahal <- function(mod, variables){
+  df <- na.omit(rasterToPoints(variables))
+  pred <- dismo::predict(mod, df[,-c(1:2)])  
+  result <- data.frame(df[,1:2], pred)
+  gridded(result)<- ~x+y
+  result <- raster(result, layer=1, values=TRUE)
+  return(result)
+}
+
+
+
 # Prediction of different algorithm------
 PREDICT <- function(Variables, Models_List){
 ListRaster <- as.list(names(Models_List))

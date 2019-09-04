@@ -290,13 +290,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   cat("Fitting Models....\n")
   
   # Construction of models LOOP-----
-  results <- foreach(s = 1:length(spN), .packages = c("raster","dismo","kernlab","randomForest",
-                                                      "maxnet","maxlike","GRaF","plyr","gam","RStoolbox",
-                                                      "adehabitatHS","caret","visreg","glmnet","gbm"),
-                     .export=c("Validation2_0","maxnet2","predict.graf.raster","PCA_ENS_TMLA","predict.maxnet","boycei","STANDAR","STANDAR_FUT",
-                               "Eval_Jac_Sor_TMLA","Validation_Table_TMLA","Thresholds_TMLA","VarImp_RspCurv","hingeval","ecospat.boyce")) %dopar% {
-
-    #Results Lists
+  results <- foreach(s = 1:length(spN), 
+                     .packages = c("raster", "dismo",
+    "kernlab", "randomForest", "maxnet", "maxlike",
+    "GRaF", "plyr", "gam", "RStoolbox", "adehabitatHS",
+    "caret", "visreg", "glmnet", "gbm" ),
+                     .export = c( "Validation2_0", "maxnet2", 
+    "predict.graf.raster", "PCA_ENS_TMLA", "predict.maxnet", "boycei",
+      "STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA", "Validation_Table_TMLA",
+      "Thresholds_TMLA", "VarImp_RspCurv", "hingeval", "ecospat.boyce")) %dopar% {
+      #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
     
@@ -699,12 +702,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          Ras <- dismo::predict(object=Model[[i]],x=VariablesT)
-          Ras[Ras <= -10] <- -10
-          Ras <- (Ras)
-          RastPart[["MAH"]][[i]] <- extract(Ras,PAtest[[i]][,c("x","y")])
-          rm(Ras)
-          # RastPart[["MAH"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
+          RastPart[["MAH"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MAH"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -729,11 +727,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- (predict(Model[[i]], VariablesT))
+            PartRas <- rem_out(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)) 
             if(N!=1){
-              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              writeRaster(
+                PartRas,
+                paste(grep("MAH", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
+                format = 'GTiff',
+                overwrite = TRUE )
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=foldCat,value=T)
               for(t in 1:length(Thr_Alg)){
@@ -744,26 +744,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=foldCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t], 
-                            paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
+                            paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
+              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=foldCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("MAH",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                            paste(grep("MAH",foldCatAlg[t],value=T), '/',spN[s],sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
@@ -774,30 +774,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(per!=1 && repl==1 || per==1 || N!=1){
           if(is.null(repl)){
-            Model <- mahal(x=VariablesT,p=SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, 2:3]) # only presences  
-            Model <- mahalanobis(x=rasterToPoints(VariablesT)[,-c(1,2)],
-                                 center=colMeans(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]),
-                                 cov=cov(rasterToPoints(VariablesT)[,-c(1,2)]),
-                                 inverted=F) # only presences  
-            Ras <- rasterToPoints(VariablesT[[1]])[,1:2]
-            Ras <- data.frame(cbind(Ras,Model))
-            gridded(Ras) <- ~ x+y
-            Ras <- raster(Ras)
-            Ras <- Ras*-1
-            Ras[Ras< -10] <- -10
-            Ras <- (Ras)
-            
-            
-            FinalModelT <- predict(Model, VariablesT)
-            FinalModelT[FinalModelT <= -10] <- -10
+            Model <-
+              mahal(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
+                                                  SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
+            FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
+            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
-            # Ras <- (Ras)
-            PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
+            PredPoint <- extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-            FinalModelT <- predict(Model, VariablesT)
-            FinalModelT[FinalModelT <= -10] <- -10
+            FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
+            FinalModelT <- rem_out(FinalModelT)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -820,12 +808,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListSummary[["MAH"]] <- data.frame(Sp=spN[s], Algorithm="MAH", Thr)
           
           if(SaveFinal=="Y"){
-            ListRaster[["MAH"]] <- Ras
+            ListRaster[["MAH"]] <- FinalModel
             names(ListRaster[["MAH"]]) <- spN[s]
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["MAH"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+              ListFut[[ProjN[k]]][["MAH"]] <-
+                STANDAR_FUT(rem_out(PREDICT_DomainMahal(VariablesP[[k]], Model)), FinalModelT)
             }
           }
         }
@@ -833,9 +822,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["MAH"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
-
-          PredPoint <- extract(ListFut[[ProjN[k]]][["MAH"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
