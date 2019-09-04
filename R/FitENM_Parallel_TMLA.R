@@ -272,9 +272,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         DirProj <- file.path(ModFut,"Extrapolation")
         MOP(
           Variables = Fut,
-          RecordsDataM = RecordsDataM,
+          RecordsData = RecordsData,
           VarCol = VarCol,
-          DirProj = DirProj
+          DirProj = DirProj,
+          DirMask=DirMask
         )
       }
     }
