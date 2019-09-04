@@ -1341,6 +1341,7 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
           valF <- ldply(valF,data.frame,.id=NULL)
           valF <- valF[order(as.character(valF[,1])),]
+          valF <- valF[!colnames(valF) %in% "Boyce_SD"]
           valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
           valF_SD <- aggregate(.~Sp+Algorithm, data=valF, sd)
           valF_SD <- valF_SD[,-c(1:4)]
@@ -1350,12 +1351,6 @@ ENMs_TheMetaLand <- function(pred_dir,
           valF$Partition <- part
           unlink(file.path(DirR,val))
           write.table(valF,file.path(DirR,"PartialModels_Validation.txt"),sep="\t",row.names=F)
-          
-          # valFII <- ldply(valFII,data.frame,.id=NULL)
-          # valFII <- valFII[order(as.character(valFII[,1])),]
-          # unlink(file.path(DirR,valII))
-          # write.table(valFII,file.path(DirR,"FullModels_Thresholds.txt"),sep="\t",row.names=F)
-          
           
           #Save Final Bootstrap File
           if(per!=1 || part=="KFOLD"){
@@ -1382,8 +1377,21 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
         }
     }#Fecha partition BOOT|KFOLD
-    
-#8.MSDM Posteriori----
+
+#8.Ensemble----
+    if (ensemble!="N"){
+      ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
+      Ensemble_TMLA(DirR = DirR,
+                    ValTable = ValF,
+                    ThrTable = ThrTable,
+                    PredictType = ensemble,
+                    RecordsData = occINPUT,
+                    Threshold = thr,
+                    sensV = sensV,
+                    Proj = transfer)
+    }
+        
+#9.MSDM Posteriori----
     
     if(msdm=="POST"){
       
@@ -1456,7 +1464,7 @@ ENMs_TheMetaLand <- function(pred_dir,
       }
     }
     
-#9.S-SDM----
+#10.S-SDM----
     if(s_sdm=="Y"){
       
       #Where to S-SDM
