@@ -262,7 +262,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       cat("Calculate extrapolation for the projected extent?(Y/N)")
       ansE <- readLines(n=1)
       while(!ansE%in%c("Y","N")){
-        cat("Calculate extrapolation for the current extent?(Y/N)")
+        cat("Calculate extrapolation for the projected extent?(Y/N)")
         ansE <- readLines(n=1)
       }
       if(ansE=="Y"){
@@ -272,9 +272,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         DirProj <- file.path(ModFut,"Extrapolation")
         MOP(
           Variables = Fut,
-          RecordsDataM = RecordsDataM,
+          RecordsData = RecordsData,
           VarCol = VarCol,
-          DirProj = DirProj
+          DirProj = DirProj,
+          DirMask=DirMask
         )
       }
     }
