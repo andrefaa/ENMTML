@@ -37,13 +37,18 @@ MOP <- function(Variables,
   }
   
   spN <- unique(RecordsData$sp)
+  
   #Initialisation
   for (i in 1:length(DirProj)) {
-    foreach (j = 2:length(spN),.packages=c("raster","dismo"),.export="mop")%dopar% {
+    foreach (j = 1:length(spN),.packages=c("raster","dismo"),.export="mop")%dopar% {
       #Check for existence
       if (!file.exists(file.path(DirProj[i], paste0(spN[j], "_MOP.tif")))){
         spOccS <- RecordsData[RecordsData$sp == spN[j],]
-        MM <- raster(file.path(DirMask, paste0(spN[j], ".tif")))
+        if(is.null(DirMask)){
+          MM <- Variables[[i]][1]
+        }else{
+          MM <- raster(file.path(DirMask, paste0(spN[j], ".tif")))
+        }
         MP <- rasterize(spOccS[,2:3], MM)
         MM[!is.na(MP[])] <- NA
         if(cellStats(MM, sum)<10000){
