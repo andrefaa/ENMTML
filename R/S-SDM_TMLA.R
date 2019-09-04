@@ -32,7 +32,7 @@ S_SDM <- function(DirENM,
   if(!is.null(DirMSDM)){
     sapply(DirMSDM,function(x) dir.create(file.path(x,"S_SDM")))
     DirSSDM2 <- file.path(DirMSDM,"S_SDM")
-    DirMSDM <- file.path(DirMSDM,Threshold)
+    DirMSDM <- file.path(DirMSDM,"BIN")
     
     #Calculate S-SDM
     foreach(s = 1:length(DirSSDM2), .packages = "raster") %dopar% {
