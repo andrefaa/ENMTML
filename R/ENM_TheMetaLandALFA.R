@@ -1382,7 +1382,20 @@ ENMs_TheMetaLand <- function(pred_dir,
           }
         }
     }#Fecha partition BOOT|KFOLD
-    
+
+#8.Ensemble----
+    if (ensemble!="N"){
+      ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
+      Ensemble_TMLA(DirR = DirR,
+                    ValTable = ValF,
+                    ThrTable = ThrTable,
+                    PredictType = ensemble,
+                    RecordsData = occINPUT,
+                    Threshold = thr,
+                    sensV = sensV,
+                    Proj = transfer)
+    }
+        
 #8.MSDM Posteriori----
     
     if(msdm=="POST"){
