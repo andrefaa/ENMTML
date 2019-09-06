@@ -55,19 +55,19 @@ PCAFuturo<-function(Env,
   
   #2.Project PCA
   
-  Pfol <- as.list(Pfol)
-  ProjEX <- lapply(Pfol, function(x) unique(file_ext(list.files(x))))
+  DirP <- as.list(DirP)
+  ProjEX <- lapply(DirP, function(x) unique(file_ext(list.files(x))))
   form <- c('bil','asc','txt','tif')
   ProjEX <- ProjEX[ProjEX%in%form]
 
   if(any(ProjEX %in% c('asc', 'bil', 'tif'))){
-    ProjT<-lapply(Pfol, function(x) brick(stack(file.path(x,list.files(x,paste0('\\.',ProjEX,'$'))))))
+    ProjT<-lapply(DirP, function(x) brick(stack(file.path(x,list.files(x,paste0('\\.',ProjEX,'$'))))))
   }
 
   if(any(ProjEX %in% 'txt')){
     ProjT <- list()
-    for(j in Pfol){
-      ProjT[[i]]<-read.table(file.path(Pfol[[i]],list.files(Pfol[[i]],pattern='.txt'),h=T))
+    for(j in DirP){
+      ProjT[[i]]<-read.table(file.path(DirP[[i]],list.files(DirP[[i]],pattern='.txt'),h=T))
       gridded(ProjT[[i]])<- ~x+y
       ProjT[[i]]<-brick(stack(ProjT[[i]]))
     }
