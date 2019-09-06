@@ -493,7 +493,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         for(k in 1:length(VariablesP)){
           ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
-
           PredPoint <- extract(ListFut[[ProjN[k]]][["BIO"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -847,24 +846,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          PredRas <- values(VariablesT)
-          POS <- which(is.na(PredRas[,1]))
-          Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model[[i]]$co))
-          POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-          ZER <- rep(0,nrow(PredRas))
-          ZER[POSPRE] <- 1
-          ZER <- ZER[-POS]
+          Zli <- as.matrix(PAtestM[[i]][,VarColT]) %*% as.matrix(Model[[i]]$co)
+          ZER <- 1:nrow(PAtestM[[i]])
           f1 <- function(x) rep(x, ZER)
           Sli <- apply(Zli, 2, f1)
           m <- apply(Sli, 2, mean)
           cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-          PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-          XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
-          PredRAS <- data.frame(cbind(XY,ENF=NA))
-          PredRAS[-POS,"ENF"] <- PredRas
-          gridded(PredRAS) <- ~x+y
-          PredRAS <- (raster(PredRAS))
-          RastPart[["ENF"]][[i]] <- extract(PredRAS,PAtestM[[i]][c("x","y")])
+          RastPart[["ENF"]][[i]] <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["ENF"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -951,15 +939,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(repl==1 || N!=1){
           if(is.null(repl)){
-            Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences  
-            PredPoint <- predict(Model, SpDataT[SpDataT[,"Partition"]==1, VarColT])
-            
             dudi <- dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
-            Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, PresAbse],scannf = FALSE)
+            Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
             Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-            # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
             POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -973,24 +957,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
             gridded(PredRAS) <- ~x+y
-            ListRaster[["ENF"]] <- (raster(PredRAS))
-            names(ListRaster[["ENF"]]) <- spN[s]
-            PredPoint <- extract(ListRaster[["ENF"]],SpDataT[,c("x","y")])
-            # Zli <- (as.matrix(SpDataT[, VarColT]) %*% as.matrix(Model$co))*-1
-            # # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
-            # f1 <- function(x) rep(x, SpDataT$PresAbse)
-            # Sli <- apply(Zli, 2, f1)
-            # m <- apply(Sli, 2, mean)
-            # cov <- t(as.matrix(Sli)) %*% as.matrix(Sli)/nrow(Sli)
-            # PredPoint <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = T))
-            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+            FinalModelT <- rem_out(raster(PredRAS))
+            FinalModel <- STANDAR(FinalModelT)
+            PredPoint <- extract(FinalModel,SpDataTM[,c("x","y")])
+            PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }else{
             dudi <- dudi.pca(SpDataT[, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
             Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-            # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
             POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -1004,18 +980,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
             gridded(PredRAS) <- ~x+y
-            ListRaster[["ENF"]] <- (raster(PredRAS))
-            names(ListRaster[["ENF"]]) <- spN[s]
-            PredPoint <- extract(ListRaster[["ENF"]],SpDataT[,c("x","y")])
-            
-            # Zli <- (as.matrix(SpDataT[, VarColT]) %*% as.matrix(Model$co))*-1
-            # # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
-            # f1 <- function(x) rep(x, SpDataT$PresAbse)
-            # Sli <- apply(Zli, 2, f1)
-            # m <- apply(Sli, 2, mean)
-            # cov <- t(as.matrix(Sli)) %*% as.matrix(Sli)/nrow(Sli)
-            # PredPoint <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = T))
-            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+            FinalModelT <- rem_out(raster(PredRAS))
+            FinalModel <- STANDAR(FinalModelT)
+            PredPoint <- extract(FinalModel,SpDataTM[,c("x","y")])
+            PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }
           #Final Model Thresholds
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1023,65 +991,48 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
           
+          #Final Thresholds
+          Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
+          
           #Variable Importance & Response Curves
           if(VarImP=="Y"){
             VarImp_RspCurv(Model=Model,Algorithm='ENF',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
-          #Final Thresholds
-          Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Final Model Rasters
           ListSummary[["ENF"]] <- data.frame(Sp=spN[s], Algorithm="ENF", Thr)
-          rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRAS"))
-          # if(SaveFinal=="Y"){
-            # PredRas <- values(VariablesT)
-            # POS <- which(!is.na(PredRas[,1]))
-            # Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-            # # Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
-            # POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-            # ZER <- rep(0,length(POS))
-            # ZER[POSPRE] <- 1
-            # f1 <- function(x) rep(x, ZER)
-            # Sli <- apply(Zli, 2, f1)
-            # m <- apply(Sli, 2, mean)
-            # cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-            # PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = T))
-            # XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
-            # PredRAS <- data.frame(cbind(XY,ENF=NA))
-            # PredRAS[POS,"ENF"] <- PredRas
-            # gridded(PredRAS) <- ~x+y
-            # ListRaster[["ENF"]] <- (raster(PredRAS))
-            # # ListRaster[["ENF"]] <- ((((raster(PredRAS)) - max((raster(PredRAS)))) * -1) + min((raster(PredRAS))))
-            # rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRAS"))
-            # names(ListRaster[["ENF"]]) <- spN[s]
-          # }
+          if(SaveFinal=="Y"){
+            ListRaster[["ENF"]] <- FinalModel
+            names(ListRaster[["ENF"]]) <- spN[s]
+          }
+          
+          #Future Projections
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               PredRas <- values(VariablesP[[k]])
-              POS <- which(!is.na(PredRas[,1]))
+              POS <- which(is.na(PredRas[,1]))
               Zli <- as.matrix(na.omit(values(VariablesP[[k]])) %*% as.matrix(Model$co))
-              Zli <- sweep((sweep(Zli,2,apply(Zli,2,min),"-")),2,(apply(Zli,2,max)-apply(Zli,2,min)),"/")
-              POSPRE <- cellFromXY(VariablesP[[k]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-              ZER <- rep(0,length(POS))
+              POSPRE <- cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+              ZER <- rep(0,nrow(PredRas))
               ZER[POSPRE] <- 1
+              ZER <- ZER[-POS]
               f1 <- function(x) rep(x, ZER)
               Sli <- apply(Zli, 2, f1)
               m <- apply(Sli, 2, mean)
               cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-              PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
-              XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+              PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+              XY <- xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
               PredRAS <- data.frame(cbind(XY,ENF=NA))
-              PredRAS[POS,"ENF"] <- PredRas
+              PredRAS[-POS,"ENF"] <- PredRas
               gridded(PredRAS) <- ~x+y
-              ListFut[[ProjN[k]]][["ENF"]] <- (raster(PredRAS))
+              PredRas <- STANDAR_FUT(rem_out(raster(PredRAS)),FinalModelT)
+              if(minValue(PredRas)<0){
+                PredRas <- PredRas-minValue(PredRas)
+              }
+              ListFut[[ProjN[k]]][["ENF"]] <- PredRas
               rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRas",
                         "PredRAS"))
-              if(maxValue(ListFut[[ProjN[k]]][["ENF"]])==0){
-                ListFut[[ProjN[k]]][["ENF"]] <- ListFut[[ProjN[k]]][["ENF"]]
-              }else{
-                ListFut[[ProjN[k]]][["ENF"]] <- (ListFut[[ProjN[k]]][["ENF"]])
-              }
             }
           }
         }
@@ -1089,13 +1040,23 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["ENF"]] <- predict(VariablesP[[k]],Model[[i]])
-          if(maxValue(ListFut[[ProjN[k]]][["ENF"]])==0){
-            ListFut[[ProjN[k]]][["ENF"]] <- ListFut[[ProjN[k]]][["ENF"]]
-          }else{
-            ListFut[[ProjN[k]]][["ENF"]] <- (ListFut[[ProjN[k]]][["ENF"]])
-          }
-          
+          PredRas <- values(VariablesP[[k]])
+          POS <- which(is.na(PredRas[,1]))
+          Zli <- as.matrix(na.omit(values(VariablesP[[k]])) %*% as.matrix(Model[[i]]$co))
+          POSPRE <- cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+          ZER <- rep(0,nrow(PredRas))
+          ZER[POSPRE] <- 1
+          ZER <- ZER[-POS]
+          f1 <- function(x) rep(x, ZER)
+          Sli <- apply(Zli, 2, f1)
+          m <- apply(Sli, 2, mean)
+          cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+          PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+          XY <- xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
+          PredRAS <- data.frame(cbind(XY,ENF=NA))
+          PredRAS[-POS,"ENF"] <- PredRas
+          gridded(PredRAS) <- ~x+y
+          ListFut[[ProjN[k]]][["ENF"]] <- rem_out(raster(PredRas))
           PredPoint <- extract(ListFut[[ProjN[k]]][["ENF"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],

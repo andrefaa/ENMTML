@@ -5,7 +5,8 @@ Ensemble_TMLA <- function(DirR,
                           RecordsData,
                           Threshold,
                           sensV,
-                          Proj){
+                          Proj,
+                          cores){
   
   
   #Start Cluster----

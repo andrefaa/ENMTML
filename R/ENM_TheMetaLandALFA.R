@@ -1,7 +1,7 @@
 #' Create and process Ecological Niche and Species Distribution Models
 #'
 #' @param pred_dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
-#' @occ_dir character. Directory path with tab delimited TXT file with species names, latitude and longitude 
+#' @occ_file character. Directory path with tab delimited TXT file with species names, latitude and longitude 
 #' @param sp character. Name of the column with information about species names
 #' @param x character. Name of the column with information about longitude
 #' @param y character. Name of the column with information about latitude
@@ -114,7 +114,7 @@
 #' 
 #' @export
 ENMs_TheMetaLand <- function(pred_dir,
-                             occ_dir,
+                             occ_file,
                              sp,
                              x,
                              y,
@@ -143,8 +143,8 @@ ENMs_TheMetaLand <- function(pred_dir,
   if(missing(pred_dir)){
     er <- c(er,paste("'pred_dir' unspecified argument, specify the directory of environmental variables | "))
   }
-  if(missing(occ_dir)){
-    er <- c(er,paste("'occ_dir' unspecified argument, specify the directory of occurrence species data | "))
+  if(missing(occ_file)){
+    er <- c(er,paste("'occ_file' unspecified argument, specify the directory of occurrence species data | "))
   }
   if(missing(sp)){
     er <- c(er,paste("'sp' unspecified argument, specify the column' name with the species name  | "))
@@ -463,7 +463,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   # Read txt with occurences data
-  occ <- read.table(occ_dir,
+  occ <- read.table(occ_file,
                     h = T,
                     sep = '\t',
                     stringsAsFactors = F)
@@ -1381,6 +1381,7 @@ ENMs_TheMetaLand <- function(pred_dir,
 #8.Ensemble----
     if (ensemble!="N"){
       ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
+      ValF <- read.table(file.path(DirR,"PartialModels_Validation.txt"),sep="\t",h=T)
       Ensemble_TMLA(DirR = DirR,
                     ValTable = ValF,
                     ThrTable = ThrTable,
@@ -1388,7 +1389,8 @@ ENMs_TheMetaLand <- function(pred_dir,
                     RecordsData = occINPUT,
                     Threshold = thr,
                     sensV = sensV,
-                    Proj = transfer)
+                    Proj = transfer,
+                    cores = cores)
     }
         
 #9.MSDM Posteriori----
