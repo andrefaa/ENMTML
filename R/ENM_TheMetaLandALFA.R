@@ -457,6 +457,7 @@ cat("Checking for function arguments ...")
   }
   
 #4.Occurrence Data ----
+  cat("Loading and processing species occurrence data ...")
   
   DirR<-"Result"
   setwd("..")
@@ -545,6 +546,7 @@ cat("Checking for function arguments ...")
     }
     
 #6. Geographical Partition----
+    cat('Performing partition of species occurrence data ... ')
     if(part=="BANDS" || part=="BLOCK"){
       
       if(any(grepl("PC",names(envT)))==T || any(grepl("pc",names(envT)))==T){
@@ -683,7 +685,7 @@ cat("Checking for function arguments ...")
       }
       
       if(msdm%in%c("XY","MIN","CML", "KER")){
-        print("Creating msdm Layers...")
+        print("Creating msdm layers...")
         
         DirMSDM<-"msdm"
         if (file.exists(file.path(pred_dir,DirMSDM))){
