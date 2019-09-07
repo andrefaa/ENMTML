@@ -1,7 +1,8 @@
 #' Create and process Ecological Niche and Species Distribution Models
 #'
 #' @param pred_dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
-#' @occ_dir character. Directory path with tab delimited TXT file with species names, latitude and longitude 
+#' @param proj_dir character. Directory path containing folders with environment conditions for different regions or time periods used to project models (file formats supported are: ASC, BILL, TIFF or TXT). 
+#' @param occ_dir character. Directory path with tab delimited TXT file with species names, latitude and longitude 
 #' @param sp character. Name of the column with information about species names
 #' @param x character. Name of the column with information about longitude
 #' @param y character. Name of the column with information about latitude
@@ -15,8 +16,6 @@
 #'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Componets as environmental variables
 #' }
 #' @param imp_var character. Perform importance of variable and curves response for selected algorithms? (Y/N)
-#' @param transfer character. Project the model onto another region or time period? (Y/N)
-#' @param eval_occ character. Use a pre-determined set of occurrences for validation? (Y/N)
 #' @param sp_accessible_area character. Restrict for each species the accessible area,i.e. the area used to construct the model? (Y/N)
 #' @param pres_abs_ratio numeric. Presence-Absence ratio (values between 0 and 1)
 #' @param pseudoabs_method character. Pseudo-absence allocation method:
@@ -114,6 +113,7 @@
 #' 
 #' @export
 ENMs_TheMetaLand <- function(pred_dir,
+                             proj_dir,
                              occ_dir,
                              sp,
                              x,
@@ -122,7 +122,6 @@ ENMs_TheMetaLand <- function(pred_dir,
                              thin_occ,
                              colin_var,
                              imp_var,
-                             transfer,
                              eval_occ,
                              sp_accessible_area,
                              pres_abs_ratio = 1,
@@ -158,9 +157,9 @@ ENMs_TheMetaLand <- function(pred_dir,
   if(missing(colin_var)){
     er <- c(er,paste("'colin_var' unspecified argument, specify whether you want to perform PCA on environmental variables | "))
   }
-  if(missing(transfer)){
-    er <- c(er,paste("'transfer' unspecified argument, specify whether you want to project the model for another region/time period | "))
-  }
+  # if(missing(transfer)){
+  #   er <- c(er,paste("'transfer' unspecified argument, specify whether you want to project the model for another region/time period | "))
+  # }
   if(missing(pres_abs_ratio)){
     er <- c(er,paste("'pres_abs_ratio' unspecified argument, specify a prevalence between train/test | "))
   }
@@ -190,9 +189,9 @@ ENMs_TheMetaLand <- function(pred_dir,
   if(!(colin_var%in%c("PEARSON","VIF","PCA","N"))){
     stop("'colin_var' Argument is not valid!(PEARSON, VIF, PCA, N)")
   }
-  if(!(transfer%in%c("Y","N"))){
-    stop("'transfer' Argument is not valid!(Y/N)")
-  }
+  # if(!(transfer%in%c("Y","N"))){
+  #   stop("'transfer' Argument is not valid!(Y/N)")
+  # }
   if(pres_abs_ratio<=0){
     stop("'pres_abs_ratio' Argument is not valid!(pres_abs_ratio>=0)")
   }
@@ -294,9 +293,9 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   #3.1.Projection----
-  if(transfer=="Y"){
-    print("Select folder containing folders with environment conditions for different regions or time periods to model transferring:")
-    DirP<-choose.dir(getwd())
+  if(exist(transfer)){
+    # print("Select folder containing folders with environment conditions for different regions or time periods to model transferring:")
+    DirP<-proj_dir
     Pfol<-file.path(DirP,list.files(DirP))
     if(any(file_ext(list.files(DirP))%in%form)){
       stop("Select a folder containing folders with environment conditions for different regions or time periods, NOT a folder with this variables!")
