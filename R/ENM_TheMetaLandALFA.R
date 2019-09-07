@@ -113,7 +113,7 @@
 #' 
 #' @export
 ENMs_TheMetaLand <- function(pred_dir,
-                             proj_dir,
+                             proj_dir=NULL,
                              occ_dir,
                              sp,
                              x,
@@ -137,7 +137,8 @@ ENMs_TheMetaLand <- function(pred_dir,
                              s_sdm) {
   
 #1.Check Function Arguments  
-  
+cat("Checking for function arguments ...")
+
   er <- NULL
   if(missing(pred_dir)){
     er <- c(er,paste("'pred_dir' unspecified argument, specify the directory of environmental variables | "))
@@ -250,6 +251,8 @@ ENMs_TheMetaLand <- function(pred_dir,
   algorithm <- Ord[Ord%in%algorithm]
 
 #3.Predictors ----
+  cat("Loading environmental variables ...")
+  
   options(warn = 1)
   setwd(pred_dir)
   
@@ -293,7 +296,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   #3.1.Projection----
-  if(exist(transfer)){
+  if(!is.null(proj_dir)){
     # print("Select folder containing folders with environment conditions for different regions or time periods to model transferring:")
     DirP<-proj_dir
     Pfol<-file.path(DirP,list.files(DirP))
@@ -317,17 +320,19 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   #3.1. Variable Colinearity----
+  
   #3.1.1.VIF----
   if(colin_var=="VIF") {
+  cat("Performing a reduction of variables collinearity ...")
     VF <- vifstep(envT, th = 10)
     envT <- exclude(envT, VF)
-    if (transfer == "Y") {
+    if (!is.null(proj_dir)) {
       RasM <- colMeans(na.omit(values(envT)))
       RasSTD <- apply(na.omit(values(envT)), 2, std)
     }
     envT <- raster::scale(envT)
     
-    if(transfer=="Y") {
+    if(!is.null(proj_dir)) {
       EnvF <- list()
       for (i in 1:length(Pfol)) {
         ProjT <- unique(file_ext(list.files(Pfol[i])))
@@ -355,9 +360,9 @@ ENMs_TheMetaLand <- function(pred_dir,
   
   #3.1.2.PCA----
   if (colin_var=="PCA") {
-      
+    cat("Performing a reduction of variables collinearity ...")
     #Projection PCA
-    if(transfer=="Y"){
+    if(!is.null(proj_dir)){
       EnvF <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol,Save="Y")
       names(EnvF) <- PfolN
       envT <- brick(stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
@@ -368,6 +373,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   
   #3.3.3.Pearson----
   if(colin_var=="PEARSON"){
+    cat("Performing a reduction of variables collinearity ...")
     cat("Select correlation threshold:(0-1)")
     Cor_TH <- as.numeric(readLines(n=1))
     Pear <- layerStats(envT, 'pearson', na.rm=T)
@@ -375,13 +381,13 @@ ENMs_TheMetaLand <- function(pred_dir,
     corr_matrix[upper.tri(corr_matrix)] <- 0
     diag(corr_matrix) <- 0
     envT <- envT[[names(envT)[!apply(corr_matrix,2,function(x) any(x > 0.70))]]]
-    if(transfer=="Y"){
+    if(!is.null(proj_dir)){
       RasM <- colMeans(na.omit(values(envT)))
       RasSTD <- apply(na.omit(values(envT)),2,std)
     }
     envT <- scale(envT)
     
-    if(transfer=="Y"){
+    if(!is.null(proj_dir)){
       EnvF <- list()
       for(i in 1:length(Pfol)){
         ProjT <- unique(file_ext(list.files(Pfol[i])))
@@ -409,7 +415,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   
   #3.3.4.colin_var='N'----
   if (colin_var == "N") {
-    if (transfer == "Y") {
+    if (!is.null(proj_dir)) {
       EnvF <- list()
       for (i in 1:length(Pfol)) {
         ProjT <- unique(file_ext(list.files(Pfol[i])))
@@ -438,7 +444,7 @@ ENMs_TheMetaLand <- function(pred_dir,
   }
   
   #3.3.Erro Futuro e msdm
-  if(transfer=="Y" && msdm!="N"){
+  if(is.null(proj_dir) && msdm!="N"){
     warning("msdm can not be used with future projections")
     warning("Setting msdm to N")
     msdm <- "N"
@@ -690,7 +696,7 @@ ENMs_TheMetaLand <- function(pred_dir,
       }
 
       #6.4. Future Projections ----
-      if(transfer=="Y"){
+      if(!is.null(proj_dir)){
         Fut <- EnvF
       }else{
         Fut <- NULL
@@ -872,7 +878,7 @@ ENMs_TheMetaLand <- function(pred_dir,
       #7.4. Generating Pseudo-Absences----
         # Pseudo-Absences with Random allocation-----
         if(pseudoabs_method=="RND"){
-            if(transfer=="Y"&& eval_occ=="Y"){
+            if(!is.null(proj_dir)&& eval_occ=="Y"){
               pseudo.mask <- envT[[1]]
               pseudo.maskP <- EnvF[[1]][[1]]
             }else{
@@ -948,7 +954,7 @@ ENMs_TheMetaLand <- function(pred_dir,
                 pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
               }
             
-              if(transfer=="Y"&& eval_occ=="Y"){
+              if(!is.null(proj_dir)&& eval_occ=="Y"){
                 pseudo.maskP <- EnvF[[1]][[1]]
               }else{
                 pseudo.maskP <- pseudo.mask
@@ -1028,7 +1034,7 @@ ENMs_TheMetaLand <- function(pred_dir,
               pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
             }
             
-            if(transfer=="Y"&& eval_occ=="Y"){
+            if(!is.null(proj_dir)&& eval_occ=="Y"){
               pseudo.maskP <- EnvF[[1]][[1]]
             }else{
               pseudo.maskP <- pseudo.mask
@@ -1109,7 +1115,7 @@ ENMs_TheMetaLand <- function(pred_dir,
               pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
             }
             
-            if(transfer=="Y"&& eval_occ=="Y"){
+            if(!is.null(proj_dir)&& eval_occ=="Y"){
               pseudo.maskP <- EnvF[[1]][[1]]
             }else{
               pseudo.maskP <- pseudo.mask
@@ -1189,7 +1195,7 @@ ENMs_TheMetaLand <- function(pred_dir,
               pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
             }
             
-            if(transfer=="Y"&& eval_occ=="Y"){
+            if(!is.null(proj_dir)&& eval_occ=="Y"){
               pseudo.maskP <- EnvF[[1]][[1]]
             }else{
               pseudo.maskP <- pseudo.mask
@@ -1262,7 +1268,7 @@ ENMs_TheMetaLand <- function(pred_dir,
           occINPUT[,cols] = apply(occINPUT[,cols], 2, function(x) as.numeric(as.character(x)))
           
       #7.5. Define Projection----
-        if(transfer=="Y"){
+        if(!is.null(proj_dir)){
           Fut <- EnvF
         }else{
           Fut <- NULL
@@ -1484,7 +1490,7 @@ ENMs_TheMetaLand <- function(pred_dir,
       }
       
       #S-SDM on Projections?
-      if(transfer=="Y"){
+      if(!is.null(proj_dir)){
         cat("Create S-SDM for Projections?(Y/N)")
         Q3 <- as.character(readLines(n=1))
         if(Q3=="Y" && Q1=="N"){
