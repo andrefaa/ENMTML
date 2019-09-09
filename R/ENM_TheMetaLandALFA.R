@@ -143,8 +143,8 @@ cat("Checking for function arguments ...")
   if(missing(pred_dir)){
     er <- c(er,paste("'pred_dir' unspecified argument, specify the directory of environmental variables | "))
   }
-  if(missing(occ_dir)){
-    er <- c(er,paste("'occ_dir' unspecified argument, specify the directory of occurrence species data | "))
+  if(missing(occ_file)){
+    er <- c(er,paste("'occ_file' unspecified argument, specify the directory of occurrence species data | "))
   }
   if(missing(sp)){
     er <- c(er,paste("'sp' unspecified argument, specify the column' name with the species name  | "))
@@ -296,9 +296,15 @@ cat("Checking for function arguments ...")
   }
   
   #3.1.Projection----
-  if(!is.null(proj_dir)){
+  if(!is.null(
+  
+  
+  
+  
+  )){
     # print("Select folder containing folders with environment conditions for different regions or time periods to model transferring:")
-    DirP<-proj_dir
+    DirP<-
+    
     Pfol<-file.path(DirP,list.files(DirP))
     if(any(file_ext(list.files(DirP))%in%form)){
       stop("Select a folder containing folders with environment conditions for different regions or time periods, NOT a folder with this variables!")
@@ -469,7 +475,7 @@ cat("Checking for function arguments ...")
   }
   
   # Read txt with occurences data
-  occ <- read.table(occ_dir,
+  occ <- read.table(occ_file,
                     h = T,
                     sep = '\t',
                     stringsAsFactors = F)
@@ -1348,6 +1354,7 @@ cat("Checking for function arguments ...")
           }
           valF <- ldply(valF,data.frame,.id=NULL)
           valF <- valF[order(as.character(valF[,1])),]
+          valF <- valF[!colnames(valF) %in% "Boyce_SD"]
           valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
           valF_SD <- aggregate(.~Sp+Algorithm, data=valF, sd)
           valF_SD <- valF_SD[,-c(1:4)]
@@ -1357,12 +1364,6 @@ cat("Checking for function arguments ...")
           valF$Partition <- part
           unlink(file.path(DirR,val))
           write.table(valF,file.path(DirR,"PartialModels_Validation.txt"),sep="\t",row.names=F)
-          
-          # valFII <- ldply(valFII,data.frame,.id=NULL)
-          # valFII <- valFII[order(as.character(valFII[,1])),]
-          # unlink(file.path(DirR,valII))
-          # write.table(valFII,file.path(DirR,"FullModels_Thresholds.txt"),sep="\t",row.names=F)
-          
           
           #Save Final Bootstrap File
           if(per!=1 || part=="KFOLD"){
@@ -1389,8 +1390,23 @@ cat("Checking for function arguments ...")
           }
         }
     }#Fecha partition BOOT|KFOLD
-    
-#8.MSDM Posteriori----
+
+#8.Ensemble----
+    if (ensemble!="N"){
+      ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
+      ValF <- read.table(file.path(DirR,"PartialModels_Validation.txt"),sep="\t",h=T)
+      Ensemble_TMLA(DirR = DirR,
+                    ValTable = ValF,
+                    ThrTable = ThrTable,
+                    PredictType = ensemble,
+                    RecordsData = occINPUT,
+                    Threshold = thr,
+                    sensV = sensV,
+                    Proj = transfer,
+                    cores = cores)
+    }
+        
+#9.MSDM Posteriori----
     
     if(msdm=="POST"){
       
@@ -1463,7 +1479,7 @@ cat("Checking for function arguments ...")
       }
     }
     
-#9.S-SDM----
+#10.S-SDM----
     if(s_sdm=="Y"){
       
       #Where to S-SDM

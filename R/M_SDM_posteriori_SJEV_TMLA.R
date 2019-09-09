@@ -58,15 +58,7 @@ MSDM_Posterior <- function(RecordsData,
 
     # # Extract values for one species and calculate the threshold
     SpData <- data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s], ])
-    # PredPoint <- extract(Adeq, SpData[, c("x", "y")])
-    # PredPoint <- data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
-    # Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-    #                  PredPoint[PredPoint$PresAbse == 0, 2])
-    # Eval_JS <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-    #                                 a=PredPoint[PredPoint$PresAbse == 0, 2])
-    # Boyce <- ecospat.boyce(Adeq,PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-    # Thr <- unlist(c(threshold(Eval))[Threshold])
-
+    
     #### Cutoff MCP----
     if(cutoff=="MCP"){
       hull <- convHull(SpData[SpData[,"PresAbse"]==1, c("x", "y")], lonlat=TRUE)
@@ -128,29 +120,14 @@ MSDM_Posterior <- function(RecordsData,
         AdeqBin[AdeqBin[] == 0] <- NA
         AdeqBin <- round(AdeqBin,6)
         AdeqBin <- clump(AdeqBin)
-        # A "SpatialPolygonsDataFrame" which each adequability patch is a feature
-        # AdeqBin2 <- rasterToPolygons(AdeqBin, fun=NULL, n=16, na.rm=TRUE, digits=5, dissolve=TRUE)
-        # AdeqBin2 <- disaggregate(AdeqBin2)
-        # # Individualize each patch with a number
-        # AdeqBin2$ID <- 1:length(AdeqBin2)
-        # AdeqBin2$layer <- NULL
-        # create a data.frame wiht coordinate and patch number
         AdeqPoints <- data.frame(rasterToPoints(AdeqBin)[,1:2])
-        # AdeqBin3 <- rasterize(AdeqBin2,AdeqBin,fun="first")
-        # AdeqPoints <- cbind(AdeqPoints,ID=extract(AdeqBin3,AdeqPoints))
         AdeqPoints <- cbind(AdeqPoints,ID=extract(AdeqBin,AdeqPoints))
         # Find the patches that contain presences records
-        # polypoint<-raster::intersect(AdeqBin2,pts1)
         polypoint <- as.numeric(unique(extract(AdeqBin,pts1)))
         AdeqBin2 <- AdeqBin
         AdeqBin2[!AdeqBin2[] %in% polypoint] <- NA
         AdeqBin2 <- !is.na(AdeqBin2)
         if(cutoff=="PRES"){
-          # Mask2 <- Adeq
-          # Msk <- rasterize(polypoint,Adeq,background=0)
-          # Msk[is.na(Adeq[])] <- NA
-          # Mask2 <- Msk>0
-          # Mask <- Adeq*Mask2
           Mask <- AdeqBin2
           Mask[is.na(Mask)] <- 0
           Mask[is.na(Adeq[])] <- NA
@@ -171,13 +148,12 @@ MSDM_Posterior <- function(RecordsData,
         }else{
         # Create a vector wich contain the number (e.i. ID) of the patches 
         # with presences
-        # filter1 <- unique(polypoint$ID)
         filter1 <- unique(na.omit(values(AdeqBin2)))
         # In this step are created two data.frame one with the patches coordinates 
         # that contain presences and another with patches coordinates without presences
         CoordPathP <- as.data.frame(AdeqPoints[AdeqPoints[,3]%in%filter1,])
         CoordPathNP <- as.data.frame(AdeqPoints[!AdeqPoints[,3]%in%filter1,])
-        # Here is created a matrix wiht all combination between ID of patches 
+        # Here are created a matrix wiht all combination between ID of patches 
         # with and without presences
         
         if(ncol(CoordPathP)==1){
@@ -218,10 +194,6 @@ MSDM_Posterior <- function(RecordsData,
         DistBetweenPoly0 <- DistBetweenPoly0[order(DistBetweenPoly0[,2]),]
         # Minimum Euclidean Distance between patches wiht and without presences
         DistBetweenPoly <- tapply(X = DistBetweenPoly0[,3], DistBetweenPoly0[,2], min)
-        
-        # Adding value of distance patches to cells
-        # AdeqBin2$Eucldist <- 0
-        # AdeqBin2$Eucldist[!AdeqBin2$ID%in%filter1] <- round(DistBetweenPoly, 4)
 
         # CUTOFF------
         if(cutoff=='OBR'){
@@ -244,18 +216,6 @@ MSDM_Posterior <- function(RecordsData,
         Mask[is.na(Adeq)] <- NA
         Mask2 <- Adeq*Mask
         
-        # AdeqPoints <- rasterToPoints(AdeqBin)[,1:2]
-        # AdeqPoints <- extract(AdeqBin2, AdeqPoints)[,'Eucldist']
-        # fist <- AdeqBin
-        # fist[fist[]==1] <- AdeqPoints
-        # # Threshold based on Maximum value of minimum ditance between ocurrences
-        # final<-fist<=CUT
-        # final[final==0] <- NA
-        # Mask2 <- Adeq
-        # Mask <- Adeq>=as.numeric(Thr)
-        # Mask[Mask==1] <- 0
-        # Mask[!is.na(final[])] <- 1
-        # Mask2[Mask!=1] <- 0
         # Save results as raster object
         writeRaster(Mask2,
                     paste(DirSave, paste(SpNames[s],'.tif', sep = ""), sep = "/"),
