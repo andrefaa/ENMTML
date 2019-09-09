@@ -1,40 +1,41 @@
 #' Create and process Ecological Niche and Species Distribution Models
 #'
 #' @param pred_dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
-#' @param proj_dir character. Directory path containing folders with environment conditions for different regions or time periods used to project models (file formats supported are: ASC, BILL, TIFF or TXT). 
-#' @param occ_file character. Directory path with tab delimited TXT file with species names, latitude and longitude 
+#' @param proj_dir character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are: ASC, BILL, TIFF or TXT).
+#' @param occ_file character. Directory path with tab-delimited TXT file with species names, latitude and longitude
 #' @param sp character. Name of the column with information about species names
 #' @param x character. Name of the column with information about longitude
 #' @param y character. Name of the column with information about latitude
-#' @param min_occ interger. Minimum number of unique occurrences (species with less than this number will be excluded)
-#' @param thin_occ chracater. Perform a spatial filtering (Thinning) on the presences? (Y/N)
-#' @param colin_var character. Method to reduce variable collinearity: 
-#' \itemize {
+#' @param min_occ integer. Minimum number of unique occurrences (species with less than this number will be excluded)
+#' @param thin_occ character. Perform spatial filtering (Thinning) on the presences? (Y/N)
+#' @param colin_var character. Method to reduce variable collinearity:
+#' \itemize{
 #'   \item N: Use original variables.
 #'   \item PEARSON: Select variables by Pearson correlation (threshold specified by user).
 #'   \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006).
-#'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Componets as environmental variables
+#'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables
 #' }
-#' @param imp_var character. Perform importance of variable and curves response for selected algorithms? (Y/N)
+#' @param imp_var character. Perform variable importance and curves response for selected algorithms? (Y/N)
 #' @param sp_accessible_area character. Restrict for each species the accessible area,i.e. the area used to construct the model? (Y/N)
 #' @param pres_abs_ratio numeric. Presence-Absence ratio (values between 0 and 1)
 #' @param pseudoabs_method character. Pseudo-absence allocation method:
-#' \itemize{ 
-#' \item RND: Random allocation throughout area used to fit models. 
-#' \item ENV_CONST: Pseudo-absences are environmentally constrained to a region with lower suitability values predicted by a Bioclim model. 
+#' \itemize{
+#' \item RND: Random allocation throughout area used to fit models.
+#' \item ENV_CONST: Pseudo-absences are environmentally constrained to a region with lower suitability values predicted by a Bioclim model.
 #' \item GEO_CONST: Pseudo-absences are allocated far from occurrences based on a geographical buffer.
 #' \item GEO_ENV_CONST: Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer.
-#' \item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-mean cluster analysis. }
+#' \item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis.
+#' }
 #' @param part character. Partition method for model's validation:
 #' \itemize{
 #'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test).
-#'   \item KFOLD: Random partition in k-fold cross validation.
+#'   \item KFOLD: Random partition in k-fold cross-validation.
 #'   \item BAND: Geographic partition structured as bands (latitudinal or longitudinal).
 #'   \item BLOCK: Geographic partition structured as a checkerboard.
 #' }
-#' @param save_part character. Save .tif files of the partitions ? (Y/N) (Default="Y")
+#' @param save_part character. Save .tif files of the partitions? (Y/N) (Default="Y")
 #' @param save_final character. Save .tif files of the final model (fitted with all the data)? (Y/N) (Default="Y")
-#' @param algorithm character. Algorithm to construct ecological niche models: 
+#' @param algorithm character. Algorithm to construct ecological niche models (it is possible to use more than one method):
 #' \itemize{
 #'   \item BIO: Bioclim
 #'   \item MAH: Mahalanobis
@@ -50,8 +51,8 @@
 #'   \item MLK: Maximum Likelihood
 #'   \item GAU: Gaussian
 #' }
-#' 
-#' @param thr character. Threshold used for presence-absence maps:
+#'
+#' @param thr character. Threshold used for presence-absence predictions (it is possible to use more than one method):
 #' \itemize{
 #'   \item LPT: The highest threshold at which there is no omission
 #'   \item MAX_TSS: Threshold at which the sum of the sensitivity and specificity is highest
@@ -60,11 +61,11 @@
 #'   \item JACCARD: the threshold at which Jaccard is highest
 #'   \item SORENSEN: the threshold at which Sorensen is highest
 #'   }
-#'   
+#'
 #' @param msdm character. Include spatial restrictions. These methods restrict Ecological Niche Models in order to have less potential prediction and turn ENMs closer to species distribution models (SDMs). They are classified in a Priori and a Posteriori methods:
-#' 
-#' a Priori methods: 
-#' 
+#'
+#' a Priori methods:
+#'
 #' \itemize{
 #'   \item N: Do not perform MSDM
 #'   \item XY: Create two layers latitude and longitude layer (added as a predictor)
@@ -74,15 +75,14 @@
 #'   }
 #' a Posteriori methods
 #' \itemize{
-#'   \item POST: Posterior M-SDM Methods (If chosen, preferred method will be asked later) [NOT added as a predictor]
-#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)
-#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)
+#'   \item POST: Posterior M-SDM Methods (If chosen, the preferred method will be asked later) [NOT added as a predictor]
+#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep)
+#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep)
 #'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep)
-#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)
-#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)
+#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al., 2008)
+#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user; Kremen et al., 2008)
 #'   }
-#'
-#' @param ensemble character. Method used to ensemble different algorithms:
+#' @param ensemble character. Method used to ensemble different algorithms (it is possible to use more than one method):
 #'   \itemize{
 #'   \item N: No ensemble
 #'   \item MEAN: Simple average of the different models
@@ -92,12 +92,10 @@
 #'   \item PCA_SUP: PCA of the best models (TSS over the average)
 #'   \item PCA_THR: PCA only with cells above the threshold
 #'   }
-#'   
 #' @param cores numeric. Define the number number of CPU cores to run modeling procedures in parallel.
-#'  
 #' @param s_sdm character. Perform a stacked of Species Distribution Model (richness map)? (Y/N)
 #'
-#' 
+#'
 #' @references
 #'\itemize{
 #'\item Kremen, C., Cameron, A., Moilanen, A., Phillips, S. J., Thomas, C. D.,
@@ -107,11 +105,12 @@
 #'}
 #'
 #'@examples
-#' library(ENMTheMetaLand)
-#' 
-#' 
-#' 
+#' library(ENMTML)
+#'
+#'
+#'
 #' @export
+#'
 ENMTML <- function(pred_dir,
                              proj_dir=NULL,
                              occ_file,
