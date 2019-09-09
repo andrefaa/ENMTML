@@ -55,8 +55,8 @@ Ensemble_TMLA <- function(DirR,
   }
   
   #Thresholds List----
-  ListSummary <- as.list(ensemble)
-  names(ListSummary) <- ensemble
+  ListSummary <- as.list(PredictType)
+  names(ListSummary) <- PredictType
   
   
   #Evaluation Metric----
@@ -87,13 +87,15 @@ Ensemble_TMLA <- function(DirR,
     ListRaster <- stack(file.path(Folders,paste0(spN[s],".tif")))
     names(ListRaster) <- list.files(file.path(DirR,"Algorithm"))
     
-    ListFut <- lapply(ProjN, function(x) stack(file.path(x,paste0(spN[s],".tif"))))
-    ListFut <- lapply(seq(ListFut), function(i) {
-        y <- ListFut[[i]]
-        names(y) <- list.files(file.path(DirR,"Algorithm"))
-        return(y)
-    })
-    names(ListFut) <- list.files(file.path(DirR,"Projection"))
+    if(!is.null(Proj)){
+      ListFut <- lapply(ProjN, function(x) stack(file.path(x,paste0(spN[s],".tif"))))
+      ListFut <- lapply(seq(ListFut), function(i) {
+          y <- ListFut[[i]]
+          names(y) <- list.files(file.path(DirR,"Algorithm"))
+          return(y)
+      })
+      names(ListFut) <- list.files(file.path(DirR,"Projection"))
+    }
     
   ##%######################################################%##
   #                                                          #

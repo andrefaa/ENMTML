@@ -137,7 +137,7 @@ ENMTML <- function(pred_dir,
                              s_sdm) {
   
 #1.Check Function Arguments  
-cat("Checking for function arguments ...")
+cat("Checking for function arguments ...\n")
 
   er <- NULL
   if(missing(pred_dir)){
@@ -251,7 +251,7 @@ cat("Checking for function arguments ...")
   algorithm <- Ord[Ord%in%algorithm]
 
 #3.Predictors ----
-  cat("Loading environmental variables ...")
+  cat("Loading environmental variables ...\n")
   
   options(warn = 1)
   setwd(pred_dir)
@@ -296,15 +296,8 @@ cat("Checking for function arguments ...")
   }
   
   #3.1.Projection----
-  if(!is.null(
-  
-  
-  
-  
-  )){
-    # print("Select folder containing folders with environment conditions for different regions or time periods to model transferring:")
-    DirP<-
-    
+  if(!is.null(proj_dir)){
+    DirP<-proj_dir
     Pfol<-file.path(DirP,list.files(DirP))
     if(any(file_ext(list.files(DirP))%in%form)){
       stop("Select a folder containing folders with environment conditions for different regions or time periods, NOT a folder with this variables!")
@@ -329,7 +322,7 @@ cat("Checking for function arguments ...")
   
   #3.1.1.VIF----
   if(colin_var=="VIF") {
-  cat("Performing a reduction of variables collinearity ...")
+  cat("Performing a reduction of variables collinearity ...\n")
     VF <- vifstep(envT, th = 10)
     envT <- exclude(envT, VF)
     if (!is.null(proj_dir)) {
@@ -366,7 +359,7 @@ cat("Checking for function arguments ...")
   
   #3.1.2.PCA----
   if (colin_var=="PCA") {
-    cat("Performing a reduction of variables collinearity ...")
+    cat("Performing a reduction of variables collinearity ...\n")
     #Projection PCA
     if(!is.null(proj_dir)){
       EnvF <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol,Save="Y")
@@ -379,8 +372,8 @@ cat("Checking for function arguments ...")
   
   #3.3.3.Pearson----
   if(colin_var=="PEARSON"){
-    cat("Performing a reduction of variables collinearity ...")
-    cat("Select correlation threshold:(0-1)")
+    cat("Performing a reduction of variables collinearity ...\n")
+    cat("Select correlation threshold:(0-1)\n")
     Cor_TH <- as.numeric(readLines(n=1))
     Pear <- layerStats(envT, 'pearson', na.rm=T)
     corr_matrix <- abs(Pear$'pearson correlation coefficient')
@@ -463,7 +456,7 @@ cat("Checking for function arguments ...")
   }
   
 #4.Occurrence Data ----
-  cat("Loading and processing species occurrence data ...")
+  cat("Loading and processing species occurrence data ...\n")
   
   DirR<-"Result"
   setwd("..")
@@ -490,10 +483,10 @@ cat("Checking for function arguments ...")
 
     #4.2.Thining----
     if(thin_occ=="Y"){
-      cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
+      cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)\n"))
       ThinMet <- as.integer(readLines(n=1))
       while(!ThinMet%in%c(1,2,3)){
-        cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)"))
+        cat(("Select thinning method:\n1-Distance defined by Moran Variogram\n2-User defined distance\n3-Distance defined by 2x cellsize (Haversine Transformation)\n"))
         ThinMet <- as.integer(readLines(n=1))
       }
       occA <- OccsThin(occ=occA, envT, ThinMet, colin_var, DirR, pred_dir)
@@ -526,11 +519,11 @@ cat("Checking for function arguments ...")
     
     #5. Restrict Extent per Species----
     if(sp_accessible_area=="Y"){
-      cat("Select restriction type (buffer / mask):")
+      cat("Select restriction type (buffer / mask):\n")
       method <- as.character(readLines(n = 1))
       while(!method%in%c("buffer","mask")){
         warning("Please Select a valid restriction type (buffer / mask)")
-        cat("Select restriction type (buffer / mask):")
+        cat("Select restriction type (buffer / mask):\n")
         method <- as.character(readLines(n = 1))
       }
       DirM <- M_delimited(var=envT,
@@ -545,14 +538,14 @@ cat("Checking for function arguments ...")
   
     if(grepl("GEO", pseudoabs_method)){
       #Define Buffer distance:
-      cat("Select buffer distance (in km):")
+      cat("Select buffer distance (in km):\n")
       Geo_Buf <- as.integer(readLines(n = 1))*1000
     }else{
       Geo_Buf=NA
     }
     
 #6. Geographical Partition----
-    cat('Performing partition of species occurrence data ... ')
+    cat('Performing partition of species occurrence data ...\n')
     if(part=="BANDS" || part=="BLOCK"){
       
       if(any(grepl("PC",names(envT)))==T || any(grepl("pc",names(envT)))==T){
@@ -724,7 +717,7 @@ cat("Checking for function arguments ...")
       
       #6.6.Value for Sensitivity Threshold
       if(any(thr%in%"SENSITIVITY")){
-        cat("Specify the desired sensitivity value (0-1):")
+        cat("Specify the desired sensitivity value (0-1):\n")
         sensV <- as.numeric(readLines(n=1))
       }else{
         sensV <- NULL
@@ -788,28 +781,28 @@ cat("Checking for function arguments ...")
 
       #7.2. Data Partition----
       if(part=="BOOT"){
-        cat("Select the number of replicates (>=1):")
+        cat("Select the number of replicates (>=1):\n")
         rep <- as.integer(readLines(n = 1))
         while(is.na(rep)||rep<1){
           warning("Please Select a valid number of replicates (>=1)")
-          cat("Select the number of replicates (>=1):")
+          cat("Select the number of replicates (>=1):\n")
           rep <- as.integer(readLines(n = 1))
         }
-        cat("Select the proportion of occurrences used for fitting the model(0-1):")
+        cat("Select the proportion of occurrences used for fitting the model(0-1):\n")
         per<-as.numeric(readLines(n = 1))
         while(is.na(per)||per<=0 || per>1){
           warning("Please Select a valid partition of data (0-1)")
-          cat("Select the percentage of occurrences used for fitting the model(0-1):")
+          cat("Select the percentage of occurrences used for fitting the model(0-1):\n")
           per<-as.numeric(readLines(n = 1))
         }
       }
       if(part=="KFOLD"){
-        cat("Select the number of k-folds (>=1):")
+        cat("Select the number of k-folds (>=1):\n")
         rep <- as.integer(readLines(n = 1))
         per<-1
         while(is.na(rep)||rep<1){
           warning("Please Select a valid number of k-folds (>=1)")
-          cat("Select the number of k-folds (>=1):")
+          cat("Select the number of k-folds (>=1):\n")
           rep <- as.integer(readLines(n = 1))
         }
         occFold<- lapply(occ_xy, function(x) cbind(x,kfold(x,rep)))
@@ -1363,7 +1356,7 @@ cat("Checking for function arguments ...")
           valF$Replicate <- NULL
           valF$Partition <- part
           unlink(file.path(DirR,val))
-          write.table(valF,file.path(DirR,"PartialModels_Validation.txt"),sep="\t",row.names=F)
+          write.table(valF,file.path(DirR,"Validation_Partition.txt"),sep="\t",row.names=F)
           
           #Save Final Bootstrap File
           if(per!=1 || part=="KFOLD"){
@@ -1393,8 +1386,10 @@ cat("Checking for function arguments ...")
 
 #8.Ensemble----
     if (ensemble!="N"){
+      cat("Performing Ensemble....\n")
       ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
-      ValF <- read.table(file.path(DirR,"PartialModels_Validation.txt"),sep="\t",h=T)
+      ValF <- read.table(file.path(DirR,"Validation_Partition.txt"),sep="\t",h=T)
+      
       Ensemble_TMLA(DirR = DirR,
                     ValTable = ValF,
                     ThrTable = ThrTable,
@@ -1404,6 +1399,7 @@ cat("Checking for function arguments ...")
                     sensV = sensV,
                     Proj = proj_dir,
                     cores = cores)
+      cat("Ensemble created!\n")
     }
         
 #9.MSDM Posteriori----
