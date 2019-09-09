@@ -31,7 +31,7 @@ Ensemble_TMLA <- function(DirR,
     }
     
     #Projection directories
-    if(Proj=="Y"){
+    if(!is.null(Proj)){
       ProjN <- list.files(file.path(DirR,"Projection"),full.names = T)
       sapply(ProjN, function(x) dir.create(file.path(x,"Ensemble"),recursive = T))
       ModFut <- file.path(ProjN,"Ensemble")
@@ -48,7 +48,7 @@ Ensemble_TMLA <- function(DirR,
   #Load Rasters----
   Folders <- list.files(file.path(DirR,"Algorithm"),full.names = T)
   spN <- substr(list.files(Folders[1],pattern="\\.tif$"),1,nchar(list.files(Folders[1],pattern="\\.tif$"))-4)
-  if(Proj=="Y"){
+  if(!is.null(Proj)){
     ProjN <- as.list(ProjN)
     names(ProjN) <- list.files(file.path(DirR,"Projection"))
     ProjN <- lapply(ProjN,function(x) grep(list.files(x,full.names = T), pattern='Ensemble', inv=T, value=T))
@@ -129,7 +129,7 @@ Ensemble_TMLA <- function(DirR,
                     overwrite=TRUE)
           
         #Future Projection
-        if(Proj=="Y"){
+        if(!is.null(Proj)){
           for(p in 1:length(ListFut)){
             Final <- brick(ListFut[[p]])
             Final <- calc(Final,mean)
@@ -186,7 +186,7 @@ Ensemble_TMLA <- function(DirR,
       }
      
       #Future Projection
-      if(Proj=="Y"){
+      if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
           Final <- brick(stack(ListFut[[p]]))
           Final <- calc(Final, function(x) x*ThResW)
@@ -243,7 +243,7 @@ Ensemble_TMLA <- function(DirR,
       }
         
       #Projection
-      if(Proj=="Y"){
+      if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
           Final <- brick(subset(ListFut[[p]],subset=W))
           Final <- calc(Final,mean)
@@ -294,7 +294,7 @@ Ensemble_TMLA <- function(DirR,
       }
         
       #Future Projection
-      if(Proj=="Y"){
+      if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
           Final <- brick(ListFut[[p]])
           Final <- PCA_ENS_TMLA(Final)
@@ -347,7 +347,7 @@ Ensemble_TMLA <- function(DirR,
       }
         
       #Future Projection
-      if(Proj=="Y"){
+      if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
           Final <- brick(subset(ListFut[[p]],subset=W))
           Final <- PCA_ENS_TMLA(Final)
@@ -402,7 +402,7 @@ Ensemble_TMLA <- function(DirR,
       }
         
       #Future Projection
-      if(Proj=="Y"){
+      if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
           Final <- brick(ListFut[[p]])
           
