@@ -1402,7 +1402,7 @@ cat("Checking for function arguments ...")
                     RecordsData = occINPUT,
                     Threshold = thr,
                     sensV = sensV,
-                    Proj = transfer,
+                    Proj = proj_dir,
                     cores = cores)
     }
         
