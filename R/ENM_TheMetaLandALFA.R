@@ -112,7 +112,7 @@
 #' 
 #' 
 #' @export
-ENMs_TheMetaLand <- function(pred_dir,
+ENMTML <- function(pred_dir,
                              proj_dir=NULL,
                              occ_dir,
                              sp,
