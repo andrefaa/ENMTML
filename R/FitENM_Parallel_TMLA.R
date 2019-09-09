@@ -280,7 +280,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                      .export = c( "Validation2_0", "maxnet2", 
     "predict.graf.raster", "PCA_ENS_TMLA", "predict.maxnet", "boycei",
       "STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA", "Validation_Table_TMLA",
-      "Thresholds_TMLA", "VarImp_RspCurv", "hingeval", "ecospat.boyce")) %dopar% {
+      "Thresholds_TMLA", "VarImp_RspCurv", "hingeval", "ecospat.boyce",
+    "PREDICT_DomainMahal","rem_out")) %dopar% {
       #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
@@ -447,7 +448,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       
       # Save final model
-      if(repl==1 || N!=1){
+      if(repl==1 || is.null(repl)){
         if(is.null(repl) && N==1){
           Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences 
           FinalModelT <- predict(Model, VariablesT)
@@ -601,7 +602,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         # Save final model
-        if(repl==1 || N!=1){
+        if(repl==1 || is.null(repl)){
           if(is.null(repl)){
             Model <-
               dismo::domain(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
@@ -757,7 +758,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         # Save final model
-        if(repl==1 || N!=1){
+        if(repl==1 || is.null(repl)){
           if(is.null(repl)){
             Model <-
               mahal(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
@@ -937,7 +938,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         # Save final model
-        if(repl==1 || N!=1){
+        if(repl==1 || is.null(repl)){
           if(is.null(repl)){
             dudi <- dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
@@ -1164,7 +1165,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         #Save final model
-        if(repl==1 || N!=1){
+        if(repl==1 || is.null(repl)){
           if(is.null(repl) && N==1){
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
                                maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
@@ -1319,7 +1320,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         #Save final model
-        if(repl==1 || N!=1){
+        if(repl==1 || is.null(repl)){
           if(is.null(repl) && N==1){
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f = 
                                maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
@@ -1491,7 +1492,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           
           #Save final model
-          if(repl==1 || N!=1){
+          if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
               Model <- maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=stack(VariablesT),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
@@ -1653,7 +1654,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         # Save final model
-        if(repl==1 || N!=1){
+        if(repl==1 || is.null(repl)){
           if(is.null(repl) && N==1){
             Model <- ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
@@ -1821,7 +1822,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         # Save final model
-        if(repl==1 || N!=1){
+        if(repl==1 || is.null(repl)){
           set.seed(0)
           if(is.null(repl) && N==1){
             # Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[SpDataT$Partition==1,c("PresAbse",VarColT)],
@@ -2003,7 +2004,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           
           # Save final model
-          if(repl==1 || N!=1){
+          if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
               Model <- mgcv::gam(formula=Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], optimizer = c("outer", "newton"), 
                                  select = T, family = binomial)
@@ -2172,7 +2173,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           
           # Save final model
-          if(repl==1 || N!=1){
+          if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
               # Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family = binomial(link = "logit"))
               Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
@@ -2331,7 +2332,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       
       #Save final model
-      if(repl==1 || N!=1){
+      if(repl==1 || is.null(repl)){
         if(is.null(repl) && N==1){
           Model <- graf(SpDataT[SpDataT$Partition==1,"PresAbse"], SpDataT[SpDataT$Partition==1,VarColT],opt.l=F,method="Laplace")
           FinalModelT <- predict.graf.raster(Model, VariablesT, type = "response", 
@@ -2523,7 +2524,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           
             #Save final model
-            if(repl==1 || N!=1){
+            if(repl==1 || is.null(repl)){
               learn.rate <- 0.005
               Model <- NULL
               if(is.null(repl) && N==1){
@@ -2630,7 +2631,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
 
     #Final models----
-    if(repl==1 || N!=1){
+    if(repl==1 || is.null(repl)){
       if(SaveFinal=="Y"){
         if((is.null(Fut)==F && Tst=="Y")==F){
           Thr <- lapply(ListSummary, '[', c('THR','THR_VALUE'))
