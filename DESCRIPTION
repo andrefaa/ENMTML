@@ -1,13 +1,27 @@
-Package: ENMTheMetaLand
-Type: Package
+Package: ENMTML
 Title: Create and process Ecological Niche and Species Distribution Models, including several pre- and post-processing methods
-Version: 1.0
-Date: 2018-05-23
-Author: Andre Andrade & Santiago Velazco
-Maintainer: Andre Andrade <andrefaandrade@gmail.com>
+Version: 1.0.0
+Authors@R: 
+    c(person(given = "André F.A.",
+           family = "Andrade",
+           role = c("aut", "cre"),
+           email = "andrefaandrade@gmail.com",
+           comment = c(ORCID = "0000-0002-6134-3176")),
+    person(given = "Santiago J.E.",
+           family = "Velazco",
+           role = c("aut"),
+           comment = c(ORCID = "0000-0002-7527-0967")))
 Description: Fit ENMs.....
-Imports: 
 License: GPL (>= 2)
+Depends: R (>= 3.1.0)
+Imports: adehabitatHS, ape, caret, data.table, devtools, dismo, doParallel, 
+         flexclust, foreach, gam,gbm, geoR,GRaF, kernlab, maptools, 
+         maxlike, maxnet, mgcv, modEvA, plyr, pracma, randomForest, 
+         raster, rgdal, rgeos, RStoolbox, SDMTools, sp, SpatialEpi, 
+         spThin, tools, usdm, visreg
+URL: https://github.com/andrefaa/ENMTML
+BugReports: https://github.com/andrefaa/ENMTML/issues
 Encoding: UTF-8
+Language: en
 LazyData: true
 RoxygenNote: 6.1.1
