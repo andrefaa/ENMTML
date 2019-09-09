@@ -2,7 +2,7 @@
 #'
 #' @param pred_dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
 #' @param proj_dir character. Directory path containing folders with environment conditions for different regions or time periods used to project models (file formats supported are: ASC, BILL, TIFF or TXT). 
-#' @param occ_dir character. Directory path with tab delimited TXT file with species names, latitude and longitude 
+#' @param occ_file character. Directory path with tab delimited TXT file with species names, latitude and longitude 
 #' @param sp character. Name of the column with information about species names
 #' @param x character. Name of the column with information about longitude
 #' @param y character. Name of the column with information about latitude
@@ -114,7 +114,7 @@
 #' @export
 ENMTML <- function(pred_dir,
                              proj_dir=NULL,
-                             occ_dir,
+                             occ_file,
                              sp,
                              x,
                              y,
