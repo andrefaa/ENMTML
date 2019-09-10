@@ -6,7 +6,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    Part,
                    Algorithm,
                    PredictType,
-                   VarImP,
+                   VarImp,
                    spN,
                    Tst,
                    Threshold = Thresh,
@@ -375,7 +375,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       
       #BIO evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Eval_JS <- list()
         Boyce <- list()
@@ -471,7 +471,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
         
         #Variable Importance & Response Curves
-        if(VarImP=="Y"){
+        if(!is.null(VarImp)){
           VarImp_RspCurv(Model=Model,Algorithm='BIO',folders=folders,spN=spN[s],SpDataT = SpDataT,
                          VarColT=VarColT,Outcome=PredPoint$PredPoint)
         }
@@ -527,7 +527,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       
       #MAH evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
@@ -627,7 +627,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Variable Importance & Response Curves
-          if(VarImP=="Y"){
+          if(!is.null(VarImp)){
             VarImp_RspCurv(Model=Model,Algorithm='DOM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -683,7 +683,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       
       #MAH evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
@@ -787,7 +787,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Variable Importance & Response Curves
-          if(VarImP=="Y"){
+          if(!is.null(VarImp)){
             VarImp_RspCurv(Model=Model,Algorithm='MAH',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -847,7 +847,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       
       #ENF evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
@@ -1001,7 +1001,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Variable Importance & Response Curves
-          if(VarImP=="Y"){
+          if(!is.null(VarImp)){
             VarImp_RspCurv(Model=Model,Algorithm='ENF',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1097,7 +1097,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                               dataPr[,VarColT], classes="default"))
       }
       #MXD evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
@@ -1195,7 +1195,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Variable Importance & Response Curves
-          if(VarImP=="Y"){
+          if(!is.null(VarImp)){
             VarImp_RspCurv(Model=Model,Algorithm='MXD',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1252,7 +1252,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                 maxnet.formula(dataPr[,"PresAbse"],dataPr[,VarColT], classes="lq"))
       }
       #MXS evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
@@ -1351,7 +1351,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Variable Importance & Response Curves
-          if(VarImP=="Y"){
+          if(!is.null(VarImp)){
             VarImp_RspCurv(Model=Model,Algorithm='MXS',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1424,7 +1424,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         #Evaluate Model
-        if((is.null(Fut)==F && Tst=="Y")==F){
+        if((is.null(Fut)==F && !is.null(Tst))==F){
           Eval <- list()
           Boyce <- list()
           Eval_JS <- list()
@@ -1526,7 +1526,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
             
             #Variable Importance & Response Curves
-            if(VarImP=="Y"){
+            if(!is.null(VarImp)){
               VarImp_RspCurv(Model=Model,Algorithm='MLK',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
@@ -1586,7 +1586,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       
       #SVM evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
@@ -1694,7 +1694,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Variable Importance & Response Curves
-          if(VarImP=="Y"){
+          if(!is.null(VarImp)){
             VarImp_RspCurv(Model=Model,Algorithm='SVM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1754,7 +1754,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                              stepFactor=2, ntreeTry=1000, doBest=T, plot=F)
       }
       #RDF evaluation
-      if((is.null(Fut)==F && Tst=="Y")==F){
+      if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
@@ -1859,7 +1859,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
           
           #Variable Importance & Response Curves
-          if(VarImP=="Y"){
+          if(!is.null(VarImp)){
             VarImp_RspCurv(Model=Model,Algorithm='RDF',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1936,7 +1936,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                             select = T, family = binomial)
           }
         #GAM evaluation
-        if((is.null(Fut)==F && Tst=="Y")==F){
+        if((is.null(Fut)==F && !is.null(Tst))==F){
           Eval <- list()
           Boyce <- list()
           Eval_JS <- list()
@@ -2034,7 +2034,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
             
             #Variable Importance & Response Curves
-            if(VarImP=="Y"){
+            if(!is.null(VarImp)){
               VarImp_RspCurv(Model=Model,Algorithm='GAM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
@@ -2105,7 +2105,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
         
         #GLM evaluation
-        if((is.null(Fut)==F && Tst=="Y")==F){
+        if((is.null(Fut)==F && !is.null(Tst))==F){
           Eval <- list()
           Boyce <- list()
           Eval_JS <- list()
@@ -2201,7 +2201,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
             
             #Variable Importance & Response Curves
-            if(VarImP=="Y"){
+            if(!is.null(VarImp)){
               VarImp_RspCurv(Model=Model,Algorithm='GLM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
@@ -2263,7 +2263,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
       
     #GAU evaluation
-    if((is.null(Fut)==F && Tst=="Y")==F){
+    if((is.null(Fut)==F && !is.null(Tst))==F){
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
@@ -2362,7 +2362,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
         
         #Variable Importance & Response Curves
-        if(VarImP=="Y"){
+        if(!is.null(VarImp)){
           VarImp_RspCurv(Model=Model,Algorithm='GAU',folders=folders,spN=spN[s],SpDataT = SpDataT,
                          VarColT=VarColT,Outcome=PredPoint$PredPoint)
         }
@@ -2454,7 +2454,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if (length(Model)==N){
           
           #BRT evaluation
-          if((is.null(Fut)==F && Tst=="Y")==F){
+          if((is.null(Fut)==F && !is.null(Tst))==F){
             Eval <- list()
             Boyce <- list()
             Eval_JS <- list()
@@ -2579,7 +2579,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
               
               #Variable Importance & Response Curves
-              if(VarImP=="Y"){
+              if(!is.null(VarImp)){
                 VarImp_RspCurv(Model=Model,Algorithm='BRT',folders=folders,spN=spN[s],SpDataT = SpDataT,
                                VarColT=VarColT,Outcome=PredPoint$PredPoint)
               }
@@ -2638,7 +2638,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #Final models----
     if(repl==1 || is.null(repl)){
       if(SaveFinal=="Y"){
-        if((is.null(Fut)==F && Tst=="Y")==F){
+        if((is.null(Fut)==F && !is.null(Tst))==F){
           Thr <- lapply(ListSummary, '[', c('THR','THR_VALUE'))
           for(i in 1:length(ListRaster)){
             foldAlg <- grep(pattern=names(Thr)[i],x=folders,value=T)

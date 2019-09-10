@@ -229,9 +229,9 @@ ENMTML <- function(pred_dir,
   if(any(!thr[grep('type', names(thr))]%in%c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD","SORENSEN"))){
     stop("'thr' Argument is not valid!")
   }
-  if(!any(names(thr)%in%'sens')){
-    stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
-  }
+  # if(any(thr[grep('type', names(thr))]%in%"SENSITIVITY") && !any(names(thr)%in%'sens')){
+  #   stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
+  # }
   if(!(msdm%in%c("N","XY","MIN","CML","KER","POST"))){
     stop("'msdm' Argument is not valid!(N/XY/MIN/CML/KER/POST)")
   }
@@ -340,101 +340,100 @@ ENMTML <- function(pred_dir,
   }
 
   #3.1. Variable Colinearity----
-
-  #3.1.1.VIF----
-  if(colin_var=="VIF") {
-    cat("Performing a reduction of variables collinearity ...\n")
-    VF <- vifstep(envT, th = 10)
-    envT <- exclude(envT, VF)
-    if (!is.null(proj_dir)) {
-      RasM <- colMeans(na.omit(values(envT)))
-      RasSTD <- apply(na.omit(values(envT)), 2, std)
-    }
-    envT <- raster::scale(envT)
-
-    if(!is.null(proj_dir)) {
-      EnvF <- list()
-      for (i in 1:length(Pfol)) {
-        ProjT <- unique(file_ext(list.files(Pfol[i])))
-        form <- c('bil', 'asc', 'txt', 'tif')
-        ProjT <- ProjT[ProjT %in% form]
-        if (length(ProjT) > 1) {
-          stop("More than one file format in DirP")
+  if(!is.null(colin_var)){
+    #3.1.1.VIF----
+    if(colin_var%in%"VIF") {
+      cat("Performing a reduction of variables collinearity ...\n")
+      VF <- vifstep(envT, th = 10)
+      envT <- exclude(envT, VF)
+      if (!is.null(proj_dir)) {
+        RasM <- colMeans(na.omit(values(envT)))
+        RasSTD <- apply(na.omit(values(envT)), 2, std)
+      }
+      envT <- raster::scale(envT)
+  
+      if(!is.null(proj_dir)) {
+        EnvF <- list()
+        for (i in 1:length(Pfol)) {
+          ProjT <- unique(file_ext(list.files(Pfol[i])))
+          form <- c('bil', 'asc', 'txt', 'tif')
+          ProjT <- ProjT[ProjT %in% form]
+          if (length(ProjT) > 1) {
+            stop("More than one file format in DirP")
+          }
+  
+          if(any(ProjT == c('asc', 'bil', 'tif'))){
+            EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
+          }
+          if(ProjT == 'txt'){
+            ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
+            gridded(ProjTT)<- ~x+y
+            EnvF[[i]]<-brick(stack(ProjTT))
+            rm(ProjTT)
+          }
+  
+          EnvF[[i]] <- EnvF[[names(envT)]]
+          EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
-
-        if(any(ProjT == c('asc', 'bil', 'tif'))){
-          EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
-        }
-        if(ProjT == 'txt'){
-          ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
-          gridded(ProjTT)<- ~x+y
-          EnvF[[i]]<-brick(stack(ProjTT))
-          rm(ProjTT)
-        }
-
-        EnvF[[i]] <- EnvF[[names(envT)]]
-        EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
       }
     }
-  }
-
-  #3.1.2.PCA----
-  if (colin_var=="PCA") {
-    cat("Performing a reduction of variables collinearity ...\n")
-    #Projection PCA
-    if(!is.null(proj_dir)){
-      EnvF <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol,Save="Y")
-      names(EnvF) <- PfolN
-      envT <- brick(stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
-    }else{
-      envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
-    }
-  }
-
-  #3.3.3.Pearson----
-  if(colin_var['method']=="PEARSON"){
-    cat("Performing a reduction of variables collinearity ...\n")
-    cat("Select correlation threshold:(0-1)\n")
-    Cor_TH <- as.numeric(colin_var["threshold"])
-    Pear <- layerStats(envT, 'pearson', na.rm=T)
-    corr_matrix <- abs(Pear$'pearson correlation coefficient')
-    corr_matrix[upper.tri(corr_matrix)] <- 0
-    diag(corr_matrix) <- 0
-    envT <- envT[[names(envT)[!apply(corr_matrix,2,function(x) any(x > 0.70))]]]
-    if(!is.null(proj_dir)){
-      RasM <- colMeans(na.omit(values(envT)))
-      RasSTD <- apply(na.omit(values(envT)),2,std)
-    }
-    envT <- scale(envT)
-
-    if(!is.null(proj_dir)){
-      EnvF <- list()
-      for(i in 1:length(Pfol)){
-        ProjT <- unique(file_ext(list.files(Pfol[i])))
-        form <- c('bil','asc','txt','tif')
-        ProjT <- ProjT[ProjT%in%form]
-        if(length(ProjT)>1){
-          stop("More than one file format in DirP")
-        }
-
-        if(any(ProjT == c('asc', 'bil', 'tif'))){
-          EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
-        }
-        if(ProjT == 'txt'){
-          ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
-          gridded(ProjTT)<- ~x+y
-          EnvF[[i]]<-brick(stack(ProjTT))
-          rm(ProjTT)
-        }
-
-        EnvF[[i]] <- EnvF[[names(envT)]]
-        EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
+  
+    #3.1.2.PCA----
+    if (colin_var=="PCA") {
+      cat("Performing a reduction of variables collinearity ...\n")
+      #Projection PCA
+      if(!is.null(proj_dir)){
+        EnvF <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol,Save="Y")
+        names(EnvF) <- PfolN
+        envT <- brick(stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
+      }else{
+        envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
       }
     }
-  }
-
+  
+    #3.3.3.Pearson----
+    if(colin_var['method']=="PEARSON"){
+      cat("Performing a reduction of variables collinearity ...\n")
+      cat("Select correlation threshold:(0-1)\n")
+      Cor_TH <- as.numeric(colin_var["threshold"])
+      Pear <- layerStats(envT, 'pearson', na.rm=T)
+      corr_matrix <- abs(Pear$'pearson correlation coefficient')
+      corr_matrix[upper.tri(corr_matrix)] <- 0
+      diag(corr_matrix) <- 0
+      envT <- envT[[names(envT)[!apply(corr_matrix,2,function(x) any(x > 0.70))]]]
+      if(!is.null(proj_dir)){
+        RasM <- colMeans(na.omit(values(envT)))
+        RasSTD <- apply(na.omit(values(envT)),2,std)
+      }
+      envT <- scale(envT)
+  
+      if(!is.null(proj_dir)){
+        EnvF <- list()
+        for(i in 1:length(Pfol)){
+          ProjT <- unique(file_ext(list.files(Pfol[i])))
+          form <- c('bil','asc','txt','tif')
+          ProjT <- ProjT[ProjT%in%form]
+          if(length(ProjT)>1){
+            stop("More than one file format in DirP")
+          }
+  
+          if(any(ProjT == c('asc', 'bil', 'tif'))){
+            EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
+          }
+          if(ProjT == 'txt'){
+            ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
+            gridded(ProjTT)<- ~x+y
+            EnvF[[i]]<-brick(stack(ProjTT))
+            rm(ProjTT)
+          }
+  
+          EnvF[[i]] <- EnvF[[names(envT)]]
+          EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
+        }
+      }
+    }
+  }else{
   #3.3.4.colin_var='N'----
-  if (is.null(colin_var)) {
     if (!is.null(proj_dir)) {
       EnvF <- list()
       for (i in 1:length(Pfol)) {
@@ -464,7 +463,7 @@ ENMTML <- function(pred_dir,
   }
 
   #3.3.Erro Futuro e msdm
-  if(is.null(proj_dir) && msdm!="N"){
+  if(!is.null(proj_dir) && msdm!="N"){
     warning("msdm can not be used with future projections")
     warning("Setting msdm to N")
     msdm <- "N"
@@ -538,39 +537,43 @@ ENMTML <- function(pred_dir,
   }
 
   #5. Restrict Extent per Species----
-  if(sp_accessible_area['method']=="BUFFER"&
-     sp_accessible_area['type']=='1') {
-    DirM <- M_delimited(var=envT,
-                        occ_xy=occ_xy,
-                        method = sp_accessible_area['method'],
-                        BufferDistanceKm=NULL,
-                        EcoregionsFile=NULL,
-                        Dir=DirR,
-                        spN=spN,
-                        SaveM = TRUE,
-                        Buffer_Opt=as.numeric(sp_accessible_area['type']))
-  }
-  if(sp_accessible_area['method']=="BUFFER"&
-     sp_accessible_area['type']=='2') {
-    DirM <- M_delimited(var=envT,
-                        occ_xy=occ_xy,
-                        method = sp_accessible_area['method'],
-                        BufferDistanceKm=as.numeric(sp_accessible_area['width']),
-                        EcoregionsFile=NULL,
-                        Dir=DirR,
-                        spN=spN,
-                        SaveM = TRUE,
-                        Buffer_Opt=as.numeric(sp_accessible_area['type']))
-  }
-  if(sp_accessible_area['method']=="MASK") {
-    DirM <- M_delimited(var=envT,
-                        occ_xy=occ_xy,
-                        method = sp_accessible_area['method'],
-                        BufferDistanceKm=NULL,
-                        EcoregionsFile=sp_accessible_area['filepath'],
-                        Dir=DirR,
-                        spN=spN,
-                        SaveM = TRUE)
+  if(!is.null(sp_accessible_area)){
+    cat("Generating masks for species acessible area  ...\n")
+
+    if(sp_accessible_area['method']=="BUFFER"&
+       sp_accessible_area['type']=='1') {
+      DirM <- M_delimited(var=envT,
+                          occ_xy=occ_xy,
+                          method = sp_accessible_area['method'],
+                          BufferDistanceKm=NULL,
+                          EcoregionsFile=NULL,
+                          Dir=DirR,
+                          spN=spN,
+                          SaveM = TRUE,
+                          Buffer_Opt=as.numeric(sp_accessible_area['type']))
+    }
+    if(sp_accessible_area['method']=="BUFFER"&
+       sp_accessible_area['type']=='2') {
+      DirM <- M_delimited(var=envT,
+                          occ_xy=occ_xy,
+                          method = sp_accessible_area['method'],
+                          BufferDistanceKm=as.numeric(sp_accessible_area['width']),
+                          EcoregionsFile=NULL,
+                          Dir=DirR,
+                          spN=spN,
+                          SaveM = TRUE,
+                          Buffer_Opt=as.numeric(sp_accessible_area['type']))
+    }
+    if(sp_accessible_area['method']=="MASK") {
+      DirM <- M_delimited(var=envT,
+                          occ_xy=occ_xy,
+                          method = sp_accessible_area['method'],
+                          BufferDistanceKm=NULL,
+                          EcoregionsFile=sp_accessible_area['filepath'],
+                          Dir=DirR,
+                          spN=spN,
+                          SaveM = TRUE)
+    }
   }
 
   if(grepl("GEO", pseudoabs_method['method'])){
@@ -584,12 +587,12 @@ ENMTML <- function(pred_dir,
   if(part['method']=="BANDS" || part['method']=="BLOCK"){
 
     if(any(grepl("PC",names(envT)))==T || any(grepl("pc",names(envT)))==T){
-      colin_var<-"PCA"
+      colin_var <- c(method="PCA")
     }
 
-    if(eval_occ=="Y"){
-      warning("Invalid combination! eval_occ can't be Y with Geographical partitions! Changing eval_occ to N")
-      eval_occ <- "N"
+    if(!is.null(eval_occ)){
+      warning("Invalid combination! eval_occ can't be used with Geographical partitions! Changing eval_occ to NULL")
+      eval_occ <- NULL
     }
 
     if(part['method']=="BANDS"){
@@ -608,11 +611,16 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(colin_var['method']!="PCA"){
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+        if(!is.null(colin_var)){
+          if(colin_var['method']!="PCA"){
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+          }else{
+            envTT<-envT
+          }
         }else{
-          envTT<-envT
+          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
         }
+        
 
         # print("Use Longitudinal(1) or Latitudinal Bands(2)?")
         bands <- as.integer(part['type'])
@@ -667,11 +675,16 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(colin_var['method']!="PCA"){
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+        if(!is.null(colin_var)){
+          if(colin_var['method']!="PCA"){
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+          }else{
+            envTT<-envT
+          }
         }else{
-          envTT<-envT
+          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
         }
+        
         TipoMoran <- "all"
         # print("Select Moran Calculation Type (all/nearest):")
         # TipoMoran <- as.character(readLines(n = 1))
@@ -757,14 +770,14 @@ ENMTML <- function(pred_dir,
     FitENM_TMLA_Parallel(
       RecordsData = occINPUT,
       Variables = envT,
-      VarImP = imp_var,
+      VarImp = imp_var,
       Fut = Fut,
       Part = part['method'],
       Algorithm = algorithm,
       PredictType = ensemble,
       spN = spN,
       Tst = eval_occ,
-      Threshold = ,
+      Threshold = thr,
       DirSave = DirR,
       DirMask = DirB,
       DirMSDM = DirPRI,
@@ -824,7 +837,7 @@ ENMTML <- function(pred_dir,
     }
 
     #Adjusting for determined evaluation dataset
-    if(eval_occ=="Y" && part['method']=="BOOT" && per!=1 || eval_occ=="Y" && part['method']=="KFOLD" && rep!=1){
+    if(!is.null(eval_occ) && part['method']=="BOOT" && per!=1 || !is.null(eval_occ) && part['method']=="KFOLD" && rep!=1){
       if(part['method']=="BOOT"){
         warning("Adjusting data partition to one!")
         part=c(method='BOOT', replicates='1',  proportion='1')
@@ -867,7 +880,7 @@ ENMTML <- function(pred_dir,
         }
         names(occTR) <- names(occ_xy)
         names(occTS) <- names(occTR)
-        if(eval_occ=="Y"){
+        if(!is.null(eval_occ)){
           occTS <- OccTst_xy
           occTS <- lapply(occTS, function(x) cbind(x, rep(2,nrow(x)),rep(1,nrow(x))))
           names(occTS) <- names(occTR)
@@ -892,7 +905,7 @@ ENMTML <- function(pred_dir,
       #7.4. Generating Pseudo-Absences----
       # Pseudo-Absences with Random allocation-----
       if(pseudoabs_method['method']=="RND"){
-        if(!is.null(proj_dir)&& eval_occ=="Y"){
+        if(!is.null(proj_dir)&& !is.null(eval_occ)){
           pseudo.mask <- envT[[1]]
           pseudo.maskP <- EnvF[[1]][[1]]
         }else{
@@ -912,7 +925,7 @@ ENMTML <- function(pred_dir,
               stop("Please try again with another restriction type or without restricting the extent")
 
             }
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
@@ -928,7 +941,7 @@ ENMTML <- function(pred_dir,
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(0,nrow(x))))
         absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x))))
         absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(0,nrow(x))))
-        if(is.null(k) && per==1 && eval_occ=="N"){
+        if(is.null(k) && per==1 && is.null(eval_occ)){
           for(i in 1:length(absencesTS)){
             absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
           }
@@ -968,7 +981,7 @@ ENMTML <- function(pred_dir,
             pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
-          if(!is.null(proj_dir)&& eval_occ=="Y"){
+          if(!is.null(proj_dir)&& !is.null(eval_occ)){
             pseudo.maskP <- EnvF[[1]][[1]]
           }else{
             pseudo.maskP <- pseudo.mask
@@ -982,7 +995,7 @@ ENMTML <- function(pred_dir,
               stop("Please try again with another restriction type or without restricting the extent")
 
             }
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
@@ -993,7 +1006,7 @@ ENMTML <- function(pred_dir,
             absencesTR.0 <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
                                          ext = extent(pseudo.mask),
                                          prob = FALSE)
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
                                            ext = extent(pseudo.mask),
                                            prob = FALSE)
@@ -1009,7 +1022,7 @@ ENMTML <- function(pred_dir,
         }
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
         absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
-        if(is.null(k) && per==1 && eval_occ=="N"){
+        if(is.null(k) && per==1 && is.null(eval_occ)){
           for(i in 1:length(absencesTS)){
             absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
           }
@@ -1048,7 +1061,7 @@ ENMTML <- function(pred_dir,
             pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
-          if(!is.null(proj_dir)&& eval_occ=="Y"){
+          if(!is.null(proj_dir)&& !is.null(eval_occ)){
             pseudo.maskP <- EnvF[[1]][[1]]
           }else{
             pseudo.maskP <- pseudo.mask
@@ -1062,7 +1075,7 @@ ENMTML <- function(pred_dir,
               stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
 
             }
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
@@ -1073,7 +1086,7 @@ ENMTML <- function(pred_dir,
             absencesTR.0 <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
                                          ext = extent(pseudo.mask),
                                          prob = FALSE)
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
                                            ext = extent(pseudo.mask),
                                            prob = FALSE)
@@ -1089,7 +1102,7 @@ ENMTML <- function(pred_dir,
         }
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
         absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
-        if(is.null(k) && per==1 && eval_occ=="N"){
+        if(is.null(k) && per==1 && is.null(eval_occ)){
           for(i in 1:length(absencesTS)){
             absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
           }
@@ -1129,7 +1142,7 @@ ENMTML <- function(pred_dir,
             pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
-          if(!is.null(proj_dir)&& eval_occ=="Y"){
+          if(!is.null(proj_dir)&& !is.null(eval_occ)){
             pseudo.maskP <- EnvF[[1]][[1]]
           }else{
             pseudo.maskP <- pseudo.mask
@@ -1142,7 +1155,7 @@ ENMTML <- function(pred_dir,
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
               stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
             }
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
@@ -1153,7 +1166,7 @@ ENMTML <- function(pred_dir,
             absencesTR.0 <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
                                          ext = extent(pseudo.mask),
                                          prob = FALSE)
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
                                            ext = extent(pseudo.mask),
                                            prob = FALSE)
@@ -1169,7 +1182,7 @@ ENMTML <- function(pred_dir,
         }
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
         absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
-        if(is.null(k) && per==1 && eval_occ=="N"){
+        if(is.null(k) && per==1 && is.null(eval_occ)){
           for(i in 1:length(absencesTS)){
             absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
           }
@@ -1209,7 +1222,7 @@ ENMTML <- function(pred_dir,
             pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
-          if(!is.null(proj_dir)&& eval_occ=="Y"){
+          if(!is.null(proj_dir)&& !is.null(eval_occ)){
             pseudo.maskP <- EnvF[[1]][[1]]
           }else{
             pseudo.maskP <- pseudo.mask
@@ -1222,7 +1235,7 @@ ENMTML <- function(pred_dir,
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
               stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
             }
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
@@ -1238,7 +1251,7 @@ ENMTML <- function(pred_dir,
             absencesTR.0 <- KM(cell_coord = rasterToPoints(pseudo.mask)[,-3],
                                variable = mask(envT, pseudo.mask),
                                NumAbsence = (1 / pres_abs_ratio)*nrow(occTR[[i]]))
-            if(eval_occ=="Y"){
+            if(!is.null(eval_occ)){
               absencesTS.0 <- KM(rasterToPoints(pseudo.maskP)[,-3],
                                  mask(envT, pseudo.mask),
                                  (1 / pres_abs_ratio)*nrow(occTS[[i]]))
@@ -1254,7 +1267,7 @@ ENMTML <- function(pred_dir,
         }
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x)), rep(0,nrow(x))))
         absencesTS <- lapply(absencesTS, function(x) cbind(x, rep(2,nrow(x)), rep(0,nrow(x))))
-        if(is.null(k) && per==1 && eval_occ=="N"){
+        if(is.null(k) && per==1 && is.null(eval_occ)){
           for(i in 1:length(absencesTS)){
             absencesTS[[i]][,c("x","y")] <- absencesTR[[i]][,c("x","y")]
           }
@@ -1318,7 +1331,7 @@ ENMTML <- function(pred_dir,
       FitENM_TMLA_Parallel(
         RecordsData = occINPUT,
         Variables = envT,
-        VarImP = imp_var,
+        VarImp = imp_var,
         Fut = Fut,
         Part = part['method'],
         Algorithm = algorithm,
@@ -1466,7 +1479,7 @@ ENMTML <- function(pred_dir,
       }
     }else{
       Q1 <- "N"
-      DirT <- file.path(DirR,Alg)
+      DirT <- file.path(DirR,"Algorithm",algorithm)
       DirPost <- "MSDMPosterior"
       DirPost <- file.path(DirT,DirPost)
       for(i in DirPost){
@@ -1496,14 +1509,16 @@ ENMTML <- function(pred_dir,
 
       if(Q4=="Y"){
         DirT <- file.path(DirR,"Algorithm",algorithm,"MSDMPosterior")
-        DirPost <- file.path(DirR,"ENS",ensemble,"MSDMPosterior")
+        DirPost <- file.path(DirR,"Algorithm","MSDM_Ensemble")
+        dir.create(DirPost)
+        DirPost <- file.path(DirPost,ensemble)
         ENS_Posterior(
           RecordsData = occINPUT,
           Algorithm = algorithm,
           PredictType = ensemble,
           Threshold = thr[grep('type', names(thr))],
           DirAlg = DirT,
-          DirSave = DirR
+          DirSave = DirPost
         )
       }
     }
