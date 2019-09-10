@@ -20,10 +20,12 @@ OccsThin <- function(occ,
   if(ThinMethod==1){
   #1.Defined by variogram----
     #Check if there is a PC
-    if(VarColin!="PCA" && names(envT)[1]!="PC1"){
+    if(!is.null(VarColin)){
+      if(VarColin!="PCA" && names(envT)[1]!="PC1"){
       pc1 <- PCA_env_TMLA(env=envT,Dir=pred_dir)[[1]]
-    }else{
+      }else{
       pc1 <- envT[[1]]
+      }
     }
 
     #Optimal distance for each species
