@@ -764,7 +764,7 @@ ENMTML <- function(pred_dir,
     FitENM_TMLA_Parallel(
       RecordsData = occINPUT,
       Variables = envT,
-      VarImP = imp_var,
+      VarImp = imp_var,
       Fut = Fut,
       Part = part['method'],
       Algorithm = algorithm,
