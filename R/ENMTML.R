@@ -748,7 +748,7 @@ ENMTML <- function(pred_dir,
     #6.6.Value for Sensitivity Threshold
     if(any(thr[grep('type', names(thr))]%in%"SENSITIVITY")){
       # cat("Specify the desired sensitivity value (0-1):\n")
-      sensV <- as.numeric(['sens'])
+      sensV <- as.numeric(thr['sens'])
     }else{
       sensV <- NULL
     }
