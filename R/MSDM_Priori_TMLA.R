@@ -48,7 +48,7 @@ MSDM_Priori_TMLA <- function(Species,
   
   #Metodo 2- Distancias minimas----
   if(MSDM=="MIN"){
-  
+    
     DirPRI<-"MIN"
     if (file.exists(file.path(DirMSDM,DirPRI))){
       DirPRI<-file.path(DirMSDM,DirPRI)
@@ -57,10 +57,15 @@ MSDM_Priori_TMLA <- function(Species,
       DirPRI<-file.path(DirMSDM,DirPRI)
     }
     
-    if(length(list.files(DirPRI))==length(Species)){
-      print("MSDM found! Using already created MSDM")
-    }else{
-    
+    #Check if GeoMasks already exist----
+    if(any(paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif"))){
+      if(all(paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif"))){
+        print("Distance masks already exist for all species! Using already-created restrictions!")
+      }else{
+        print("Distance masks already exist for some species! Creating Distance masks for the rest of species")
+        Species <- Species[!paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif")]
+      }
+    }else{ 
       spi<-as(var,'SpatialPixels')@coords
       r <- lapply(Species, function(x) rasterize(x,var,field=1))
       r<-lapply(r, function(x) as(x,'SpatialPixels')@coords)
@@ -95,10 +100,14 @@ MSDM_Priori_TMLA <- function(Species,
       DirPRI<-file.path(DirMSDM,DirPRI)
     }
     
-    if(length(list.files(DirPRI))==length(Species)){
-      print("MSDM found! Using already created MSDM")
-    }else{
-      
+    if(any(paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif"))){
+      if(all(paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif"))){
+        print("Distance masks already exist for all species! Using already-created restrictions!")
+      }else{
+        print("Distance masks already exist for some species! Creating Distance masks for the rest of species")
+        Species <- Species[!paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif")]
+      }
+    }else{  
       spi<-as(var,'SpatialPixels')@coords
       r <- lapply(Species, function(x) rasterize(x,var,field=1))
       r<-lapply(r, function(x) as(x,'SpatialPixels')@coords)
@@ -135,10 +144,14 @@ MSDM_Priori_TMLA <- function(Species,
       DirPRI<-file.path(DirMSDM,DirPRI)
     }
     
-    if(length(list.files(DirPRI))==length(Species)){
-      print("MSDM found! Using already created MSDM")
-    }else{
-      
+    if(any(paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif"))){
+      if(all(paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif"))){
+        print("Distance masks already exist for all species! Using already-created restrictions!")
+      }else{
+        print("Distance masks already exist for some species! Creating Distance masks for the rest of species")
+        Species <- Species[!paste0(Species,".tif")%in%list.files(DirPRI,pattern=".tif")]
+      }
+    }else{ 
       spi<-as(var,'SpatialPixels')@coords
       r <- lapply(Species, function(x) rasterize(x,var,field=1))
       r<-lapply(r, function(x) as(x,'SpatialPixels')@coords)
