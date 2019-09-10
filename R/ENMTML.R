@@ -7,7 +7,7 @@
 #' @param x character. Name of the column with information about longitude
 #' @param y character. Name of the column with information about latitude
 #' @param min_occ integer. Minimum number of unique occurrences (species with less than this number will be excluded)
-#' @param thin_occ character Default NULL. Perform spatial filtering (Thinning) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
+#' @param thin_occ character Default NULL. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
 #' \itemize{
 #' \item 1-Distance defined by Moran Variogram, usage thin_occ=c(method='1').
 #' \item 2-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='2').
@@ -101,6 +101,7 @@
 #'   \item PCA_SUP: PCA of the best models (TSS over the average)
 #'   \item PCA_THR: PCA only with cells above the threshold
 #'   }
+#' @param extrapolation logical. If TRUE the function will calculate extrapolation based on Mobility-oriented parity (MOP) method, for current and future conditions.
 #' @param cores numeric. Define the number number of CPU cores to run modeling procedures in parallel.
 #' @param s_sdm character. Perform a stacked of Species Distribution Model (richness map)? (Y/N)
 #'
@@ -141,6 +142,7 @@ ENMTML <- function(pred_dir,
                    thr,
                    msdm,
                    ensemble,
+                   extrapolation=FALSE,
                    cores=1,
                    s_sdm) {
 
@@ -351,7 +353,7 @@ ENMTML <- function(pred_dir,
         RasSTD <- apply(na.omit(values(envT)), 2, std)
       }
       envT <- raster::scale(envT)
-  
+
       if(!is.null(proj_dir)) {
         EnvF <- list()
         for (i in 1:length(Pfol)) {
@@ -361,7 +363,7 @@ ENMTML <- function(pred_dir,
           if (length(ProjT) > 1) {
             stop("More than one file format in DirP")
           }
-  
+
           if(any(ProjT == c('asc', 'bil', 'tif'))){
             EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
           }
@@ -371,13 +373,13 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-brick(stack(ProjTT))
             rm(ProjTT)
           }
-  
+
           EnvF[[i]] <- EnvF[[names(envT)]]
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
       }
     }
-  
+
     #3.1.2.PCA----
     if (colin_var=="PCA") {
       cat("Performing a reduction of variables collinearity ...\n")
@@ -390,7 +392,7 @@ ENMTML <- function(pred_dir,
         envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
       }
     }
-  
+
     #3.3.3.Pearson----
     if(colin_var['method']=="PEARSON"){
       cat("Performing a reduction of variables collinearity ...\n")
@@ -406,7 +408,7 @@ ENMTML <- function(pred_dir,
         RasSTD <- apply(na.omit(values(envT)),2,std)
       }
       envT <- scale(envT)
-  
+
       if(!is.null(proj_dir)){
         EnvF <- list()
         for(i in 1:length(Pfol)){
@@ -416,7 +418,7 @@ ENMTML <- function(pred_dir,
           if(length(ProjT)>1){
             stop("More than one file format in DirP")
           }
-  
+
           if(any(ProjT == c('asc', 'bil', 'tif'))){
             EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
           }
@@ -426,7 +428,7 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-brick(stack(ProjTT))
             rm(ProjTT)
           }
-  
+
           EnvF[[i]] <- EnvF[[names(envT)]]
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
@@ -620,7 +622,7 @@ ENMTML <- function(pred_dir,
         }else{
           envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
         }
-        
+
 
         # print("Use Longitudinal(1) or Latitudinal Bands(2)?")
         bands <- as.integer(part['type'])
@@ -684,7 +686,7 @@ ENMTML <- function(pred_dir,
         }else{
           envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
         }
-        
+
         TipoMoran <- "all"
         # print("Select Moran Calculation Type (all/nearest):")
         # TipoMoran <- as.character(readLines(n = 1))
@@ -786,6 +788,7 @@ ENMTML <- function(pred_dir,
       sensV=sensV,
       repl = NULL,
       per = NULL,
+      extrapolation=extrapolation,
       cores=cores
     )
   }
@@ -1347,6 +1350,7 @@ ENMTML <- function(pred_dir,
         sensV = sensV,
         per = per,
         repl = k,
+        extrapolation=extrapolation,
         cores=cores
       )
 
