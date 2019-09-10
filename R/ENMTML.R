@@ -1431,147 +1431,33 @@ ENMTML <- function(pred_dir,
   #9.MSDM Posteriori----
 
   if(msdm=="POST"){
-
-    cat("Choose Posterior MSDM type (OBR/LR/PRES/MCP/MCP-B)")
-    Q0 <- as.character(readLines(n = 1))
-    while(!Q0 %in% c("OBR","LR","PRES","MCP","MCP-B")){
-      cat("Choose a valid Posterior MSDM type!(OBR/LR/PRES/MCP/MCP-B)")
-      Q0 <- as.character(readLines(n = 1))
-    }
-    if(Q0=="MCP-B"){
-      cat("Select buffer distance (km):")
-      CUT_Buf <- (as.numeric(readLines(n = 1)))*1000
-    }else{
-      CUT_Buf <- NULL
-    }
-
     if(any(list.files(DirR)=="Ensemble")){
-      cat("Perform Posterior MSDM only on Ensemble?(Y/N)")
-      Q1 <- as.character(readLines(n = 1))
-      while(!(Q1 %in% c("Y","N"))){
-        warning("Select a valid response (Y/N):")
-        Q1 <-as.character(readLines(n = 1))
-      }
-      if(Q1=="Y"){
         DirT <- file.path(DirR,"Ensemble",ensemble[ensemble!="N"])
         DirPost <- "MSDMPosterior"
         DirPost <- file.path(DirT,DirPost)
-      }
-      if(Q1=="N"){
-        DirT <- file.path(DirR,"Algorithm",algorithm)
-        DirPost <- "MSDMPosterior"
-        DirPost <- file.path(DirT,DirPost)
-      }
       for(i in DirPost){
         dir.create(i)
       }
-      for(i in 1:length(DirPost)){
-        print(paste("Folder.....",i,"/",length(DirPost),sep=""))
-        MSDM_Posterior(
-          RecordsData = occINPUT,
-          Threshold = thr[grep('type', names(thr))],
-          cutoff = Q0,
-          PredictType = ensemble,
-          CUT_Buf = CUT_Buf,
-          DirSave = DirPost[i],
-          DirRaster = DirT[i]
-        )
-      }
     }else{
-      Q1 <- "N"
       DirT <- file.path(DirR,"Algorithm",algorithm)
       DirPost <- "MSDMPosterior"
       DirPost <- file.path(DirT,DirPost)
-      for(i in DirPost){
-        dir.create(i)
-      }
-      for(i in 1:length(DirPost)){
-        print(paste("Folder.....",i,"/",length(DirPost),sep=""))
-        MSDM_Posterior(
-          RecordsData = occINPUT,
-          Threshold = thr[grep('type', names(thr))],
-          cutoff = Q0,
-          PredictType = ensemble,
-          CUT_Buf = CUT_Buf,
-          DirSave = DirPost[i],
-          DirRaster = DirT[i]
-        )
-      }
     }
-    if(Q1=="N" ||!("Ensemble"%in%list.files(DirR))){
-
-      cat("Perform Ensemble on Algorithm L-MSDM?(Y/N)")
-      Q4 <- as.character(readLines(n = 1))
-      while(!(Q4 %in% c("Y","N"))){
-        warning("Select a valid response (Y/N):")
-        Q4 <- as.character(readLines(n = 1))
-      }
-
-      if(Q4=="Y"){
-        DirT <- file.path(DirR,"Algorithm",algorithm,"MSDMPosterior")
-        DirPost <- file.path(DirR,"Algorithm","MSDM_Ensemble")
-        dir.create(DirPost)
-        DirPost <- file.path(DirPost,ensemble)
-        ENS_Posterior(
-          RecordsData = occINPUT,
-          Algorithm = algorithm,
-          PredictType = ensemble,
-          Threshold = thr[grep('type', names(thr))],
-          DirAlg = DirT,
-          DirSave = DirPost
-        )
-      }
+    #Create MSDM Folders
+    for(i in DirPost){
+      dir.create(i)
     }
-  }
-
-  #10.S-SDM----
-  if(s_sdm=="Y"){
-
-    #Where to S-SDM
-    if(ensemble!="N"){
-      cat("Create S-SDM only for Ensemble?(Y/N)")
-      Q1 <- as.character(readLines(n=1))
-      if(Q1=="Y"){
-        DirT <- file.path(DirR,"Ensemble",ensemble)
-      }else{
-        DirT <- file.path(DirR,algorithm)
-      }
-    }else{
-      cat("Creating S-SDM for each Algorithm")
-      DirT <- file.path(DirR,algorithm)
+    #Perform MSDM Posterior
+    for(i in 1:length(DirPost)){
+      print(paste("Folder.....",i,"/",length(DirPost),sep=""))
+      MSDM_Posterior(
+        RecordsData = occINPUT,
+        Threshold = thr[grep('type', names(thr))],
+        cutoff = Q0,#Aqui é o tipo de MSDM-Posterior
+        CUT_Buf = CUT_Buf,#Aqui é a distancia do Buffer
+        DirSave = DirPost[i],
+        DirRaster = DirT[i]
+      )
     }
-
-    #S-SDM on MSDM?
-    if(msdm=="POST"){
-      cat("Create S-SDM for M-SDM?(Y/N)\nS-SDM for M-SDM will be based on previous M-SDM choice!")
-      Q2 <- as.character(readLines(n=1))
-      if(Q2=="Y"){
-        DirT2 <- file.path(DirPost)
-      }else{
-        DirT2 <- NULL
-      }
-    }
-
-    #S-SDM on Projections?
-    if(!is.null(proj_dir)){
-      cat("Create S-SDM for Projections?(Y/N)")
-      Q3 <- as.character(readLines(n=1))
-      if(Q3=="Y" && Q1=="N"){
-        DirT3 <- file.path(DirR,names(EnvF),Alg)
-      }else if (Q3=="Y" && Q1=="Y"){
-        DirT3 <- file.path(DirR,names(EnvF),ensemble)
-      }
-    }else{
-      DirT3 <- NULL
-    }
-
-    #Calculate S-SDM
-    S_SDM(
-      DirENM = DirT,
-      DirMSDM = DirT2,
-      DirProj = DirT3,
-      spN,
-      Threshold = thr[grep('type', names(thr))]
-    )
   }
 }
