@@ -611,9 +611,9 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(!is.null(colin_var){
+        if(!is.null(colin_var)){
           if(colin_var['method']!="PCA"){
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
           }else{
             envTT<-envT
           }
@@ -672,9 +672,9 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(!is.null(colin_var){
+        if(!is.null(colin_var)){
           if(colin_var['method']!="PCA"){
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
           }else{
             envTT<-envT
           }
