@@ -587,7 +587,7 @@ ENMTML <- function(pred_dir,
   if(part['method']=="BANDS" || part['method']=="BLOCK"){
 
     if(any(grepl("PC",names(envT)))==T || any(grepl("pc",names(envT)))==T){
-      colin_var<-"PCA"
+      colin_var["method"]<-"PCA"
     }
 
     if(!is.null(eval_occ)){
