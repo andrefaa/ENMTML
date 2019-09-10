@@ -611,10 +611,12 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(colin_var['method']!="PCA"){
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
-        }else{
-          envTT<-envT
+        if(!is.null(colin_var)){
+          if(colin_var['method']!="PCA"){
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+          }else{
+            envTT<-envT
+          }
         }
 
         # print("Use Longitudinal(1) or Latitudinal Bands(2)?")
@@ -670,10 +672,12 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(colin_var['method']!="PCA"){
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
-        }else{
-          envTT<-envT
+        if(!is.null(colin_var)){
+          if(colin_var['method']!="PCA"){
+            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+          }else{
+            envTT<-envT
+          }
         }
         TipoMoran <- "all"
         # print("Select Moran Calculation Type (all/nearest):")
