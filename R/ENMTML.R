@@ -1324,7 +1324,7 @@ cat("Checking for function arguments ...\n")
           )
           
       #7.10. Create Occurrence Table for Replicates----
-        if(rep!=1 || part=="KFOLD"){
+        if(rep!=1){
           occTREINO[[k]] <- occINPUT[occINPUT$Partition==1,]
           occTESTE[[k]] <- occINPUT[occINPUT$Partition==2,]
         }
