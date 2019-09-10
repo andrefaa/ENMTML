@@ -587,7 +587,7 @@ ENMTML <- function(pred_dir,
   if(part['method']=="BANDS" || part['method']=="BLOCK"){
 
     if(any(grepl("PC",names(envT)))==T || any(grepl("pc",names(envT)))==T){
-      colin_var["method"]<-"PCA"
+      colin_var <- c(method="PCA")
     }
 
     if(!is.null(eval_occ)){
@@ -617,7 +617,10 @@ ENMTML <- function(pred_dir,
           }else{
             envTT<-envT
           }
+        }else{
+          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
         }
+        
 
         # print("Use Longitudinal(1) or Latitudinal Bands(2)?")
         bands <- as.integer(part['type'])
@@ -678,7 +681,10 @@ ENMTML <- function(pred_dir,
           }else{
             envTT<-envT
           }
+        }else{
+          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
         }
+        
         TipoMoran <- "all"
         # print("Select Moran Calculation Type (all/nearest):")
         # TipoMoran <- as.character(readLines(n = 1))
@@ -771,7 +777,7 @@ ENMTML <- function(pred_dir,
       PredictType = ensemble,
       spN = spN,
       Tst = eval_occ,
-      Threshold = ,
+      Threshold = thr,
       DirSave = DirR,
       DirMask = DirB,
       DirMSDM = DirPRI,
