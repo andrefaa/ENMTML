@@ -1,15 +1,16 @@
 M_delimited <- function(var,
                         occ_xy,
-                        method = c('buffer', 'mask'),
+                        method = c('BUFFER', 'MASK'),
                         BufferDistanceKm,
                         EcoregionsFile,
                         Dir,
                         spN,
+                        Buffer_Opt,
                         SaveM = TRUE) {
   var <- var[[1]]
   var <- !is.na(var)
   var[var[] == 0] <- NA
-  
+
   Dir_M<-"Extent_Masks"
   if (file.exists(file.path(Dir,Dir_M))){
    Dir_M<-file.path(Dir,Dir_M)
@@ -17,7 +18,7 @@ M_delimited <- function(var,
    dir.create(file.path(Dir,Dir_M))
    Dir_M<-file.path(Dir,Dir_M)
   }
-  
+
   #Check if GeoMasks already exist----
   if(any(paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif"))){
     if(all(paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif"))){
@@ -28,15 +29,10 @@ M_delimited <- function(var,
       spN <- spN[!paste0(spN,".tif")%in%list.files(Dir_M,pattern=".tif")]
     }
   }
-  
-  
+
+
   #Extent Restriction----
-  if (method == 'buffer') {
-      if (is.null(BufferDistanceKm) == T) {
-        print('Please define a source of buffer in km:')
-        cat(("1-Default based on presences distances\n2-A single buffer in m for all species\n3-A txt tab delimited file"))
-        Buffer_Opt <- as.integer(readLines(n = 1))
-        
+  if (method == 'BUFFER') {
         if (Buffer_Opt == 1) {
           occ_km <- list()
           for(i in 1:length(spN)){
@@ -47,23 +43,20 @@ M_delimited <- function(var,
           for(i in 1:length(occ_km)){
             diag(occ_km[[i]]) <- Inf
           }
-          
+
           BufferDistanceKm <- sapply(occ_km, function(x) max(apply(x,2,min)))
           BufferDistanceKm <- BufferDistanceKm*1000
         }
 
         if (Buffer_Opt == 2) {
-          cat("Please difine a distance in km")
-          BufferDistanceKm <- as.integer(readLines(n = 1))
           BufferDistanceKm <- BufferDistanceKm * 1000
         }
-        if (Buffer_Opt == 3) {
-          cat("Please select the txt file with species specific distances in km")
-          BufferDistanceKm <- read.table(file.choose(),sep="\t",h=T)
-          BufferDistanceKm <- BufferDistanceKm$Dist * 1000
-        }
-      }
-      
+        # if (Buffer_Opt == 3) {
+        #   cat("Please select the txt file with species specific distances in km")
+        #   BufferDistanceKm <- read.table(file.choose(),sep="\t",h=T)
+        #   BufferDistanceKm <- BufferDistanceKm$Dist * 1000
+        # }
+
       varCord <- data.frame(coordinates(var))
       varCord <- varCord[which(!is.na(var[[1]][])),]
       varCord$Cell <- cellFromXY(var, xy = varCord)
@@ -71,14 +64,14 @@ M_delimited <- function(var,
       coordinates(varCord) <- ~ x + y
       crs(varCord) <-
         "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-      
+
       M_list <- lapply(occ_xy, function(x) {
         coordinates(x) <- ~ x + y
         crs(x) <-
           "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
         return(x)
       })
-      
+
       cl <- makeCluster(detectCores()-1)
       registerDoParallel(cl)
       foreach(i = 1:length(M_list), .packages = c("raster")) %dopar% {
@@ -94,15 +87,13 @@ M_delimited <- function(var,
           M2[M] <- NA
           M2
           # M2 <- crop(M2,extent(varCord@coords[which(!is.na(Filter)), ]))
-          writeRaster(M2,paste(Dir_M,paste(names(M_list[i]),".tif",sep=""),sep="/"),format="GTiff",overwrite=T)  
+          writeRaster(M2,paste(Dir_M,paste(names(M_list[i]),".tif",sep=""),sep="/"),format="GTiff",overwrite=T)
       }
       stopCluster(cl)
     }
-  
-  if (method == 'mask') {
-      if(is.null(EcoregionsFile)==T){
-        print("Please select the file ('.bil','.asc','.tif','.shp','.txt') to be used as mask:")
-        Dir <- file.choose()
+
+  if (method == 'MASK') {
+    Dir <- EcoregionsFile
         EcoregionsFileExt <- unique(file_ext(Dir))
         if (any(EcoregionsFileExt %in% c('bil', 'asc', 'tif'))) {
           EcoregionsFile <- brick(stack(Dir))
@@ -119,25 +110,23 @@ M_delimited <- function(var,
           EcoregionsFile <- brick(stack(EcoregionsFile))
           EcoregionsFile <- crop(EcoregionsFile, var)
         }
-        
+
         sp.Ecoregions <- lapply(occ_xy,function(x) extract(EcoregionsFile,x))
         sp.Ecoregions <- lapply(sp.Ecoregions,function(x) {
           x <- unique(na.omit(x))
           x <- x[x!=0]
           })
-        
+
         cl <- makeCluster(detectCores()-1)
         registerDoParallel(cl)
         foreach(i = 1:length(sp.Ecoregions), .packages = c("raster")) %dopar% {
           EcoregionSp <-EcoregionsFile
           EcoregionSp[!EcoregionSp[]%in%sp.Ecoregions[[i]]] <- NA
           EcoregionSp <- EcoregionSp>0
-          # EcoregionSp <- crop(EcoregionSp,extent(rasterToPoints(EcoregionSp)[,-3]))
-          writeRaster(EcoregionSp,paste(Dir_M,paste(names(sp.Ecoregions[i]),".tif",sep=""),sep="/"),format="GTiff",overwrite=T)  
+          writeRaster(EcoregionSp,paste(Dir_M,paste(names(sp.Ecoregions[i]),".tif",sep=""),sep="/"),format="GTiff",overwrite=T)
         }
         stopCluster(cl)
-      }
+
   }
   return(Dir_M)
 }
-  
