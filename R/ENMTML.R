@@ -229,7 +229,7 @@ ENMTML <- function(pred_dir,
   if(any(!thr[grep('type', names(thr))]%in%c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD","SORENSEN"))){
     stop("'thr' Argument is not valid!")
   }
-  if(any(names(thr)%in%"SENSITIVITY") & !any(names(thr)%in%'sens')){
+  if(any(thr[grep('type', names(thr))]%in%"SENSITIVITY") & !any(names(thr)%in%'sens')){
     stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
   }
   if(!(msdm%in%c("N","XY","MIN","CML","KER","POST"))){
