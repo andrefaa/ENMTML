@@ -1436,9 +1436,9 @@ ENMTML <- function(pred_dir,
 
   if(msdm=="POST"){
     if(any(list.files(DirR)=="Ensemble")){
-        DirT <- file.path(DirR,"Ensemble",ensemble[ensemble!="N"])
-        DirPost <- "MSDMPosterior"
-        DirPost <- file.path(DirT,DirPost)
+      DirT <- file.path(DirR,"Ensemble",ensemble[ensemble!="N"])
+      DirPost <- "MSDMPosterior"
+      DirPost <- file.path(DirT,DirPost)
       for(i in DirPost){
         dir.create(i)
       }
