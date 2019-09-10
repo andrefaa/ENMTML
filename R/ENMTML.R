@@ -587,7 +587,7 @@ ENMTML <- function(pred_dir,
   if(part['method']=="BANDS" || part['method']=="BLOCK"){
 
     if(any(grepl("PC",names(envT)))==T || any(grepl("pc",names(envT)))==T){
-      colin_var['method']<-"PCA"
+      colin_var["method"]<-"PCA"
     }
 
     if(!is.null(eval_occ)){
@@ -764,7 +764,7 @@ ENMTML <- function(pred_dir,
     FitENM_TMLA_Parallel(
       RecordsData = occINPUT,
       Variables = envT,
-      VarImP = imp_var,
+      VarImp = imp_var,
       Fut = Fut,
       Part = part['method'],
       Algorithm = algorithm,
