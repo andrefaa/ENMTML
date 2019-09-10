@@ -689,6 +689,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS <- list()
         for (i in 1:N) {
           RastPart[["MAH"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
+          RastPart[["MAH"]][[i]][RastPart[["MAH"]][[i]][] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MAH"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -713,7 +714,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- rem_out(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)) 
+            PartRas <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
+            PartRas[PartRas[] < -10] <- -10
             if(N!=1){
               writeRaster(
                 PartRas,
@@ -764,14 +766,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               mahal(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
                                                   SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
-            FinalModelT <- rem_out(FinalModelT)
+            FinalModelT[FinalModelT[] < -10] <- -10
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
-            FinalModelT <- rem_out(FinalModelT)
+            FinalModelT[FinalModelT[] < -10] <- -10
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- extract(FinalModel,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -799,8 +801,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
+              PreFut <- PREDICT_DomainMahal(VariablesP[[k]], Model)
+              PreFut[PreFut[] < -10] <- -10
               ListFut[[ProjN[k]]][["MAH"]] <-
-                STANDAR_FUT(rem_out(PREDICT_DomainMahal(VariablesP[[k]], Model)), FinalModelT)
+                STANDAR_FUT(PreFut, FinalModelT)
             }
           }
         }
@@ -809,6 +813,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         for(k in 1:length(VariablesP)){
           PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
+          PredPoint[PredPoint[] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -2688,7 +2693,7 @@ FinalSummary <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "
 
 write.table(FinalValidation,paste(DirSave, VALNAME, sep = '/'),sep="\t",
             col.names = T,row.names=F)
-if(per!=1 && repl==1 || per==1 || N!=1){
+if(repl==1 || is.null(repl)){
   write.table(FinalSummary,paste(DirSave, VALNAMEII, sep = '/'),sep="\t",
               col.names = T,row.names=F)
 }
