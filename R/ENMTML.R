@@ -42,8 +42,8 @@
 #'   \item BAND: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BLOCK', type='1'). 'type' refers to the bands disposition
 #'   \item BLOCK: Geographic partition structured as a checkerboard. Usage part=c(method= 'BLOCK').
 #' }
-#' @param save_part character. Save .tif files of the partitions? (Y/N) (Default="Y")
-#' @param save_final character. Save .tif files of the final model (fitted with all the data)? (Y/N) (Default="Y")
+#' @param save_part logical. If TRUE, function will save .tif files of partial models, i.e. model created by each occurrence partitions. (default FALSE).
+#' @param save_final logical. If TRUE, function will Save .tif files of the final model, i.e. fitted with all occurrences data. (default TRUE)
 #' @param algorithm character. Algorithm to construct ecological niche models (it is possible to use more than one method):
 #' \itemize{
 #'   \item BIO: Bioclim
@@ -135,8 +135,8 @@ ENMTML <- function(pred_dir,
                    pres_abs_ratio = 1,
                    pseudoabs_method,
                    part,
-                   save_part = "N",
-                   save_final = "Y",
+                   save_part = FALSE,
+                   save_final = TRUE,
                    algorithm,
                    thr,
                    msdm,
@@ -785,8 +785,8 @@ ENMTML <- function(pred_dir,
       DirSave = DirR,
       DirMask = DirB,
       DirMSDM = DirPRI,
-      Save = save_part,
-      SaveFinal = save_final,
+      Save = ifelse(save_part, 'Y', 'N'),
+      SaveFinal = ifelse(save_final, 'Y', 'N'),
       sensV=sensV,
       repl = NULL,
       per = NULL,
@@ -1312,8 +1312,8 @@ ENMTML <- function(pred_dir,
       }
 
       #7.7. save_part Fix----
-      if(save_part=="Y"&& per==1){
-        save_part <- "N"
+      if(save_part && per==1){
+        save_part <- FALSE
         warning("There are no partitions to be saved!")
       }
 
@@ -1347,8 +1347,8 @@ ENMTML <- function(pred_dir,
         DirSave = DirR,
         DirMask = DirB,
         DirMSDM = DirPRI,
-        Save = save_part,
-        SaveFinal = save_final,
+        Save = ifelse(save_part, 'Y', 'N'),
+        SaveFinal = ifelse(save_final, 'Y', 'N'),
         sensV = sensV,
         per = per,
         repl = k,
