@@ -91,9 +91,8 @@
 #'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al., 2008)
 #'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user; Kremen et al., 2008)
 #'   }
-#' @param ensemble character. Method used to ensemble different algorithms (it is possible to use more than one method):
+#' @param ensemble character. Method used to ensemble different algorithms. It is possible to use more than one method. (default NULL):
 #'   \itemize{
-#'   \item N: No ensemble
 #'   \item MEAN: Simple average of the different models
 #'   \item W_MEAN: Weighted Average
 #'   \item SUP: Average of the best models (TSS over the average)
@@ -141,7 +140,7 @@ ENMTML <- function(pred_dir,
                    algorithm,
                    thr,
                    msdm,
-                   ensemble,
+                   ensemble=NULL,
                    extrapolation=FALSE,
                    cores=1,
                    s_sdm) {
@@ -188,6 +187,9 @@ ENMTML <- function(pred_dir,
   }
   if(missing(ensemble)){
     er <- c(er,paste("'ensemble' unspecified argument, specify whether you want to perform the evaluation of the models | "))
+  }
+  if(!is.null(ensemble)){
+    ensemble <- "N"
   }
   if(!is.null((er))){
     print(er)
