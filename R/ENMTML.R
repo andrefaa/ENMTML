@@ -77,8 +77,7 @@
 #' a Priori methods:
 #'
 #' \itemize{
-#'   \item N: Do not perform MSDM
-#'   \item XY: Create two layers latitude and longitude layer (added as a predictor)
+#'   \item XY: Create two layers latitude and longitude layer (added as a predictor).
 #'   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence (added as a predictor)
 #'   \item CML: Create a layer with information of the summed distance from each cell to ALL occurrences (added as a predictor)
 #'   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data (added as a predictor)
@@ -140,7 +139,7 @@ ENMTML <- function(pred_dir,
                    save_final = TRUE,
                    algorithm,
                    thr,
-                   msdm,
+                   msdm=NULL,
                    ensemble=NULL,
                    extrapolation=FALSE,
                    cores=1,
@@ -237,8 +236,12 @@ ENMTML <- function(pred_dir,
   if(any(thr[grep('type', names(thr))]%in%"SENSITIVITY") && !any(names(thr)%in%'sens')){
     stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
   }
-  if(!(msdm%in%c("N","XY","MIN","CML","KER","POST"))){
-    stop("'msdm' Argument is not valid!(N/XY/MIN/CML/KER/POST)")
+  if(!is.null(msdm)){
+    if(!(msdm%in%c("XY","MIN","CML","KER","POST"))){
+      stop("'msdm' Argument is not valid!(N/XY/MIN/CML/KER/POST)")
+    }
+  }else{
+    msdm <- "N"
   }
   if(length(msdm)>1){
     stop("Please choose only one 'msdm' method")
