@@ -27,7 +27,6 @@
 #'   \item BUFFER and based on A single buffer for all species expressed in km. EXPLAIN MOOORE. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
 #'   \item MASK: this method consist in delimit the area used to model calibration based on the polygon where a species occurrences fall. For instance it is possible delimit the calibration area based on ecorregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
 #' }
-#' @param pres_abs_ratio numeric. Presence-Absence ratio (values between 0 and 1)
 #' @param pseudoabs_method character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
 #' \itemize{
 #' \item RND: Random allocation throughout area used to fit models. Usage pseudoabs_method=c(method='RND').
@@ -36,6 +35,7 @@
 #' \item GEO_ENV_CONST: Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage pseudoabs_method=c(method='GEO_ENV_CONST', width='50')
 #' \item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provie a second value wich express the buffer width in km. Usage pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')
 #' }
+#' @param pres_abs_ratio numeric. Presence-Absence ratio (values between 0 and 1)
 #' @param part character. Partition method for model's validation. Only one method can be chosen. It is necessary to provide a vector for this argument. The next methods are implemented:
 #' \itemize{
 #'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage •	part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
@@ -133,8 +133,7 @@ ENMTML <- function(pred_dir,
                    colin_var=NULL,
                    imp_var=NULL,
                    sp_accessible_area=NULL,
-                   pseudoabs_me
-                   thod,
+                   pseudoabs_method,
                    pres_abs_ratio = 1,
                    part,
                    save_part = FALSE,
