@@ -13,6 +13,7 @@
 #' \item 2-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='2').
 #' \item 3-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(metho='3', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
 #' }
+#' @param eval_occ character. Directory path with tab-delimited TXT file with species names, latitude and longitude, this three columns must have the same columns names than the databased used in the occ_file argument. This is an external occurrence database that will be used to external models validation. (default NULL)
 #' @param colin_var character. Method to reduce variable collinearity:
 #' \itemize{
 #'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables, usage colin_var=c(method='PCA').
@@ -128,12 +129,13 @@ ENMTML <- function(pred_dir,
                    y,
                    min_occ = 10,
                    thin_occ=NULL,
+                   eval_occ=NULL,
                    colin_var=NULL,
                    imp_var=NULL,
-                   eval_occ=NULL,
                    sp_accessible_area=NULL,
+                   pseudoabs_me
+                   thod,
                    pres_abs_ratio = 1,
-                   pseudoabs_method,
                    part,
                    save_part = FALSE,
                    save_final = TRUE,
@@ -801,7 +803,6 @@ ENMTML <- function(pred_dir,
 
     #7.0.Dataset for evaluation
     if(!is.null(eval_occ)){
-      # cat("Select the occurrence dataset for evaluation:\n")
       OccTst <- read.table(eval_occ,sep="\t",h=T)
       OccTst<-OccTst[,c(sp,x,y)]
       colnames(OccTst) <- c("sp","x","y")
