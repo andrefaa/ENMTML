@@ -1,4 +1,4 @@
-   # ENM_TheMetaLand
+   # ENMTML
 
 Welcome! This is the R Script from TheMetaLand Lab to create ENMs  
 Overall, there is a main script (ENM_TheMetaLand) and a group of auxiliary functions  
@@ -8,7 +8,7 @@ Please follow the "installation" instructions
 ```ruby
 install.packages("devtools")  
 library(devtools)  
-install_github("andrefaa/ENM_TheMetaLand")  
+install_github("andrefaa/ENMTML")  
 library(ENMTheMetaLand)  
 ```
 
@@ -19,12 +19,12 @@ library(GRaF)
 ```
 
 ## Run
-ENMs_TheMetaLand(pred_dir = "",  
-                 occ_dir="",  
-                 sp="",x="",y="",min_occ=,thin_occ="",colin_var="",imp_var = "",transfer="",  
-                 eval_occ = "",sp_accessible_area = "",pres_abs_ratio = ,pseudoabs_method = "",part = "",  
-                 algorithm = c("""),  
-                 save_part="N",save_final="Y",thr="",msdm="",ensemble = "",s_sdm = "")  
+ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
+  thin_occ = NULL, eval_occ = NULL, colin_var = NULL,
+  imp_var = NULL, sp_accessible_area = NULL, pseudoabs_method,
+  pres_abs_ratio = 1, part, save_part = FALSE, save_final = TRUE,
+  algorithm, thr, msdm = NULL, ensemble = NULL,
+  extrapolation = FALSE, cores = 1)
 
 **See possible input options below**
 
