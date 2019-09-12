@@ -5,10 +5,11 @@
 \title{Create and process Ecological Niche and Species Distribution Models}
 \usage{
 ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
-  thin_occ = NULL, colin_var = NULL, imp_var = NULL,
-  eval_occ = NULL, sp_accessible_area = NULL, pres_abs_ratio = 1,
-  pseudoabs_method, part, save_part = "N", save_final = "Y", algorithm,
-  thr, msdm, ensemble, cores = 1, s_sdm)
+  thin_occ = NULL, eval_occ = NULL, colin_var = NULL,
+  imp_var = NULL, sp_accessible_area = NULL, pseudoabs_method,
+  pres_abs_ratio = 1, part, save_part = FALSE, save_final = TRUE,
+  algorithm, thr, msdm = NULL, ensemble = NULL,
+  extrapolation = FALSE, cores = 1)
 }
 \arguments{
 \item{pred_dir}{character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)}
@@ -25,17 +26,19 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
 
 \item{min_occ}{integer. Minimum number of unique occurrences (species with less than this number will be excluded)}
 
-\item{thin_occ}{character Default NULL. Perform spatial filtering (Thinning) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
+\item{thin_occ}{character Default NULL. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
 \itemize{
-  \item 1-Distance defined by Moran Variogram, usage thin_occ=c(method='1').
-  \item 2-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='2').
-  \item 3-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(metho='3', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
+\item 1-Distance defined by Moran Variogram, usage thin_occ=c(method='1').
+\item 2-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='2').
+\item 3-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(metho='3', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
 }}
+
+\item{eval_occ}{character. Directory path with tab-delimited TXT file with species names, latitude and longitude, this three columns must have the same columns names than the databased used in the occ_file argument. This is an external occurrence database that will be used to external models validation. (default NULL)}
 
 \item{colin_var}{character. Method to reduce variable collinearity:
 \itemize{
   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables, usage colin_var=c(method='PCA').
-  \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006), usage colin_var=c(method='VIF').
+  \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006), , usage colin_var=c(method='VIF').
   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PCA', threshold='0.7').
 }}
 
@@ -48,8 +51,6 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   \item MASK: this method consist in delimit the area used to model calibration based on the polygon where a species occurrences fall. For instance it is possible delimit the calibration area based on ecorregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
 }}
 
-\item{pres_abs_ratio}{numeric. Presence-Absence ratio (values between 0 and 1)}
-
 \item{pseudoabs_method}{character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
 \itemize{
 \item RND: Random allocation throughout area used to fit models. Usage pseudoabs_method=c(method='RND').
@@ -59,6 +60,8 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
 \item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provie a second value wich express the buffer width in km. Usage pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')
 }}
 
+\item{pres_abs_ratio}{numeric. Presence-Absence ratio (values between 0 and 1)}
+
 \item{part}{character. Partition method for model's validation. Only one method can be chosen. It is necessary to provide a vector for this argument. The next methods are implemented:
 \itemize{
   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage •    part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
@@ -67,9 +70,9 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   \item BLOCK: Geographic partition structured as a checkerboard. Usage part=c(method= 'BLOCK').
 }}
 
-\item{save_part}{character. Save .tif files of the partitions? (Y/N) (Default="Y")}
+\item{save_part}{logical. If TRUE, function will save .tif files of partial models, i.e. model created by each occurrence partitions. (default FALSE).}
 
-\item{save_final}{character. Save .tif files of the final model (fitted with all the data)? (Y/N) (Default="Y")}
+\item{save_final}{logical. If TRUE, function will Save .tif files of the final model, i.e. fitted with all occurrences data. (default TRUE)}
 
 \item{algorithm}{character. Algorithm to construct ecological niche models (it is possible to use more than one method):
 \itemize{
@@ -91,49 +94,49 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
 \item{thr}{character. Threshold used for presence-absence predictions. It is possible to use more than one threshol type. It is necessary to provide a vector for this argument:
 \itemize{
   \item LPT: The highest threshold at which there is no omission. Usage thr=c(type='LPT').
-  \item MAX_TSS: Threshold at which the sum of the sensitivity and specificity is highest. Usage thr=c(type='MAX_TSS').
+  \item MAX_TSS: Threshold at which the sum of the sensitivity and specificity is highest.
+  Usage thr=c(type='MAX_TSS').
   \item MAX_KAPPA: The threshold at which kappa is highest ("max kappa"). Usage thr=c(type='MAX_KAPPA').
   \item SENSITIVITY: Fixed (specified) sensitivity. For this type of threshold thr must be use as thr=c(type='SENSITIVITY', sens='0.6'). 'sens' refers to models will be bynarized using this suitability value. Note that this method assume 'sens' value for all algorithm.
   \item JACCARD: The threshold at which Jaccard is highest. Usage thr=c(type='JACCARD').
   \item SORENSEN: The threshold at which Sorensen is highest. Usage thr=c(type='SORENSEN').
   }
-In the case of use more than  thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD')). In the case of SENSITIVITY threshold is used it is necessayr specify the desired sensitivity value, e.g. thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')}
+In the case of use more than one threshold type it is necessary concatenate the names of threshold types, e.g., thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD')). In the case of SENSITIVITY threshold is used it is necessayr specify the desired sensitivity value, e.g. thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')}
 
-\item{msdm}{character. Include spatial restrictions. These methods restrict Ecological Niche Models in order to have less potential prediction and turn ENMs closer to species distribution models (SDMs). They are classified in a Priori and a Posteriori methods:
+\item{msdm}{character. Include spatial restrictions. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in a Priori and a Posteriori methods. The firt one encompase method taht include geographical layers as predictor of models construction, whereas a Posteriori constrain models based on occurrence and suitability pattenrs. This argument is filled only wiht a method, in the case of use MCP-B method msdm is filled in a different way se below:
 
 a Priori methods:
 
 \itemize{
-  \item N: Do not perform MSDM
-  \item XY: Create two layers latitude and longitude layer (added as a predictor)
+  \item XY: Create two layers latitude and longitude layer (added as a predictor).
   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence (added as a predictor)
   \item CML: Create a layer with information of the summed distance from each cell to ALL occurrences (added as a predictor)
   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data (added as a predictor)
   }
 a Posteriori methods
 \itemize{
-  \item POST: Posterior M-SDM Methods (If chosen, the preferred method will be asked later)
   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep)
   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep)
   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep)
-  \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al., 2008)
-  \item MCP-B: Creates a Buffer around the MCP (distance defined by user; Kremen et al., 2008)
+  \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data.
+  \item MCP-B: Creates a Buffer around the MCP (distance defined by user). Usage msdm=c(method='MCP-B', width=100).
   }}
 
-\item{ensemble}{character. Method used to ensemble different algorithms (it is possible to use more than one method):
-\itemize{
-\item N: No ensemble
-\item MEAN: Simple average of the different models
-\item W_MEAN: Weighted Average
-\item SUP: Average of the best models (TSS over the average)
-\item PCA: Performs a Principal Component Analysis (PCA) and returns the first axis
-\item PCA_SUP: PCA of the best models (TSS over the average)
-\item PCA_THR: PCA only with cells above the threshold
-}}
+\item{ensemble}{character. Method used to ensemble different algorithms. It is possible to use more than one method. It is necessary to provide a vector for this argument.  It is possible to use more than one ensemble method. For SUP, W_MEAN or PCA_SUP method it is necesary provide an evaluation metric to ensemble arguemnts (i.e. AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):
+  \itemize{
+  \item MEAN: Simple average of the different models. Usage ensemble=c(method='MEAN').
+  \item W_MEAN: Weighted average. Usage ensemble=c(method='W_MEAN').
+  \item SUP: Average of the best models (TSS over the average). Usage ensemble=c(method='SUP').
+  \item PCA: Performs a Principal Component Analysis (PCA) and returns the first axis. Usage ensemble=c(method='PCA').
+  \item PCA_SUP: PCA of the best models (TSS over the average). For this metdhos it is necesary provide an evaluation metric. Usage ensemble=c(method='PCA_SUP', metric='Fpd').
+  \item PCA_THR: PCA only with cells above the threshold. Usage ensemble=c(method='PCA_THR').
+  }
+
+ In the case of use more than one ensemble method it is necessary concatenate the names of ensemble mehtods within the argument, e.g., ensemble=c(type=c('MEAN', 'PCA')), ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')}
+
+\item{extrapolation}{logical. If TRUE the function will calculate extrapolation based on Mobility-oriented parity (MOP) method, for current and future conditions.}
 
 \item{cores}{numeric. Define the number number of CPU cores to run modeling procedures in parallel.}
-
-\item{s_sdm}{character. Perform a stacked of Species Distribution Model (richness map)? (Y/N)}
 }
 \description{
 Create and process Ecological Niche and Species Distribution Models
@@ -142,12 +145,5 @@ Create and process Ecological Niche and Species Distribution Models
 library(ENMTML)
 
 
-}
-\references{
-\itemize{
-\item Kremen, C., Cameron, A., Moilanen, A., Phillips, S. J., Thomas, C. D.,
-Beentje, H., . Zjhra, M. L. (2008). Aligning Conservation Priorities Across
-Taxa in Madagascar with High-Resolution Planning Tools. Science, 320(5873),
-222-226. doi:10.1126/science.1155193
-}
+
 }
