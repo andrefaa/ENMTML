@@ -72,7 +72,8 @@
 #'   \item SORENSEN: The threshold at which Sorensen is highest. Usage thr=c(type='SORENSEN').
 #'   }
 #' In the case of use more than  thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD')). In the case of SENSITIVITY threshold is used it is necessayr specify the desired sensitivity value, e.g. thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')
-#' @param msdm character. Include spatial restrictions. These methods restrict Ecological Niche Models in order to have less potential prediction and turn ENMs closer to species distribution models (SDMs). They are classified in a Priori and a Posteriori methods:
+#'
+#' @param msdm character. Include spatial restrictions. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in a Priori and a Posteriori methods. The firt one encompase method taht include geographical layers as predictor of models construction, whereas a Posteriori constrain models based on occurrence and suitability pattenrs. This argument is filled only wiht a method, in the case of use MCP-B method msdm is filled in a different way se below:
 #'
 #' a Priori methods:
 #'
@@ -84,12 +85,11 @@
 #'   }
 #' a Posteriori methods
 #' \itemize{
-#'   \item POST: Posterior M-SDM Methods (If chosen, the preferred method will be asked later)
 #'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep)
 #'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep)
 #'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep)
-#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al., 2008)
-#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user; Kremen et al., 2008)
+#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al., 2008).
+#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user; Kremen et al., 2008). /n Usage msdm=c(method='MCP-B', width=100).
 #'   }
 #' @param ensemble character. Method used to ensemble different algorithms. It is possible to use more than one method. (default NULL):
 #'   \itemize{
@@ -102,7 +102,6 @@
 #'   }
 #' @param extrapolation logical. If TRUE the function will calculate extrapolation based on Mobility-oriented parity (MOP) method, for current and future conditions.
 #' @param cores numeric. Define the number number of CPU cores to run modeling procedures in parallel.
-#' @param s_sdm character. Perform a stacked of Species Distribution Model (richness map)? (Y/N)
 #'
 #'
 #' @references
@@ -142,8 +141,7 @@ ENMTML <- function(pred_dir,
                    msdm=NULL,
                    ensemble=NULL,
                    extrapolation=FALSE,
-                   cores=1,
-                   s_sdm) {
+                   cores=1) {
 
   #1.Check Function Arguments
   cat("Checking for function arguments ...\n")
@@ -237,8 +235,12 @@ ENMTML <- function(pred_dir,
     stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
   }
   if(!is.null(msdm)){
-    if(!(msdm%in%c("XY","MIN","CML","KER","POST"))){
-      stop("'msdm' Argument is not valid!(N/XY/MIN/CML/KER/POST)")
+    if(length(msdm)==2){
+      msdm <- msdm['method']
+      msdm_width <- as.numeric(msdm['width'])
+    }
+    if(!(msdm%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
+      stop("'msdm' Argument is not valid!(N/XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
     }
   }else{
     msdm <- "N"
@@ -730,7 +732,7 @@ ENMTML <- function(pred_dir,
     }
 
     #6.3.msdm A PRIORI----
-    if(msdm=="N"||msdm=="POST"){
+    if(msdm=="N"||msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
       DirPRI <- NULL
     }
 
@@ -812,7 +814,7 @@ ENMTML <- function(pred_dir,
     }
 
     #7.1.msdm A PRIORI----
-    if(msdm=="N"||msdm=="POST"){
+    if(msdm=="N"||msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
       DirPRI <- NULL
     }
 
@@ -1439,7 +1441,7 @@ ENMTML <- function(pred_dir,
 
   #9.MSDM Posteriori----
 
-  if(msdm=="POST"){
+  if(msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
     if(any(list.files(DirR)=="Ensemble")){
       DirT <- file.path(DirR,"Ensemble",ensemble[ensemble!="N"])
       DirPost <- "MSDMPosterior"
@@ -1462,8 +1464,8 @@ ENMTML <- function(pred_dir,
       MSDM_Posterior(
         RecordsData = occINPUT,
         Threshold = thr[grep('type', names(thr))],
-        cutoff = Q0,#Aqui é o tipo de MSDM-Posterior
-        CUT_Buf = CUT_Buf,#Aqui é a distancia do Buffer
+        cutoff = msdm,#Aqui é o tipo de MSDM-Posterior
+        CUT_Buf = msdm_width,#Aqui é a distancia do Buffer
         DirSave = DirPost[i],
         DirRaster = DirT[i]
       )
