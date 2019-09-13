@@ -1,4 +1,4 @@
-# Escrito por Poliana Mendes, Santiago Velazco e Andre Andrade
+# Writen by Poliana Mendes, Santiago Velazco e Andre Andrade
 
 MSDM_Priori_TMLA <- function(Species,
                              var,
