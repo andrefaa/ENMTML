@@ -777,13 +777,13 @@ ENMTML <- function(pred_dir,
       Fut <- NULL
     }
 
-    #6.5.Adjust Checkerboard when using Geographical Restrictions (For Maxent Sampling)----
+    #6.5.Adjust Checkerboard when using Geographical Restrictions----
     if(!is.null(sp_accessible_area)){
       Ms <- stack(file.path(DirM,list.files(DirM)))
       Cs <- stack(file.path(DirB,list.files(DirB,pattern=".tif$")))
-      nomesCs <- gsub("_"," ",names(Cs))
+      # nomesCs <- gsub("_"," ",names(Cs))
       for(i in 1:nlayers(Ms)){
-        writeRaster(Ms[[i]]*Cs[[i]], file.path(DirB,nomesCs[i]),format="GTiff",
+        writeRaster(Ms[[i]]*Cs[[i]], file.path(DirB,names(Cs)[i]),format="GTiff",
                     bylayer=F,overwrite=T,NAflag=-9999)
       }
     }
