@@ -511,13 +511,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #DOMAIN (DOM)-----
     if (any(Algorithm == "DOM")) {
       Model <- list()
-      #MAH model
+      #DOM model
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][PAtrain[[i]][, "PresAbse"] == 1,]
         Model[[i]] <- dismo::domain(dataPr[, VarColT])
       }
 
-      #MAH evaluation
+      #DOM evaluation
       if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
         Boyce <- list()
@@ -533,7 +533,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["DOM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         }
 
-        #MAH Validation
+        #DOM Validation
         BoyceSD <- sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
@@ -632,8 +632,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["DOM"]] <-
-                STANDAR_FUT(PREDICT_DomainMahal(VariablesP[[k]], Model), FinalModelT)
+              PreFut <- PREDICT_DomainMahal(Model,VariablesP[[k]])
+              ListFut[[ProjN[k]]][["DOM"]] <- STANDAR_FUT(PreFut, FinalModelT)
             }
           }
         }
@@ -651,7 +651,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["DOM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
 
 
-          #MAH Validation
+          #DOM Validation
           BoyceSD <- sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
@@ -792,7 +792,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              PreFut <- PREDICT_DomainMahal(VariablesP[[k]], Model)
+              PreFut <- PREDICT_DomainMahal(Model,VariablesP[[k]])
               PreFut[PreFut[] < -10] <- -10
               ListFut[[ProjN[k]]][["MAH"]] <-
                 STANDAR_FUT(PreFut, FinalModelT)

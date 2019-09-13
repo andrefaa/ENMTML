@@ -72,16 +72,19 @@ Ensemble_TMLA <- function(DirR,
     SpThr <- ThrTable[ThrTable["Sp"] == spN[s],]
 
     #Raster Stack----
-    ListRaster <- stack(file.path(Folders,paste0(spN[s],".tif")))
-    names(ListRaster) <- list.files(file.path(DirR,"Algorithm"))
+    List <- file.path(Folders,paste0(spN[s],".tif"))
+    List <- List[file.exists(List)]
+    ListRaster <- stack(List)
+    names(ListRaster) <- list.files(file.path(DirR,"Algorithm"))[file.exists(file.path(Folders,paste0(spN[s],".tif")))]
 
     if(!is.null(Proj)){
-      ListFut <- lapply(ProjN, function(x) stack(file.path(x,paste0(spN[s],".tif"))))
-      ListFut <- lapply(seq(ListFut), function(i) {
-          y <- ListFut[[i]]
-          names(y) <- list.files(file.path(DirR,"Algorithm"))
-          return(y)
-      })
+      ListF <- lapply(ProjN, function(x) file.path(x,paste0(spN[s],".tif")))
+      ListF <- lapply(ListF, function(x) x[file.exists(x)])
+      ListFut <- lapply(ListF, function(x) stack(x))
+      for(i in 1:length(ListFut)){
+        FilesF <- file.exists(file.path(ProjN[[i]],paste0(spN[s],".tif")))
+        names(ListFut[[i]]) <- list.files(file.path(DirR,"Algorithm"))[FilesF]
+      }
       names(ListFut) <- list.files(file.path(DirR,"Projection"))
     }
 
