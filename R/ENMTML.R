@@ -494,7 +494,7 @@ ENMTML <- function(pred_dir,
   }
 
   #3.3.Erro Futuro e msdm
-  if(!is.null(proj_dir) && msdm!="N"){
+  if(!is.null(proj_dir) && !is.null(msdm)){
     warning("msdm can not be used with future projections")
     warning("Setting msdm to N")
     msdm <- "N"
@@ -681,7 +681,8 @@ ENMTML <- function(pred_dir,
             DirM = DirM,
             MRst = sp_accessible_area['method'],
             type = TipoMoran,
-            Geo_Buf = Geo_Buf
+            Geo_Buf = Geo_Buf,
+            cores = cores
           )
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
@@ -743,7 +744,8 @@ ENMTML <- function(pred_dir,
             DirM = DirM,
             MRst = sp_accessible_area['method'],
             type = TipoMoran,
-            Geo_Buf = Geo_Buf
+            Geo_Buf = Geo_Buf,
+            cores = cores
           )
 
         occINPUT[,4] <- as.numeric(occINPUT[,4])
@@ -753,11 +755,11 @@ ENMTML <- function(pred_dir,
     }
 
     #6.3.msdm A PRIORI----
-    if(msdm=="N"||msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+    if(is.null(msdm)||msdm["method"]%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
       DirPRI <- NULL
     }
 
-    if(msdm%in%c("XY","MIN","CML", "KER")){
+    if(!is.null(msdm) && msdm["method"]%in%c("XY","MIN","CML", "KER")){
       print("Creating msdm layers...")
 
       DirMSDM<-"msdm"
