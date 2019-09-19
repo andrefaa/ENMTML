@@ -8,7 +8,8 @@ BandsPartition_TMLA <- function(evnVariables,
                                 DirM=DirM,
                                 MRst=NULL,
                                 type=TipoMoran,
-                                Geo_Buf = Geo_Buf){
+                                Geo_Buf = Geo_Buf,
+                                cores = cores){
 
   #Parameters
     #evnVariables: Predictors
@@ -84,7 +85,7 @@ BandsPartition_TMLA <- function(evnVariables,
   }
   #Development
   #Start Cluster
-  cl <- makeCluster(detectCores() - 1)
+  cl <- makeCluster(cores,outfile="")
   registerDoParallel(cl)
 
 
