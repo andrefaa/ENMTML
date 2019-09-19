@@ -9,7 +9,8 @@ BlockPartition_TMLA <- function(evnVariables = NA,
            DirM = DirM,
            MRst = sp_accessible_area,
            type = TipoMoran,
-           Geo_Buf = Geo_Buf) {
+           Geo_Buf = Geo_Buf,
+           cores = cores) {
 
   # RecordsData: matrix or data frame with presences records
   # N: 2 (dafault). interger  Number of group for data  paritioning
@@ -83,7 +84,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   # BestGridList <- rep(list(NULL),length(RecordsData))
 
   #Start Cluster
-  cl <- makeCluster(detectCores()-1)
+  cl <- makeCluster(cores,outfile="")
   registerDoParallel(cl)
 
   # LOOP----
