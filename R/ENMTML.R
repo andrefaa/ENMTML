@@ -496,8 +496,8 @@ ENMTML <- function(pred_dir,
   #3.3.Erro Futuro e msdm
   if(!is.null(proj_dir) && !is.null(msdm)){
     warning("msdm can not be used with future projections")
-    warning("Setting msdm to N")
-    msdm <- "N"
+    warning("Setting msdm to NULL")
+    msdm <- NULL
   }
 
   #3.4.Aviso caso min_occ<NPreditores
@@ -782,6 +782,7 @@ ENMTML <- function(pred_dir,
     #6.5.Adjust Checkerboard when using Geographical Restrictions----
     if(!is.null(sp_accessible_area)){
       Ms <- stack(file.path(DirM,list.files(DirM)))
+      Ms <- Ms[[spN]]
       Cs <- stack(file.path(DirB,list.files(DirB,pattern=".tif$")))
       # nomesCs <- gsub("_"," ",names(Cs))
       for(i in 1:nlayers(Ms)){
