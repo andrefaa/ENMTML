@@ -757,9 +757,7 @@ ENMTML <- function(pred_dir,
     #6.3.msdm A PRIORI----
     if(is.null(msdm)||msdm["method"]%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
       DirPRI <- NULL
-    }
-
-    if(!is.null(msdm) && msdm["method"]%in%c("XY","MIN","CML", "KER")){
+    }else{
       print("Creating msdm layers...")
 
       DirMSDM<-"msdm"
@@ -838,11 +836,9 @@ ENMTML <- function(pred_dir,
     }
 
     #7.1.msdm A PRIORI----
-    if(msdm=="N"||msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+    if(is.null(msdm)||msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
       DirPRI <- NULL
-    }
-
-    if(msdm%in%c("XY","MIN","CML", "KER")){
+    }else{
       print("Creating msdm Layers...")
 
       DirMSDM<-"msdm"
