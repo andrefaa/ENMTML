@@ -16,9 +16,9 @@
 #'
 #' @param thin_occ character Default NULL. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
 #' \itemize{
-#' \item 1-Distance defined by Moran Variogram, usage thin_occ=c(method='1').
-#' \item 2-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='2').
-#' \item 3-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(metho='3', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
+#' \item MORAN-Distance defined by Moran Variogram, usage thin_occ=c(method='MORAN').
+#' \item CELLSIZE-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='CELLSIZE').
+#' \item USER-DEFINED-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
 #' }
 #'
 #' @param eval_occ character. Directory path with tab-delimited TXT file with species names, latitude and longitude, this three columns must have the same columns names than the databased used in the occ_file argument. This is an external occurrence database that will be used to external models validation. (default NULL)
@@ -27,15 +27,15 @@
 #' \itemize{
 #'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables, usage colin_var=c(method='PCA').
 #'   \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006), , usage colin_var=c(method='VIF').
-#'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PCA', threshold='0.7').
+#'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PEARSON', threshold='0.7').
 #' }
 #'
 #' @param imp_var character. Perform variable importance and curves response for selected algorithms? (Y/N)
 #'
 #' @param sp_accessible_area character. Restrict for each species the accessible area, i.e., the area used to construct the model. It is necessary to provide a vector for this argument. Three methods were implemented
 #' \itemize{
-#'   \item BUFFER and based on species occurrences distance, i.e. EXPLAIN MOOORE. Usage sp_accessible_area=c(method='BUFFER', type='1').
-#'   \item BUFFER and based on A single buffer for all species expressed in km. EXPLAIN MOOORE. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
+#'   \item BUFFER and based on maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
+#'   \item BUFFER and based on A single buffer for all species expressed in km. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
 #'   \item MASK: this method consist in delimit the area used to model calibration based on the polygon where a species occurrences fall. For instance it is possible delimit the calibration area based on ecorregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
 #' }
 #'
@@ -96,18 +96,18 @@
 #' a Priori methods:
 #'
 #' \itemize{
-#'   \item XY: Create two layers latitude and longitude layer (added as a predictor).
-#'   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence (added as a predictor)
-#'   \item CML: Create a layer with information of the summed distance from each cell to ALL occurrences (added as a predictor)
-#'   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data (added as a predictor)
+#'   \item XY: Create two layers latitude and longitude layer (added as a predictor).Usage msdm=c(method='XY').
+#'   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence (added as a predictor).Usage msdm=c(method='MIN').
+#'   \item CML: Create a layer with information of the summed distance from each cell to ALL occurrences (added as a predictor).Usage msdm=c(method='CML').
+#'   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data (added as a predictor).Usage msdm=c(method='KER').
 #'   }
 #' a Posteriori methods
 #' \itemize{
-#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep)
-#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep)
-#'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep)
-#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data.
-#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user). Usage msdm=c(method='MCP-B', width=100).
+#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep).Usage msdm=c(method='OBR').
+#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep).Usage msdm=c(method='LR').
+#'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep).Usage msdm=c(method='PRES').
+#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data.Usage msdm=c(method='MCP').
+#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user in km). Usage msdm=c(method='MCP-B', width=100).
 #'   }
 #'
 #' @param ensemble character. Method used to ensemble different algorithms. It is possible to use more than one method. It is necessary to provide a vector for this argument.  It is possible to use more than one ensemble method. For SUP, W_MEAN or PCA_SUP method it is necesary provide an evaluation metric to ensemble arguemnts (i.e. AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):
@@ -287,16 +287,6 @@ ENMTML <- function(pred_dir,
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
          "usdm","pracma","gbm","caret","adehabitatHS", "visreg"))
-
-  #1.1. Choose.dir correction for Linux and MAC
-  if(Sys.info()['sysname']!="Windows"){
-    choose.dir <- function() {
-      system("osascript -e 'tell app \"R\" to POSIX path of (choose folder with prompt \"Choose Folder:\")' > /tmp/R_folder",
-             intern = FALSE, ignore.stderr = TRUE)
-      p <- system("cat /tmp/R_folder && rm -f /tmp/R_folder", intern = TRUE)
-      return(ifelse(length(p), p, NA))
-    }
-  }
 
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
@@ -534,10 +524,10 @@ ENMTML <- function(pred_dir,
 
   #4.2.Thining----
   if(!is.null(thin_occ)){
-    if(thin_occ['method']%in%c('1','2')){
+    if(thin_occ['method']%in%c('MORAN','CELLSIZE')){
       occA <- OccsThin(occ=occA, envT, as.numeric(thin_occ['method']), colin_var['method'], DirR, pred_dir)
     }
-    if(thin_occ['method']=='3'){
+    if(thin_occ['method']=='USER-DEFINED'){
       occA <- OccsThin(occ=occA, envT, as.numeric(thin_occ['method']), colin_var['method'], DirR, pred_dir, distance=as.numeric(thin_occ['distance']))
     }
   }
@@ -596,6 +586,16 @@ ENMTML <- function(pred_dir,
                           Buffer_Opt=as.numeric(sp_accessible_area['type']))
     }
     if(sp_accessible_area['method']=="MASK") {
+      DirM <- M_delimited(var=envT,
+                          occ_xy=occ_xy,
+                          method = sp_accessible_area['method'],
+                          BufferDistanceKm=NULL,
+                          EcoregionsFile=sp_accessible_area['filepath'],
+                          Dir=DirR,
+                          spN=spN,
+                          SaveM = TRUE)
+    }
+    if(sp_accessible_area['method']=="USER-DEFINED") {
       DirM <- M_delimited(var=envT,
                           occ_xy=occ_xy,
                           method = sp_accessible_area['method'],
@@ -1462,7 +1462,7 @@ ENMTML <- function(pred_dir,
 
   #9.MSDM Posteriori----
 
-  if(msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
     if(any(list.files(DirR)=="Ensemble")){
       DirT <- file.path(DirR,"Ensemble",ensemble2)
       DirPost <- "MSDMPosterior"
