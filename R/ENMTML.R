@@ -523,10 +523,10 @@ ENMTML <- function(pred_dir,
   #4.2.Thining----
   if(!is.null(thin_occ)){
     if(thin_occ['method']%in%c('MORAN','CELLSIZE')){
-      occA <- OccsThin(occ=occA, envT, as.numeric(thin_occ['method']), colin_var['method'], DirR, pred_dir)
+      occA <- OccsThin(occ=occA, envT, as.character(thin_occ['method']), colin_var['method'], DirR, pred_dir)
     }
     if(thin_occ['method']=='USER-DEFINED'){
-      occA <- OccsThin(occ=occA, envT, as.numeric(thin_occ['method']), colin_var['method'], DirR, pred_dir, distance=as.numeric(thin_occ['distance']))
+      occA <- OccsThin(occ=occA, envT, as.character(thin_occ['method']), colin_var['method'], DirR, pred_dir, distance=as.numeric(thin_occ['distance']))
     }
   }
 
