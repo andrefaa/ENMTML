@@ -6,7 +6,8 @@ M_delimited <- function(var,
                         Dir,
                         spN,
                         Buffer_Opt,
-                        SaveM = TRUE) {
+                        SaveM = TRUE,
+                        Mfolder=NULL) {
   var <- var[[1]]
   var <- !is.na(var)
   var[var[] == 0] <- NA
@@ -127,6 +128,47 @@ M_delimited <- function(var,
         }
         stopCluster(cl)
 
+  }
+  
+  if (method == 'USER-DEFINED') {
+    Dir <- EcoregionsFile
+    EcoregionsFileExt <- unique(file_ext(list.files(Dir)))
+    if (any(EcoregionsFileExt %in% c('bil', 'asc', 'tif'))) {
+      EcoregionsFile <- brick(stack(list.files(Dir,full.names=T,pattern = EcoregionsFileExt)))
+      if(is.na(crs(EcoregionsFile))){
+        crs(EcoregionsFile) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+      }
+      if(!compareRaster(EcoregionsFile,var)){
+        if(crs(EcoregionsFile)!=crs(var)){
+          EcoregionsFile <- projectRaster(EcoregionsFile,var)
+        }
+        EcoregionsFile <- resample(EcoregionsFile,var)
+        EcoregionsFile <- crop(EcoregionsFile, var)
+      }
+    }
+    if(EcoregionsFileExt=='shp'){
+      EcoregionsFile <- shapefile(Dir)
+      EcoregionsFile <- crop(EcoregionsFile, var)
+      EcoregionsFile <- rasterize(EcoregionsFile, var)
+    }
+    if (EcoregionsFileExt == 'txt') {
+      EcoregionsFile <- read.table(Dir, h = T)
+      gridded(EcoregionsFile) <- ~ x + y
+      EcoregionsFile <- brick(stack(EcoregionsFile))
+      if(is.na(crs(EcoregionsFile))){
+        crs(EcoregionsFile) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+      }
+      if(!compareRaster(EcoregionsFile,var)){
+        if(crs(EcoregionsFile)!=crs(var)){
+          EcoregionsFile <- projectRaster(EcoregionsFile,var)
+        }
+        EcoregionsFile <- resample(EcoregionsFile,var)
+        EcoregionsFile <- crop(EcoregionsFile, var)
+      }
+    }
+    
+    EcoregionsFile[EcoregionsFile!=1] <- NA
+    writeRaster(EcoregionsFile,paste(Dir_M,paste(names(sp.Ecoregions),".tif",sep=""),sep="/"),format="GTiff",overwrite=T,bylayer=T)
   }
   return(Dir_M)
 }

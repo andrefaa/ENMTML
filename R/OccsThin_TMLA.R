@@ -17,7 +17,7 @@ OccsThin <- function(occ,
   spN <- names(occ)
   occDF <- lapply(occ, function(x) cbind(latlong2grid(x[,1:2]),x[,4]))
 
-  if(ThinMethod==1){
+  if(ThinMethod=="MORAN"){
   #1.Defined by variogram----
     #Check if there is a PC
     if(!is.null(VarColin)){
@@ -60,7 +60,7 @@ OccsThin <- function(occ,
     write.table(uni,file.path(DirR,"N_Occ_Thinned.txt"),sep="\t",row.names=F)
     return(occ)
 
-  } else if (ThinMethod==3){
+  } else if (ThinMethod=="USER-DEFINED"){
   #2.Defined by user----
     # cat("Select distance for thining(in km):")
     # distance <- as.integer(readLines(n=1))
@@ -88,7 +88,7 @@ OccsThin <- function(occ,
 
     return(occ)
 
-  } else if (ThinMethod==2){
+  } else if (ThinMethod=="CELLSIZE"){
   #3.Based on cellsize----
     #Haversine Transformation
     distance <- xyFromCell(envT[[1]],1:ncell(envT[[1]]))
