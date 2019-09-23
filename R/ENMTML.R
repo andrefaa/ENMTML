@@ -551,12 +551,6 @@ ENMTML <- function(pred_dir,
   }
   occ_xy <- lapply(occ,function(x) x[,c("x","y")])
 
-  #4.5.GAM and GLM usage----
-  if(any(sapply(occ,function(x) nrow(x))<nlayers(envT)) && any(algorithm%in%c("GAM","GLM"))){
-    warning("A species has fewer records than the number of predictors, impossible to adjust GAM and GLM! GAM and GLM will be excluded")
-    algorithm <- algorithm[!algorithm%in%c("GAM","GLM")]
-  }
-
   #5. Restrict Extent per Species----
   if(!is.null(sp_accessible_area)){
     cat("Generating masks for species acessible area  ...\n")
