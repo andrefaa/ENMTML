@@ -207,8 +207,7 @@ Ensemble_TMLA <- function(DirR,
       Best <- as.character(SpVal[which(unlist(SpVal[ensemble_metric])>=mean(unlist(SpVal[ensemble_metric]))),"Algorithm"])
       W <- names(ListRaster)[names(ListRaster)%in%Best]
       
-      Final <- brick(stack(ListRaster[[W]]))
-      # Final <- brick(subset(ListRaster,subset=W))
+      Final <- subset(brick(ListRaster),subset=W)
       FinalT <- calc(Final,mean)
       Final <- STANDAR(FinalT)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
@@ -314,8 +313,7 @@ Ensemble_TMLA <- function(DirR,
       Best <- SpVal[which(unlist(SpVal[ensemble_metric])>=mean(unlist(SpVal[ensemble_metric]))),"Algorithm"]
       W <- names(ListRaster)[names(ListRaster)%in%Best]
 
-      Final <- brick(stack(ListRaster[[W]]))
-      # Final <- brick(subset(ListRaster,subset=W))
+      Final <- subset(brick(ListRaster),subset=W)
       Final <- PCA_ENS_TMLA(Final)
       PredPoint <- extract(Final, SpData[, c("x", "y")])
       PredPoint <- data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
