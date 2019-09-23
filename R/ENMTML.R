@@ -54,7 +54,7 @@
 #' \itemize{
 #'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage •	part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
 #'   \item KFOLD: Random partition in k-fold cross-validation. Usage part=c(method= 'KFOLD', folds='5'). 'folds' referes to the number of k-folds for patitioning, it assume value >=1.
-#'   \item BAND: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BLOCK', type='1'). 'type' refers to the bands disposition
+#'   \item BANDS: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BANDS', type='1'). 'type' refers to the bands disposition
 #'   \item BLOCK: Geographic partition structured as a checkerboard. Usage part=c(method= 'BLOCK').
 #' }
 #'
@@ -216,11 +216,11 @@ ENMTML <- function(pred_dir,
   }
 
   if(!is.null(thin_occ)){
-    if(!(thin_occ['method']%in%c('1','2','3'))){
-      stop("'thin_occ' Argument is not valid! a numeric vector is nedeed, e.g., thin_occ=c(method='1')")
+    if(!(thin_occ['method']%in%c('MORAN','CELLSIZE','USER-DEFINED'))){
+      stop("'thin_occ' Argument is not valid! a character vector is nedeed, e.g., thin_occ=c(method='MORAN')")
     }
-    if(thin_occ['method']==3&length(thin_occ)!=2){
-      stop("'thin_occ' Argument is not valid for method=3! a distance in km must be provided e.g., thin_occ=c(method='3', distance='300')")
+    if(thin_occ['method']=="USER-DEFINED"&length(thin_occ)!=2){
+      stop("'thin_occ' Argument is not valid for method=USER-DEFINED! a distance in km must be provided e.g., thin_occ=c(method='USER-DEFINED', distance='300')")
     }
   }
 
@@ -260,11 +260,9 @@ ENMTML <- function(pred_dir,
       msdm <- msdm['method']
       msdm_width <- as.numeric(msdm['width'])
     }
-    if(!(msdm%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
-      stop("'msdm' Argument is not valid!(N/XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
+    if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
+      stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
     }
-  }else{
-    msdm <- "N"
   }
   if(length(msdm)>1){
     stop("Please choose only one 'msdm' method")
