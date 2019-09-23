@@ -210,7 +210,7 @@ Ensemble_TMLA <- function(DirR,
       
       ListRaster <- brick(ListRaster)
       names(ListRaster) <- nom
-      Final <- subset(ListRaster,subset=W)
+      Final <- raster::subset(ListRaster,subset=W)
       FinalT <- calc(Final,mean)
       Final <- STANDAR(FinalT)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
@@ -319,7 +319,7 @@ Ensemble_TMLA <- function(DirR,
       
       ListRaster <- brick(ListRaster)
       names(ListRaster) <- nom
-      Final <- subset(ListRaster,subset=W)
+      Final <- raster::subset(ListRaster,subset=W)
       Final <- PCA_ENS_TMLA(Final)
       PredPoint <- extract(Final, SpData[, c("x", "y")])
       PredPoint <- data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
