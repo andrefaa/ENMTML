@@ -537,7 +537,7 @@ BandsPartition_TMLA <- function(evnVariables,
   FinalResult <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResultList"))), stringsAsFactors = F)
   FinalInfoGrid <- data.frame(data.table::rbindlist(do.call(c,lapply(results, "[", "ResOptm"))), stringsAsFactors = F)
 
-  write.table(FinalInfoGrid,paste(DirSave,"Band_Moran_MESS.txt",sep="\\"),sep="\t",row.names=F)
+  write.table(FinalInfoGrid,paste(DirSave,"BestPartitions.txt",sep="\\"),sep="\t",row.names=F)
   write.table(FinalResult,paste(DirSave,"OccBands.txt",sep="\\"),sep="\t",row.names=F)
   stopCluster(cl)
   return(FinalResult)
