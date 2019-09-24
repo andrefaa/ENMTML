@@ -208,7 +208,7 @@ Ensemble_TMLA <- function(DirR,
       W <- names(ListRaster)[names(ListRaster)%in%Best]
       nom <- names(ListRaster)
       
-      ListRaster <- brick(ListRaster)
+      ListRaster <- brick(stack(ListRaster))
       names(ListRaster) <- nom
       Final <- raster::subset(ListRaster,subset=W)
       FinalT <- calc(Final,mean)
@@ -241,7 +241,9 @@ Ensemble_TMLA <- function(DirR,
       #Projection
       if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
-          Final <- brick(subset(ListFut[[p]],subset=W))
+          ListFut[[p]] <- brick(stack(ListFut[[p]]))
+          names(ListFut[[p]]) <- nom
+          Final <- raster::subset(ListFut[[p]],subset=W)
           Final <- calc(Final,mean)
           Final <- STANDAR_FUT(Final,FinalT)
 
@@ -317,7 +319,7 @@ Ensemble_TMLA <- function(DirR,
       W <- names(ListRaster)[names(ListRaster)%in%Best]
       nom <- names(ListRaster)
       
-      ListRaster <- brick(ListRaster)
+      ListRaster <- brick(stack(ListRaster))
       names(ListRaster) <- nom
       Final <- raster::subset(ListRaster,subset=W)
       Final <- PCA_ENS_TMLA(Final)
@@ -348,7 +350,9 @@ Ensemble_TMLA <- function(DirR,
       #Future Projection
       if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
-          Final <- brick(subset(ListFut[[p]],subset=W))
+          ListFut[[p]] <- brick(stack(ListFut[[p]]))
+          names(ListFut[[p]]) <- nom
+          Final <- raster::subset(ListFut[[p]],subset=W)
           Final <- PCA_ENS_TMLA(Final)
 
           writeRaster(Final,
