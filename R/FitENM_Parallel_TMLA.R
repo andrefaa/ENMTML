@@ -273,7 +273,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       "STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA", "Validation_Table_TMLA",
       "Thresholds_TMLA", "VarImp_RspCurv", "hingeval", "ecospat.boyce",
     "PREDICT_DomainMahal","rem_out")) %dopar% {
-      #Results Lists
+      
+    #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
 

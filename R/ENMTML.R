@@ -745,6 +745,23 @@ ENMTML <- function(pred_dir,
         rm(envTT)
       }
     }
+    
+    #6.2.1.Check if all species are valid----
+    occValid <- split(occINPUT,occINPUT$sp)
+    occValid1 <- lapply(occValid,function(x) table(x$Partition))
+    occValid1 <- unlist(lapply(occValid1,function(x) all(x>nlayers(envT))))
+    occValid2 <- lapply(occValid, function(x) length(unique(x$Partition)))==2
+    if(!all(occValid2) || !all(occValid1)){
+      cat("Some species could not reach a suitable geographic partition!\n")
+      spINV <- c(names(occValid1)[!occValid1],names(occValid2)[!occValid2])
+      spINV <- as.vector(spINV)
+      cat(paste0("Species [",spINV,"] will be dropped!\n"))
+      occINPUT <- subset(occINPUT,!occINPUT$sp%in%spINV)
+      spN <- spN[!spN%in%spINV]
+      write.table(spINV,file.path(DirB,"DroppedSpecies.txt"),sep="\t",row.names=F)
+      unlink(grep(paste(spINV,collapse="|"),list.files(DirM,full.names=T),value=T))
+      unlink(grep(paste(spINV,collapse="|"),list.files(DirB,full.names=T),value=T))
+    }
 
     #6.3.msdm A PRIORI----
     if(is.null(msdm)||msdm["method"]%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
@@ -1389,7 +1406,7 @@ ENMTML <- function(pred_dir,
       write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
 
       #Save Final Validation File
-      val <- list.files(DirR,pattern="Validation_Partition")
+      val <- list.files(DirR,pattern="Validation_Partition_")
       valF <- list()
       for(i in 1:length(val)){
         valF[[i]] <- read.table(file.path(DirR,val[i]),sep="\t",header=T)
@@ -1409,7 +1426,7 @@ ENMTML <- function(pred_dir,
 
       #Save Final Bootstrap File
       if(per!=1 || part['method']=="KFOLD"){
-        Boot <- list.files(DirR,pattern="Bootstrap_Moran_MESS")
+        Boot <- list.files(DirR,pattern="Bootstrap_Moran_MESS_")
         BootF <- list()
         for(i in Boot){
           BootF[[i]] <- read.table(file.path(DirR,i),sep="\t",header=T)
