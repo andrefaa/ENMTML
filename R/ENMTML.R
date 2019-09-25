@@ -770,13 +770,13 @@ ENMTML <- function(pred_dir,
       print("Creating msdm layers...")
 
       DirMSDM<-"msdm"
-      if (file.exists(file.path(pred_dir,DirMSDM))){
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+      if (file.exists(file.path(DirR,DirMSDM))){
+        DirMSDM<-file.path(DirR,DirMSDM)
       } else {
-        dir.create(file.path(pred_dir,DirMSDM))
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+        dir.create(file.path(DirR,DirMSDM))
+        DirMSDM<-file.path(DirR,DirMSDM)
       }
-      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT,MSDM=msdm,DirMSDM=DirMSDM)
+      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT[[1]],MSDM=msdm,DirMSDM=DirMSDM)
     }
 
     #6.4. Future Projections ----
@@ -851,14 +851,14 @@ ENMTML <- function(pred_dir,
       print("Creating msdm Layers...")
 
       DirMSDM<-"msdm"
-      if (file.exists(file.path(pred_dir,DirMSDM))){
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+      if (file.exists(file.path(DirR,DirMSDM))){
+        DirMSDM<-file.path(DirR,DirMSDM)
       } else {
-        dir.create(file.path(pred_dir,DirMSDM))
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+        dir.create(file.path(DirR,DirMSDM))
+        DirMSDM<-file.path(DirR,DirMSDM)
       }
 
-      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT,MSDM=msdm,DirMSDM=DirMSDM)
+      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT[[1]],MSDM=msdm,DirMSDM=DirMSDM)
     }
 
     #7.2. Data Partition----
