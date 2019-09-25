@@ -304,7 +304,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     #Include MSDM----
     if(is.null(DirMSDM)==F){
-      if(grepl("LatLong",DirMSDM)){
+      if(grepl("XY",DirMSDM)){
         MSDM <- stack(file.path(DirMSDM,list.files(DirMSDM,pattern=".tif")))
         names(MSDM) <- c("Lat","Long")
       }else{
@@ -524,7 +524,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          RastPart[["DOM"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
+          RastPart[["DOM"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["DOM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -642,7 +642,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
+          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -680,7 +680,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          RastPart[["MAH"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
+          RastPart[["MAH"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
           RastPart[["MAH"]][[i]][RastPart[["MAH"]][[i]][] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MAH"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -804,7 +804,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarCol])
+          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint[PredPoint[] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1407,7 +1407,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
           # x <- PAtrain[[i]][PAtrainM[[i]][,"PresAbse"]==1, VarColT]
           # z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
-          Model[[i]] <- maxlike(Fmula, stack(Variables), dataPr,
+          Model[[i]] <- maxlike(Fmula, stack(VariablesT), dataPr,
                                 link=c("cloglog"),method="BFGS",
                                 hessian = FALSE, removeDuplicates=FALSE)
           # Model[[i]] <- maxlike(Fmula,x=x,z=z,
