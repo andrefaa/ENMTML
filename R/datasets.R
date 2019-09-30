@@ -24,10 +24,10 @@
 #' A RasterBrick with Bioclimatic variables (Bio1, Bio3, Bio4, Bio12 and Bio15) from a portion of South America (source Worldclim: https://worldclim.org/version2).
 #' @examples
 #' require(ENMTML)
-#' data("predictors")
+#' data("env")
 #' predictors
-#' plot(predictors)
-"predictors"
+#' plot(env)
+"env"
 
 #' Raster with 5 bioclimatic variables for 2080's climate conditions
 #'
@@ -35,11 +35,11 @@
 #'
 #' @examples
 #' require(ENMTML)
-#' data("predictors_future")
+#' data("env_fut")
 #' predictors_future
-#' plot(predictors_future$`2080_4.5`)
-#' plot(predictors_future$`2080_8.5`)
-"predictors_future"
+#' plot(env_fut$`2080_4.5`)
+#' plot(env_fut$`2080_8.5`)
+"env_fut"
 
 #' Polygon with terrestrial ecoregion
 #'
