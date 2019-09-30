@@ -30,7 +30,7 @@
 #'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PEARSON', threshold='0.7').
 #' }
 #'
-#' @param imp_var character. Perform variable importance and curves response for selected algorithms? (Y/N)
+#' @param imp_var logical Perform variable importance and curves response for selected algorithms? (defaul FALSE)
 #'
 #' @param sp_accessible_area character. Restrict for each species the accessible area, i.e., the area used to construct the model. It is necessary to provide a vector for this argument. Three methods were implemented
 #' \itemize{
@@ -142,7 +142,7 @@ ENMTML <- function(pred_dir,
                    thin_occ=NULL,
                    eval_occ=NULL,
                    colin_var=NULL,
-                   imp_var=NULL,
+                   imp_var=FALSE,
                    sp_accessible_area=NULL,
                    pseudoabs_method,
                    pres_abs_ratio = 1,
@@ -232,7 +232,12 @@ ENMTML <- function(pred_dir,
       stop("'colin_var' Argument is not valid for PEARSON method! a threshold between 0-1 is needed e.g., colin_var=c(method='PEARSON', threshold='0.7')")
     }
   }
-
+  
+  if(imp_var){
+    imp_var <- 'Y'
+  }else{
+    imp_var <- 'N'
+  }
 
   if(pres_abs_ratio<=0){
     stop("'pres_abs_ratio' Argument is not valid!(pres_abs_ratio>=0)")
