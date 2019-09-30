@@ -24,9 +24,8 @@ rem_out <- function(r){
 PREDICT_DomainMahal <- function(mod, variables){
   df <- na.omit(rasterToPoints(variables))
   pred <- dismo::predict(mod, df[,-c(1:2)])  
-  result <- data.frame(df[,1:2], pred)
-  gridded(result)<- ~x+y
-  result <- raster(result, layer=1, values=TRUE)
+  result <- variables[[1]]
+  result[which(!is.na(result[]))] <- pred
   return(result)
 }
 

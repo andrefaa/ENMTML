@@ -6,19 +6,8 @@ ENS_Posterior <- function(RecordsData,
                           DirSave){
   
   #Ensemble directory
-    DirENS <- paste(DirSave,"ENS",sep="/")
-    dir.create(DirENS)
-    
-    ensF <- paste(DirENS,PredictType[PredictType!="N"],sep="/")
-    ensMSDM <- paste(DirENS,PredictType[PredictType!="N"],"MSDMPosterior",sep="/")
-    for(i in 1:length(ensF)){
-      dir.create(ensF[i])
-      dir.create(ensMSDM[i])
-      assign(paste("Dir",PredictType[PredictType!="N"][i],sep=""),ensMSDM[i])
-    }
-    
     #Binary ensemble directories
-    ensFCat <- paste(ensMSDM,"BIN",sep="/")
+    ensFCat <- file.path(DirSave,Threshold)
     for(i in 1:length(ensFCat)){
       dir.create(ensFCat[i])
       assign(paste("Dir",PredictType[PredictType!="N"][i],"Cat",sep=""),ensFCat[i])

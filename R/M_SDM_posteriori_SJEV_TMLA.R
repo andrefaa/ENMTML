@@ -3,7 +3,6 @@
 MSDM_Posterior <- function(RecordsData,
                            Threshold=thr,
                            cutoff=c('OBR','PRES','LR','MCP','MCP-B'),
-                           PredictType=ENS,
                            CUT_Buf=CUT_Buf,
                            DirSave=NULL,
                            DirRaster=NULL){
