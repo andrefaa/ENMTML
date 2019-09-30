@@ -16,9 +16,9 @@
 #'
 #' @param thin_occ character Default NULL. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
 #' \itemize{
-#' \item 1-Distance defined by Moran Variogram, usage thin_occ=c(method='1').
-#' \item 2-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='2').
-#' \item 3-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(metho='3', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
+#' \item MORAN-Distance defined by Moran Variogram, usage thin_occ=c(method='MORAN').
+#' \item CELLSIZE-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='CELLSIZE').
+#' \item USER-DEFINED-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
 #' }
 #'
 #' @param eval_occ character. Directory path with tab-delimited TXT file with species names, latitude and longitude, this three columns must have the same columns names than the databased used in the occ_file argument. This is an external occurrence database that will be used to external models validation. (default NULL)
@@ -27,15 +27,15 @@
 #' \itemize{
 #'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables, usage colin_var=c(method='PCA').
 #'   \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006), , usage colin_var=c(method='VIF').
-#'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PCA', threshold='0.7').
+#'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PEARSON', threshold='0.7').
 #' }
 #'
 #' @param imp_var character. Perform variable importance and curves response for selected algorithms? (Y/N)
 #'
 #' @param sp_accessible_area character. Restrict for each species the accessible area, i.e., the area used to construct the model. It is necessary to provide a vector for this argument. Three methods were implemented
 #' \itemize{
-#'   \item BUFFER and based on species occurrences distance, i.e. EXPLAIN MOOORE. Usage sp_accessible_area=c(method='BUFFER', type='1').
-#'   \item BUFFER and based on A single buffer for all species expressed in km. EXPLAIN MOOORE. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
+#'   \item BUFFER and based on maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
+#'   \item BUFFER and based on A single buffer for all species expressed in km. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
 #'   \item MASK: this method consist in delimit the area used to model calibration based on the polygon where a species occurrences fall. For instance it is possible delimit the calibration area based on ecorregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
 #' }
 #'
@@ -54,7 +54,7 @@
 #' \itemize{
 #'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage •	part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
 #'   \item KFOLD: Random partition in k-fold cross-validation. Usage part=c(method= 'KFOLD', folds='5'). 'folds' referes to the number of k-folds for patitioning, it assume value >=1.
-#'   \item BAND: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BLOCK', type='1'). 'type' refers to the bands disposition
+#'   \item BANDS: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BANDS', type='1'). 'type' refers to the bands disposition
 #'   \item BLOCK: Geographic partition structured as a checkerboard. Usage part=c(method= 'BLOCK').
 #' }
 #'
@@ -96,18 +96,18 @@
 #' a Priori methods:
 #'
 #' \itemize{
-#'   \item XY: Create two layers latitude and longitude layer (added as a predictor).
-#'   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence (added as a predictor)
-#'   \item CML: Create a layer with information of the summed distance from each cell to ALL occurrences (added as a predictor)
-#'   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data (added as a predictor)
+#'   \item XY: Create two layers latitude and longitude layer (added as a predictor).Usage msdm=c(method='XY').
+#'   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence (added as a predictor).Usage msdm=c(method='MIN').
+#'   \item CML: Create a layer with information of the summed distance from each cell to ALL occurrences (added as a predictor).Usage msdm=c(method='CML').
+#'   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data (added as a predictor).Usage msdm=c(method='KER').
 #'   }
 #' a Posteriori methods
 #' \itemize{
-#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep)
-#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep)
-#'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep)
-#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data.
-#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user). Usage msdm=c(method='MCP-B', width=100).
+#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep).Usage msdm=c(method='OBR').
+#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep).Usage msdm=c(method='LR').
+#'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep).Usage msdm=c(method='PRES').
+#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data.Usage msdm=c(method='MCP').
+#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user in km). Usage msdm=c(method='MCP-B', width=100).
 #'   }
 #'
 #' @param ensemble character. Method used to ensemble different algorithms. It is possible to use more than one method. It is necessary to provide a vector for this argument.  It is possible to use more than one ensemble method. For SUP, W_MEAN or PCA_SUP method it is necesary provide an evaluation metric to ensemble arguemnts (i.e. AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):
@@ -216,11 +216,11 @@ ENMTML <- function(pred_dir,
   }
 
   if(!is.null(thin_occ)){
-    if(!(thin_occ['method']%in%c('1','2','3'))){
-      stop("'thin_occ' Argument is not valid! a numeric vector is nedeed, e.g., thin_occ=c(method='1')")
+    if(!(thin_occ['method']%in%c('MORAN','CELLSIZE','USER-DEFINED'))){
+      stop("'thin_occ' Argument is not valid! a character vector is nedeed, e.g., thin_occ=c(method='MORAN')")
     }
-    if(thin_occ['method']==3&length(thin_occ)!=2){
-      stop("'thin_occ' Argument is not valid for method=3! a distance in km must be provided e.g., thin_occ=c(method='3', distance='300')")
+    if(thin_occ['method']=="USER-DEFINED"&length(thin_occ)!=2){
+      stop("'thin_occ' Argument is not valid for method=USER-DEFINED! a distance in km must be provided e.g., thin_occ=c(method='USER-DEFINED', distance='300')")
     }
   }
 
@@ -260,11 +260,9 @@ ENMTML <- function(pred_dir,
       msdm <- msdm['method']
       msdm_width <- as.numeric(msdm['width'])
     }
-    if(!(msdm%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
-      stop("'msdm' Argument is not valid!(N/XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
+    if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
+      stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
     }
-  }else{
-    msdm <- "N"
   }
   if(length(msdm)>1){
     stop("Please choose only one 'msdm' method")
@@ -287,16 +285,6 @@ ENMTML <- function(pred_dir,
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
          "usdm","pracma","gbm","caret","adehabitatHS", "visreg"))
-
-  #1.1. Choose.dir correction for Linux and MAC
-  if(Sys.info()['sysname']!="Windows"){
-    choose.dir <- function() {
-      system("osascript -e 'tell app \"R\" to POSIX path of (choose folder with prompt \"Choose Folder:\")' > /tmp/R_folder",
-             intern = FALSE, ignore.stderr = TRUE)
-      p <- system("cat /tmp/R_folder && rm -f /tmp/R_folder", intern = TRUE)
-      return(ifelse(length(p), p, NA))
-    }
-  }
 
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
@@ -494,10 +482,10 @@ ENMTML <- function(pred_dir,
   }
 
   #3.3.Erro Futuro e msdm
-  if(!is.null(proj_dir) && msdm!="N"){
+  if(!is.null(proj_dir) && !is.null(msdm)){
     warning("msdm can not be used with future projections")
-    warning("Setting msdm to N")
-    msdm <- "N"
+    warning("Setting msdm to NULL")
+    msdm <- NULL
   }
 
   #3.4.Aviso caso min_occ<NPreditores
@@ -534,11 +522,11 @@ ENMTML <- function(pred_dir,
 
   #4.2.Thining----
   if(!is.null(thin_occ)){
-    if(thin_occ['method']%in%c('1','2')){
-      occA <- OccsThin(occ=occA, envT, as.numeric(thin_occ['method']), colin_var['method'], DirR, pred_dir)
+    if(thin_occ['method']%in%c('MORAN','CELLSIZE')){
+      occA <- OccsThin(occ=occA, envT, as.character(thin_occ['method']), colin_var['method'], DirR, pred_dir)
     }
-    if(thin_occ['method']=='3'){
-      occA <- OccsThin(occ=occA, envT, as.numeric(thin_occ['method']), colin_var['method'], DirR, pred_dir, distance=as.numeric(thin_occ['distance']))
+    if(thin_occ['method']=='USER-DEFINED'){
+      occA <- OccsThin(occ=occA, envT, as.character(thin_occ['method']), colin_var['method'], DirR, pred_dir, distance=as.numeric(thin_occ['distance']))
     }
   }
 
@@ -560,12 +548,6 @@ ENMTML <- function(pred_dir,
     rm(ndb)
   }
   occ_xy <- lapply(occ,function(x) x[,c("x","y")])
-
-  #4.5.GAM and GLM usage----
-  if(any(sapply(occ,function(x) nrow(x))<nlayers(envT)) && any(algorithm%in%c("GAM","GLM"))){
-    warning("A species has fewer records than the number of predictors, impossible to adjust GAM and GLM! GAM and GLM will be excluded")
-    algorithm <- algorithm[!algorithm%in%c("GAM","GLM")]
-  }
 
   #5. Restrict Extent per Species----
   if(!is.null(sp_accessible_area)){
@@ -596,6 +578,16 @@ ENMTML <- function(pred_dir,
                           Buffer_Opt=as.numeric(sp_accessible_area['type']))
     }
     if(sp_accessible_area['method']=="MASK") {
+      DirM <- M_delimited(var=envT,
+                          occ_xy=occ_xy,
+                          method = sp_accessible_area['method'],
+                          BufferDistanceKm=NULL,
+                          EcoregionsFile=sp_accessible_area['filepath'],
+                          Dir=DirR,
+                          spN=spN,
+                          SaveM = TRUE)
+    }
+    if(sp_accessible_area['method']=="USER-DEFINED") {
       DirM <- M_delimited(var=envT,
                           occ_xy=occ_xy,
                           method = sp_accessible_area['method'],
@@ -681,7 +673,8 @@ ENMTML <- function(pred_dir,
             DirM = DirM,
             MRst = sp_accessible_area['method'],
             type = TipoMoran,
-            Geo_Buf = Geo_Buf
+            Geo_Buf = Geo_Buf,
+            cores = cores
           )
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
@@ -743,7 +736,8 @@ ENMTML <- function(pred_dir,
             DirM = DirM,
             MRst = sp_accessible_area['method'],
             type = TipoMoran,
-            Geo_Buf = Geo_Buf
+            Geo_Buf = Geo_Buf,
+            cores = cores
           )
 
         occINPUT[,4] <- as.numeric(occINPUT[,4])
@@ -751,23 +745,38 @@ ENMTML <- function(pred_dir,
         rm(envTT)
       }
     }
-
-    #6.3.msdm A PRIORI----
-    if(msdm=="N"||msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
-      DirPRI <- NULL
+    
+    #6.2.1.Check if all species are valid----
+    occValid <- split(occINPUT,occINPUT$sp)
+    occValid1 <- lapply(occValid,function(x) table(x$Partition))
+    occValid1 <- unlist(lapply(occValid1,function(x) all(x>nlayers(envT))))
+    occValid2 <- lapply(occValid, function(x) length(unique(x$Partition)))==2
+    if(!all(occValid2) || !all(occValid1)){
+      cat("Some species could not reach a suitable geographic partition!\n")
+      spINV <- c(names(occValid1)[!occValid1],names(occValid2)[!occValid2])
+      spINV <- as.vector(spINV)
+      cat(paste0("Species [",spINV,"] will be dropped!\n"))
+      occINPUT <- subset(occINPUT,!occINPUT$sp%in%spINV)
+      spN <- spN[!spN%in%spINV]
+      write.table(spINV,file.path(DirB,"DroppedSpecies.txt"),sep="\t",row.names=F)
+      unlink(grep(paste(spINV,collapse="|"),list.files(DirM,full.names=T),value=T))
+      unlink(grep(paste(spINV,collapse="|"),list.files(DirB,full.names=T),value=T))
     }
 
-    if(msdm%in%c("XY","MIN","CML", "KER")){
+    #6.3.msdm A PRIORI----
+    if(is.null(msdm)||msdm["method"]%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCP-B')){
+      DirPRI <- NULL
+    }else{
       print("Creating msdm layers...")
 
       DirMSDM<-"msdm"
-      if (file.exists(file.path(pred_dir,DirMSDM))){
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+      if (file.exists(file.path(DirR,DirMSDM))){
+        DirMSDM<-file.path(DirR,DirMSDM)
       } else {
-        dir.create(file.path(pred_dir,DirMSDM))
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+        dir.create(file.path(DirR,DirMSDM))
+        DirMSDM<-file.path(DirR,DirMSDM)
       }
-      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT,MSDM=msdm,DirMSDM=DirMSDM)
+      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT[[1]],MSDM=msdm,DirMSDM=DirMSDM)
     }
 
     #6.4. Future Projections ----
@@ -777,13 +786,14 @@ ENMTML <- function(pred_dir,
       Fut <- NULL
     }
 
-    #6.5.Adjust Checkerboard when using Geographical Restrictions (For Maxent Sampling)----
+    #6.5.Adjust Checkerboard when using Geographical Restrictions----
     if(!is.null(sp_accessible_area)){
       Ms <- stack(file.path(DirM,list.files(DirM)))
+      Ms <- Ms[[spN]]
       Cs <- stack(file.path(DirB,list.files(DirB,pattern=".tif$")))
-      nomesCs <- gsub("_"," ",names(Cs))
+      # nomesCs <- gsub("_"," ",names(Cs))
       for(i in 1:nlayers(Ms)){
-        writeRaster(Ms[[i]]*Cs[[i]], file.path(DirB,nomesCs[i]),format="GTiff",
+        writeRaster(Ms[[i]]*Cs[[i]], file.path(DirB,names(Cs)[i]),format="GTiff",
                     bylayer=F,overwrite=T,NAflag=-9999)
       }
     }
@@ -835,22 +845,20 @@ ENMTML <- function(pred_dir,
     }
 
     #7.1.msdm A PRIORI----
-    if(msdm=="N"||msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+    if(is.null(msdm)||msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCP-B')){
       DirPRI <- NULL
-    }
-
-    if(msdm%in%c("XY","MIN","CML", "KER")){
+    }else{
       print("Creating msdm Layers...")
 
       DirMSDM<-"msdm"
-      if (file.exists(file.path(pred_dir,DirMSDM))){
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+      if (file.exists(file.path(DirR,DirMSDM))){
+        DirMSDM<-file.path(DirR,DirMSDM)
       } else {
-        dir.create(file.path(pred_dir,DirMSDM))
-        DirMSDM<-file.path(pred_dir,DirMSDM)
+        dir.create(file.path(DirR,DirMSDM))
+        DirMSDM<-file.path(DirR,DirMSDM)
       }
 
-      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT,MSDM=msdm,DirMSDM=DirMSDM)
+      DirPRI <- MSDM_Priori_TMLA(Species=occ_xy,var=envT[[1]],MSDM=msdm,DirMSDM=DirMSDM)
     }
 
     #7.2. Data Partition----
@@ -1398,7 +1406,7 @@ ENMTML <- function(pred_dir,
       write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
 
       #Save Final Validation File
-      val <- list.files(DirR,pattern="Validation_Partition")
+      val <- list.files(DirR,pattern="Validation_Partition_")
       valF <- list()
       for(i in 1:length(val)){
         valF[[i]] <- read.table(file.path(DirR,val[i]),sep="\t",header=T)
@@ -1418,7 +1426,7 @@ ENMTML <- function(pred_dir,
 
       #Save Final Bootstrap File
       if(per!=1 || part['method']=="KFOLD"){
-        Boot <- list.files(DirR,pattern="Bootstrap_Moran_MESS")
+        Boot <- list.files(DirR,pattern="Bootstrap_Moran_MESS_")
         BootF <- list()
         for(i in Boot){
           BootF[[i]] <- read.table(file.path(DirR,i),sep="\t",header=T)
@@ -1463,7 +1471,7 @@ ENMTML <- function(pred_dir,
 
   #9.MSDM Posteriori----
 
-  if(msdm%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
     if(any(list.files(DirR)=="Ensemble")){
       DirT <- file.path(DirR,"Ensemble",ensemble2)
       DirPost <- "MSDMPosterior"

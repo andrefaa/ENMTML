@@ -72,16 +72,19 @@ Ensemble_TMLA <- function(DirR,
     SpThr <- ThrTable[ThrTable["Sp"] == spN[s],]
 
     #Raster Stack----
-    ListRaster <- stack(file.path(Folders,paste0(spN[s],".tif")))
-    names(ListRaster) <- list.files(file.path(DirR,"Algorithm"))
+    List <- file.path(Folders,paste0(spN[s],".tif"))
+    List <- List[file.exists(List)]
+    ListRaster <- stack(List)
+    names(ListRaster) <- list.files(file.path(DirR,"Algorithm"))[file.exists(file.path(Folders,paste0(spN[s],".tif")))]
 
     if(!is.null(Proj)){
-      ListFut <- lapply(ProjN, function(x) stack(file.path(x,paste0(spN[s],".tif"))))
-      ListFut <- lapply(seq(ListFut), function(i) {
-          y <- ListFut[[i]]
-          names(y) <- list.files(file.path(DirR,"Algorithm"))
-          return(y)
-      })
+      ListF <- lapply(ProjN, function(x) file.path(x,paste0(spN[s],".tif")))
+      ListF <- lapply(ListF, function(x) x[file.exists(x)])
+      ListFut <- lapply(ListF, function(x) stack(x))
+      for(i in 1:length(ListFut)){
+        FilesF <- file.exists(file.path(ProjN[[i]],paste0(spN[s],".tif")))
+        names(ListFut[[i]]) <- list.files(file.path(DirR,"Algorithm"))[FilesF]
+      }
       names(ListFut) <- list.files(file.path(DirR,"Projection"))
     }
 
@@ -201,10 +204,13 @@ Ensemble_TMLA <- function(DirR,
     # Superior Ensemble----
     if(any(PredictType=='SUP')){
 
-      Best <- SpVal[which(unlist(SpVal[ensemble_metric])>=mean(unlist(SpVal[ensemble_metric]))),"Algorithm"]
+      Best <- as.character(SpVal[which(unlist(SpVal[ensemble_metric])>=mean(unlist(SpVal[ensemble_metric]))),"Algorithm"])
       W <- names(ListRaster)[names(ListRaster)%in%Best]
-
-      Final <- brick(subset(ListRaster,subset=W))
+      nom <- names(ListRaster)
+      
+      ListRaster <- brick(stack(ListRaster))
+      names(ListRaster) <- nom
+      Final <- raster::subset(ListRaster,subset=W)
       FinalT <- calc(Final,mean)
       Final <- STANDAR(FinalT)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
@@ -235,7 +241,9 @@ Ensemble_TMLA <- function(DirR,
       #Projection
       if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
-          Final <- brick(subset(ListFut[[p]],subset=W))
+          ListFut[[p]] <- brick(stack(ListFut[[p]]))
+          names(ListFut[[p]]) <- nom
+          Final <- raster::subset(ListFut[[p]],subset=W)
           Final <- calc(Final,mean)
           Final <- STANDAR_FUT(Final,FinalT)
 
@@ -309,8 +317,11 @@ Ensemble_TMLA <- function(DirR,
 
       Best <- SpVal[which(unlist(SpVal[ensemble_metric])>=mean(unlist(SpVal[ensemble_metric]))),"Algorithm"]
       W <- names(ListRaster)[names(ListRaster)%in%Best]
-
-      Final <- brick(subset(ListRaster,subset=W))
+      nom <- names(ListRaster)
+      
+      ListRaster <- brick(stack(ListRaster))
+      names(ListRaster) <- nom
+      Final <- raster::subset(ListRaster,subset=W)
       Final <- PCA_ENS_TMLA(Final)
       PredPoint <- extract(Final, SpData[, c("x", "y")])
       PredPoint <- data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
@@ -339,7 +350,9 @@ Ensemble_TMLA <- function(DirR,
       #Future Projection
       if(!is.null(Proj)){
         for(p in 1:length(ListFut)){
-          Final <- brick(subset(ListFut[[p]],subset=W))
+          ListFut[[p]] <- brick(stack(ListFut[[p]]))
+          names(ListFut[[p]]) <- nom
+          Final <- raster::subset(ListFut[[p]],subset=W)
           Final <- PCA_ENS_TMLA(Final)
 
           writeRaster(Final,

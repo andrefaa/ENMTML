@@ -191,6 +191,9 @@ MSDM_Posterior <- function(RecordsData,
         }
         
         DistBetweenPoly0 <- DistBetweenPoly0[order(DistBetweenPoly0[,2]),]
+        if(is.null(nrow(DistBetweenPoly0))){
+          DistBetweenPoly0 <- t(as.matrix(DistBetweenPoly0))
+        }
         # Minimum Euclidean Distance between patches wiht and without presences
         DistBetweenPoly <- tapply(X = DistBetweenPoly0[,3], DistBetweenPoly0[,2], min)
 
