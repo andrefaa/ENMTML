@@ -6,7 +6,7 @@ PCA_ENS_TMLA<-function(BRICK){
   }else{
     ens <- rasterPCA(BRICK,spca=T,nComp=1)
     ens <- ens$map
-    enmean <- mean(BRICK)
+    enmean <- raster::mean(BRICK)
     co <- layerStats(raster::stack(enmean, ens), 'pearson', na.rm=T)
     co <- co[[1]][1,2]
     if(co<0){
