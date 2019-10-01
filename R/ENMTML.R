@@ -232,12 +232,6 @@ ENMTML <- function(pred_dir,
       stop("'colin_var' Argument is not valid for PEARSON method! a threshold between 0-1 is needed e.g., colin_var=c(method='PEARSON', threshold='0.7')")
     }
   }
-  
-  if(imp_var){
-    imp_var <- 'Y'
-  }else{
-    imp_var <- 'N'
-  }
 
   if(pres_abs_ratio<=0){
     stop("'pres_abs_ratio' Argument is not valid!(pres_abs_ratio>=0)")
@@ -750,7 +744,7 @@ ENMTML <- function(pred_dir,
         rm(envTT)
       }
     }
-    
+
     #6.2.1.Check if all species are valid----
     occValid <- split(occINPUT,occINPUT$sp)
     occValid1 <- lapply(occValid,function(x) table(x$Partition))

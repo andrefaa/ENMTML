@@ -273,7 +273,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       "STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA", "Validation_Table_TMLA",
       "Thresholds_TMLA", "VarImp_RspCurv", "hingeval", "ecospat.boyce",
     "PREDICT_DomainMahal","rem_out")) %dopar% {
-      
+
     #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
@@ -463,7 +463,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
         #Variable Importance & Response Curves
-        if(!is.null(VarImp)){
+        if(VarImp==TRUE){
           VarImp_RspCurv(Model=Model,Algorithm='BIO',folders=folders,spN=spN[s],SpDataT = SpDataT,
                          VarColT=VarColT,Outcome=PredPoint$PredPoint)
         }
@@ -619,7 +619,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
           #Variable Importance & Response Curves
-          if(!is.null(VarImp)){
+          if(VarImp==TRUE){
             VarImp_RspCurv(Model=Model,Algorithm='DOM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -779,7 +779,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
           #Variable Importance & Response Curves
-          if(!is.null(VarImp)){
+          if(VarImp==TRUE){
             VarImp_RspCurv(Model=Model,Algorithm='MAH',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -993,7 +993,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
           #Variable Importance & Response Curves
-          if(!is.null(VarImp)){
+          if(VarImp==TRUE){
             VarImp_RspCurv(Model=Model,Algorithm='ENF',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1187,7 +1187,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
           #Variable Importance & Response Curves
-          if(!is.null(VarImp)){
+          if(VarImp==TRUE){
             VarImp_RspCurv(Model=Model,Algorithm='MXD',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1343,7 +1343,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
           #Variable Importance & Response Curves
-          if(!is.null(VarImp)){
+          if(VarImp==TRUE){
             VarImp_RspCurv(Model=Model,Algorithm='MXS',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1518,7 +1518,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
             #Variable Importance & Response Curves
-            if(!is.null(VarImp)){
+            if(VarImp==TRUE){
               VarImp_RspCurv(Model=Model,Algorithm='MLK',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
@@ -1686,7 +1686,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
           #Variable Importance & Response Curves
-          if(!is.null(VarImp)){
+          if(VarImp==TRUE){
             VarImp_RspCurv(Model=Model,Algorithm='SVM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -1851,7 +1851,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
           #Variable Importance & Response Curves
-          if(!is.null(VarImp)){
+          if(VarImp==TRUE){
             VarImp_RspCurv(Model=Model,Algorithm='RDF',folders=folders,spN=spN[s],SpDataT = SpDataT,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
@@ -2026,7 +2026,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
             #Variable Importance & Response Curves
-            if(!is.null(VarImp)){
+            if(VarImp==TRUE){
               VarImp_RspCurv(Model=Model,Algorithm='GAM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
@@ -2193,7 +2193,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
             #Variable Importance & Response Curves
-            if(!is.null(VarImp)){
+            if(VarImp==TRUE){
               VarImp_RspCurv(Model=Model,Algorithm='GLM',folders=folders,spN=spN[s],SpDataT = SpDataT,
                              VarColT=VarColT,Outcome=PredPoint$PredPoint)
             }
@@ -2354,7 +2354,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
         #Variable Importance & Response Curves
-        if(!is.null(VarImp)){
+        if(VarImp==TRUE){
           VarImp_RspCurv(Model=Model,Algorithm='GAU',folders=folders,spN=spN[s],SpDataT = SpDataT,
                          VarColT=VarColT,Outcome=PredPoint$PredPoint)
         }
@@ -2571,7 +2571,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
 
               #Variable Importance & Response Curves
-              if(!is.null(VarImp)){
+              if(VarImp==TRUE){
                 VarImp_RspCurv(Model=Model,Algorithm='BRT',folders=folders,spN=spN[s],SpDataT = SpDataT,
                                VarColT=VarColT,Outcome=PredPoint$PredPoint)
               }
