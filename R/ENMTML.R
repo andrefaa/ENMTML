@@ -30,7 +30,7 @@
 #'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PEARSON', threshold='0.7').
 #' }
 #'
-#' @param imp_var character. Perform variable importance and curves response for selected algorithms? (Y/N)
+#' @param imp_var logical Perform variable importance and curves response for selected algorithms? (defaul FALSE)
 #'
 #' @param sp_accessible_area character. Restrict for each species the accessible area, i.e., the area used to construct the model. It is necessary to provide a vector for this argument. Three methods were implemented
 #' \itemize{
@@ -142,7 +142,7 @@ ENMTML <- function(pred_dir,
                    thin_occ=NULL,
                    eval_occ=NULL,
                    colin_var=NULL,
-                   imp_var=NULL,
+                   imp_var=FALSE,
                    sp_accessible_area=NULL,
                    pseudoabs_method,
                    pres_abs_ratio = 1,
@@ -232,7 +232,6 @@ ENMTML <- function(pred_dir,
       stop("'colin_var' Argument is not valid for PEARSON method! a threshold between 0-1 is needed e.g., colin_var=c(method='PEARSON', threshold='0.7')")
     }
   }
-
 
   if(pres_abs_ratio<=0){
     stop("'pres_abs_ratio' Argument is not valid!(pres_abs_ratio>=0)")
@@ -532,7 +531,7 @@ ENMTML <- function(pred_dir,
 
   #4.3.Save Thinned & Unique Occurrences
   ndb <- ldply(occA)[,1:3]
-  write.table(ndb,file.path(DirR,"Occ_Cleaned.txt"),sep="\t",row.names=F)
+  write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
 
   #4.3.Remove species with less than min_occ----
   occ <- occA[sapply(occA,function (x) nrow(x)>=min_occ)]
@@ -544,7 +543,7 @@ ENMTML <- function(pred_dir,
     print(paste("Species with less than ",min_occ, " Unique Occurrences were removed!"))
     print(names(occ_xy)[names(occ_xy)%in%spN==F])
     ndb <- ldply(occ)[,1:3]
-    write.table(ndb,file.path(DirR,"Occ_Filtered.txt"),sep="\t",row.names=F)
+    write.table(ndb,file.path(DirR,"Occurrences_Filtered.txt"),sep="\t",row.names=F)
     rm(ndb)
   }
   occ_xy <- lapply(occ,function(x) x[,c("x","y")])
@@ -745,7 +744,7 @@ ENMTML <- function(pred_dir,
         rm(envTT)
       }
     }
-    
+
     #6.2.1.Check if all species are valid----
     occValid <- split(occINPUT,occINPUT$sp)
     occValid1 <- lapply(occValid,function(x) table(x$Partition))
@@ -872,7 +871,7 @@ ENMTML <- function(pred_dir,
       occFold<- lapply(occ_xy, function(x) cbind(x,kfold(x,rep)))
       colsK <-  c("x","y","Partition");
       occFold <- lapply(occFold, setNames, colsK)
-      write.table(ldply(occFold,data.frame,.id="sp"),file.path(DirR,"GruposCrossValidation.txt"),sep="\t",row.names=F)
+      write.table(ldply(occFold,data.frame,.id="sp"),file.path(DirR,"CrossValidationGroups.txt"),sep="\t",row.names=F)
     }
 
     #Adjusting for determined evaluation dataset
@@ -1501,4 +1500,5 @@ ENMTML <- function(pred_dir,
       )
     }
   }
+  cat("Models were created successfully! \n", "Outputs are in: \n", DirR)
 }
