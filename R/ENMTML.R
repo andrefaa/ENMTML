@@ -531,7 +531,7 @@ ENMTML <- function(pred_dir,
 
   #4.3.Save Thinned & Unique Occurrences
   ndb <- ldply(occA)[,1:3]
-  write.table(ndb,file.path(DirR,"Occ_Cleaned.txt"),sep="\t",row.names=F)
+  write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
 
   #4.3.Remove species with less than min_occ----
   occ <- occA[sapply(occA,function (x) nrow(x)>=min_occ)]
