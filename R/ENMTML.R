@@ -531,7 +531,7 @@ ENMTML <- function(pred_dir,
 
   #4.3.Save Thinned & Unique Occurrences
   ndb <- ldply(occA)[,1:3]
-  write.table(ndb,file.path(DirR,"Occ_Cleaned.txt"),sep="\t",row.names=F)
+  write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
 
   #4.3.Remove species with less than min_occ----
   occ <- occA[sapply(occA,function (x) nrow(x)>=min_occ)]
@@ -543,7 +543,7 @@ ENMTML <- function(pred_dir,
     print(paste("Species with less than ",min_occ, " Unique Occurrences were removed!"))
     print(names(occ_xy)[names(occ_xy)%in%spN==F])
     ndb <- ldply(occ)[,1:3]
-    write.table(ndb,file.path(DirR,"Occ_Filtered.txt"),sep="\t",row.names=F)
+    write.table(ndb,file.path(DirR,"Occurrences_Filtered.txt"),sep="\t",row.names=F)
     rm(ndb)
   }
   occ_xy <- lapply(occ,function(x) x[,c("x","y")])
@@ -871,7 +871,7 @@ ENMTML <- function(pred_dir,
       occFold<- lapply(occ_xy, function(x) cbind(x,kfold(x,rep)))
       colsK <-  c("x","y","Partition");
       occFold <- lapply(occFold, setNames, colsK)
-      write.table(ldply(occFold,data.frame,.id="sp"),file.path(DirR,"GruposCrossValidation.txt"),sep="\t",row.names=F)
+      write.table(ldply(occFold,data.frame,.id="sp"),file.path(DirR,"CrossValidationGroups.txt"),sep="\t",row.names=F)
     }
 
     #Adjusting for determined evaluation dataset
