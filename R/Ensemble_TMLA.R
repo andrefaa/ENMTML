@@ -207,7 +207,7 @@ Ensemble_TMLA <- function(DirR,
       Best <- as.character(SpVal[which(unlist(SpVal[ensemble_metric])>=mean(unlist(SpVal[ensemble_metric]))),"Algorithm"])
       W <- names(ListRaster)[names(ListRaster)%in%Best]
       nom <- names(ListRaster)
-      
+
       ListRaster <- brick(stack(ListRaster))
       names(ListRaster) <- nom
       Final <- raster::subset(ListRaster,subset=W)
@@ -318,7 +318,7 @@ Ensemble_TMLA <- function(DirR,
       Best <- SpVal[which(unlist(SpVal[ensemble_metric])>=mean(unlist(SpVal[ensemble_metric]))),"Algorithm"]
       W <- names(ListRaster)[names(ListRaster)%in%Best]
       nom <- names(ListRaster)
-      
+
       ListRaster <- brick(stack(ListRaster))
       names(ListRaster) <- nom
       Final <- raster::subset(ListRaster,subset=W)
@@ -441,7 +441,7 @@ Ensemble_TMLA <- function(DirR,
     return(result)
   }
   # Save .txt with the models performance----
-  FinalSummary <- result
+  FinalSummary <- do.call("rbind", result)
   write.table(FinalSummary,paste(DirR,"Thresholds_Ensemble.txt", sep = '/'),sep="\t",
               col.names = T,row.names=F)
   stopCluster(cl)
