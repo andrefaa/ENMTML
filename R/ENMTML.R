@@ -272,7 +272,7 @@ ENMTML <- function(pred_dir,
                    extrapolation=FALSE,
                    cores=1) {
 
-  #1.Check Function Arguments
+  #0.Check Function Arguments----
   cat("Checking for function arguments ...\n")
 
   er <- NULL
@@ -354,6 +354,9 @@ ENMTML <- function(pred_dir,
   }
   if(!(pseudoabs_method['method']%in%c("RND", "ENV_CONST", "GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST"))){
     stop("'pseudoabs_method' Argument is not valid!. Can be used: 'RND', 'ENV_CONST', 'GEO_CONST', 'GEO_ENV_CONST', 'GEO_ENV_KM_CONST')")
+  }
+  if((pseudoabs_method['method']%in%c("GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST")) & length(pseudoabs_method)!=2){
+    stop("'pseudoabs_method' Argument is not valid!. Please specify a 'width' for the buffer!")
   }
   if(length(pseudoabs_method['method'])>1){
     stop("Please choose only one Pseudo-absence allocation method")
@@ -1587,6 +1590,7 @@ ENMTML <- function(pred_dir,
   #9.MSDM Posteriori----
 
   if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+    cat("Performing MSDM-Posterior....\n")
     if(any(list.files(DirR)=="Ensemble")){
       DirT <- file.path(DirR,"Ensemble",ensemble2)
       DirPost <- "MSDMPosterior"
@@ -1615,6 +1619,7 @@ ENMTML <- function(pred_dir,
         DirRaster = DirT[i]
       )
     }
+    cat("MSDM-Posterior created!\n")
   }
   cat("Models were created successfully! \n", "Outputs are in: \n", DirR)
 }

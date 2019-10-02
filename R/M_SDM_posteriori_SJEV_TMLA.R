@@ -118,7 +118,7 @@ MSDM_Posterior <- function(RecordsData,
         AdeqBin <- Adeq*Bin
         AdeqBin[AdeqBin[] == 0] <- NA
         AdeqBin <- round(AdeqBin,6)
-        AdeqBin <- clump(AdeqBin)
+        AdeqBin <- raster::clump(AdeqBin)
         AdeqPoints <- data.frame(rasterToPoints(AdeqBin)[,1:2])
         AdeqPoints <- cbind(AdeqPoints,ID=extract(AdeqBin,AdeqPoints))
         # Find the patches that contain presences records
