@@ -9,7 +9,7 @@ Please follow the "installation" instructions
 install.packages("devtools")  
 library(devtools)  
 install_github("andrefaa/ENMTML")  
-library(ENMTheMetaLand)  
+library(ENMTML)  
 ```
 
 **FOR NEW USERS**  
