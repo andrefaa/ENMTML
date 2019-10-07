@@ -6,10 +6,10 @@ Please follow the "installation" instructions
 
 ## Installation
 ```ruby
-install.packages("devtools")  
+# install.packages("devtools")  
 library(devtools)  
 install_github("andrefaa/ENMTML")  
-library(ENMTheMetaLand)  
+library(ENMTML)  
 ```
 
 **FOR NEW USERS**  
