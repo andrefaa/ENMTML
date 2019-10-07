@@ -100,11 +100,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   #Txt of Final tables
   if(is.null(repl)==F){
-    VALNAME <- paste('Validation_Partition','_',sep="",repl,'.txt' )
+    VALNAME <- paste('Evaluation_Table','_',sep="",repl,'.txt' )
   }else{
-    VALNAME <- paste('Validation_Partition.txt' )
+    VALNAME <- paste('Evaluation_Table.txt' )
   }
-  VALNAMEII <- paste('Thresholds_Complete.txt' )
+  VALNAMEII <- paste('Thresholds_Algorithms.txt' )
 
 
   # Backqround points----

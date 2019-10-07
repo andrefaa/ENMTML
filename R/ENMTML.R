@@ -1524,7 +1524,7 @@ ENMTML <- function(pred_dir,
       write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
 
       #Save Final Validation File
-      val <- list.files(DirR,pattern="Validation_Partition_")
+      val <- list.files(DirR,pattern="Evaluation_Table_")
       valF <- list()
       for(i in 1:length(val)){
         valF[[i]] <- read.table(file.path(DirR,val[i]),sep="\t",header=T)
@@ -1540,7 +1540,7 @@ ENMTML <- function(pred_dir,
       valF$Replicate <- NULL
       valF$Partition <- part['method']
       unlink(file.path(DirR,val))
-      write.table(valF,file.path(DirR,"Validation_Partition.txt"),sep="\t",row.names=F)
+      write.table(valF,file.path(DirR,"Evaluation_Table.txt"),sep="\t",row.names=F)
 
       #Save Final Bootstrap File
       if(per!=1 || part['method']=="KFOLD"){
@@ -1571,8 +1571,8 @@ ENMTML <- function(pred_dir,
   #8.Ensemble----
   if (any(ensemble2!="N")){
     cat("Performing Ensemble....\n")
-    ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
-    ValF <- read.table(file.path(DirR,"Validation_Partition.txt"),sep="\t",h=T)
+    ThrTable <- read.table(file.path(DirR,"Thresholds_Algorithms.txt"),sep="\t",h=T)
+    ValF <- read.table(file.path(DirR,"Evaluation_Table.txt"),sep="\t",h=T)
 
     Ensemble_TMLA(DirR = DirR,
                   ValTable = ValF,
