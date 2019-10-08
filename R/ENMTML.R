@@ -374,18 +374,18 @@ ENMTML <- function(pred_dir,
     stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
   }
   if(!is.null(msdm)){
+    if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
+      stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
+    }
     if(length(msdm)==2){
       msdm_width <- as.numeric(msdm['width'])
     }else{
       msdm_width <- NULL
     }
-    if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
-      stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
-    }
   }
-  if(length(msdm)>1){
-    stop("Please choose only one 'msdm' method")
-  }
+  # if(length(msdm["method"])>1){
+  #   stop("Please choose only one 'msdm' method")
+  # }
 
 
 
