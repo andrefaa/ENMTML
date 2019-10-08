@@ -214,7 +214,9 @@ MSDM_Posterior <- function(RecordsData,
         
         #Chosen patches
         Mask <- DistBetweenPoly0[DistBetweenPoly0[,3]<=CUT,2]
-        Mask <- AdeqBin%in%c(Mask,npatch1)
+        Mask <- raster::match(AdeqBin,table=c(Mask,npatch1),nomatch=0)
+        Mask <- Mask!=0
+        # Mask <- AdeqBin%in%c(Mask,npatch1)
         Mask[is.na(Adeq)] <- NA
         Mask2 <- Adeq*Mask
         
