@@ -272,7 +272,7 @@ ENMTML <- function(pred_dir,
                    extrapolation=FALSE,
                    cores=1) {
 
-  #1.Check Function Arguments
+  #0.Check Function Arguments----
   cat("Checking for function arguments ...\n")
 
   er <- NULL
@@ -355,6 +355,9 @@ ENMTML <- function(pred_dir,
   if(!(pseudoabs_method['method']%in%c("RND", "ENV_CONST", "GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST"))){
     stop("'pseudoabs_method' Argument is not valid!. Can be used: 'RND', 'ENV_CONST', 'GEO_CONST', 'GEO_ENV_CONST', 'GEO_ENV_KM_CONST')")
   }
+  if((pseudoabs_method['method']%in%c("GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST")) & length(pseudoabs_method)!=2){
+    stop("'pseudoabs_method' Argument is not valid!. Please specify a 'width' for the buffer!")
+  }
   if(length(pseudoabs_method['method'])>1){
     stop("Please choose only one Pseudo-absence allocation method")
   }
@@ -371,17 +374,18 @@ ENMTML <- function(pred_dir,
     stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
   }
   if(!is.null(msdm)){
-    if(length(msdm)==2){
-      msdm <- msdm['method']
-      msdm_width <- as.numeric(msdm['width'])
-    }
     if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
       stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
     }
+    if(length(msdm)==2){
+      msdm_width <- as.numeric(msdm['width'])
+    }else{
+      msdm_width <- NULL
+    }
   }
-  if(length(msdm)>1){
-    stop("Please choose only one 'msdm' method")
-  }
+  # if(length(msdm["method"])>1){
+  #   stop("Please choose only one 'msdm' method")
+  # }
 
 
 
@@ -399,7 +403,7 @@ ENMTML <- function(pred_dir,
          "maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
-         "usdm","pracma","gbm","caret","adehabitatHS", "visreg"))
+         "usdm","pracma","gbm","caret","adehabitatHS", "visreg","igraph"))
 
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
@@ -1521,7 +1525,7 @@ ENMTML <- function(pred_dir,
       write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
 
       #Save Final Validation File
-      val <- list.files(DirR,pattern="Validation_Partition_")
+      val <- list.files(DirR,pattern="Evaluation_Table_")
       valF <- list()
       for(i in 1:length(val)){
         valF[[i]] <- read.table(file.path(DirR,val[i]),sep="\t",header=T)
@@ -1537,7 +1541,7 @@ ENMTML <- function(pred_dir,
       valF$Replicate <- NULL
       valF$Partition <- part['method']
       unlink(file.path(DirR,val))
-      write.table(valF,file.path(DirR,"Validation_Partition.txt"),sep="\t",row.names=F)
+      write.table(valF,file.path(DirR,"Evaluation_Table.txt"),sep="\t",row.names=F)
 
       #Save Final Bootstrap File
       if(per!=1 || part['method']=="KFOLD"){
@@ -1568,8 +1572,8 @@ ENMTML <- function(pred_dir,
   #8.Ensemble----
   if (any(ensemble2!="N")){
     cat("Performing Ensemble....\n")
-    ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
-    ValF <- read.table(file.path(DirR,"Validation_Partition.txt"),sep="\t",h=T)
+    ThrTable <- read.table(file.path(DirR,"Thresholds_Algorithms.txt"),sep="\t",h=T)
+    ValF <- read.table(file.path(DirR,"Evaluation_Table.txt"),sep="\t",h=T)
 
     Ensemble_TMLA(DirR = DirR,
                   ValTable = ValF,
@@ -1586,7 +1590,8 @@ ENMTML <- function(pred_dir,
 
   #9.MSDM Posteriori----
 
-  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCP-B')){
+    cat("Performing MSDM-Posterior....\n")
     if(any(list.files(DirR)=="Ensemble")){
       DirT <- file.path(DirR,"Ensemble",ensemble2)
       DirPost <- "MSDMPosterior"
@@ -1609,12 +1614,13 @@ ENMTML <- function(pred_dir,
       MSDM_Posterior(
         RecordsData = occINPUT,
         Threshold = thr[grep('type', names(thr))],
-        cutoff = msdm,#Aqui é o tipo de MSDM-Posterior
+        cutoff = msdm["method"],#Aqui é o tipo de MSDM-Posterior
         CUT_Buf = msdm_width,#Aqui é a distancia do Buffer
         DirSave = DirPost[i],
         DirRaster = DirT[i]
       )
     }
+    cat("MSDM-Posterior created!\n")
   }
   cat("Models were created successfully! \n", "Outputs are in: \n", DirR)
 }
