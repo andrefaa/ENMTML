@@ -375,8 +375,9 @@ ENMTML <- function(pred_dir,
   }
   if(!is.null(msdm)){
     if(length(msdm)==2){
-      msdm <- msdm['method']
       msdm_width <- as.numeric(msdm['width'])
+    }else{
+      msdm_width <- NULL
     }
     if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
       stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
@@ -402,7 +403,7 @@ ENMTML <- function(pred_dir,
          "maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
-         "usdm","pracma","gbm","caret","adehabitatHS", "visreg"))
+         "usdm","pracma","gbm","caret","adehabitatHS", "visreg","igraph"))
 
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
@@ -1589,7 +1590,7 @@ ENMTML <- function(pred_dir,
 
   #9.MSDM Posteriori----
 
-  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCP-B')){
     cat("Performing MSDM-Posterior....\n")
     if(any(list.files(DirR)=="Ensemble")){
       DirT <- file.path(DirR,"Ensemble",ensemble2)
@@ -1613,7 +1614,7 @@ ENMTML <- function(pred_dir,
       MSDM_Posterior(
         RecordsData = occINPUT,
         Threshold = thr[grep('type', names(thr))],
-        cutoff = msdm,#Aqui é o tipo de MSDM-Posterior
+        cutoff = msdm["method"],#Aqui é o tipo de MSDM-Posterior
         CUT_Buf = msdm_width,#Aqui é a distancia do Buffer
         DirSave = DirPost[i],
         DirRaster = DirT[i]
