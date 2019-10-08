@@ -125,9 +125,9 @@ MSDM_Posterior <- function(RecordsData,
         polypoint <- as.numeric(unique(extract(AdeqBin,pts1)))
         AdeqBin2 <- AdeqBin
         AdeqBin2[!AdeqBin2[] %in% polypoint] <- NA
-        AdeqBin2 <- !is.na(AdeqBin2)
+        AdeqBin3 <- !is.na(AdeqBin2)
         if(cutoff=="PRES"){
-          Mask <- AdeqBin2
+          Mask <- AdeqBin3
           Mask[is.na(Mask)] <- 0
           Mask[is.na(Adeq[])] <- NA
           Mask2 <- Adeq*Mask
@@ -214,7 +214,7 @@ MSDM_Posterior <- function(RecordsData,
         
         #Chosen patches
         Mask <- DistBetweenPoly0[DistBetweenPoly0[,3]<=CUT,2]
-        Mask <- AdeqBin[AdeqBin[]%in%c(Mask,npatch1)]
+        Mask <- AdeqBin%in%c(Mask,npatch1)
         Mask[is.na(Adeq)] <- NA
         Mask2 <- Adeq*Mask
         
