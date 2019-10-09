@@ -142,7 +142,121 @@ a Posteriori methods
 Create and process Ecological Niche and Species Distribution Models
 }
 \examples{
-library(ENMTML)
+require(ENMTML)
+require(raster)
+
+##\%######################################################\%##
+#                                                          #
+####           Directories and data creation            ####
+#                                                          #
+##\%######################################################\%##
+# ENMTML package account with some bioclimantic variables
+# used to test ENMTML function.
+# In order to simulate the files and folders needed for an ENMTML function
+# will be created different folders with some data
+
+# First will be created a folder with a working directory
+getwd() #' Working directory of R session
+d_ex <- file.path(getwd(), 'ENMTML_example')
+d_ex
+dir.create(d_ex)
+
+# Will be saved some ENMTML data sets to ENMTML_example folder
+# Virtual species occurrences
+data("occ")
+d_occ <- file.path(d_ex, 'occ.txt')
+write.table(occ, d_occ, sep = '\\t', row.names = F)
+# Five bioclimatic variables for current conditions
+data("env")
+d_env <- file.path(d_ex, 'current_env_var')
+dir.create(d_env)
+writeRaster(env, file.path(d_env, names(env)), bylayer=T, format='GTiff')
+# Five bioclimatic variables for future conditions
+# (for more details see predictors_future help)
+data("env_fut")
+d_fut <- file.path(d_ex, 'future_env_var')
+dir.create(d_fut)
+d0 <- file.path(d_fut, names(env_fut))
+sapply(d0, dir.create)
+
+writeRaster(env_fut$`2080_4.5`, file.path(d0[1],
+            names(env_fut$`2080_4.5`)), bylayer=T, format='GTiff')
+writeRaster(env_fut$`2080_8.5`, file.path(d0[2],
+            names(env_fut$`2080_8.5`)), bylayer=T, format='GTiff')
+
+# Polygon of terrestrial ecoregion
+data("ecoregions")
+d_eco <- file.path(d_ex, 'ecoregions')
+dir.create(d_eco)
+d_eco <- file.path(d_eco, paste0('eco','.shp'))
+shapefile(ecoregions, d_eco)
+
+# shell.exec(d_ex) # open the directory and folders created
+rm(list = c('d0', 'd_ex', 'ecoregions', 'env', 'env_fut', 'occ'))
+
+# Now we have the minimum data needed to create models with ENMTML package
+# a directory with environmental rasters and a .txt file with occurrence
+
+
+##\%######################################################\%##
+#                                                          #
+####           Construction ENM with ENMTML            ####
+#                                                          #
+##\%######################################################\%##
+args(ENMTML)
+
+# ENMTML provides a variety of tools to build different models
+# depending on the modeling objetives.
+# Here will be provided a single modeling procedure.
+# For more example and exploration of models
+# see <https://github.com/andrefaa/ENMTML>
+
+# Will be fitted models for five virtual species with
+# current and future conditions. Please read ENMTML arguments.
+
+# The next object contains the directory and file path data and folders that will be used
+d_occ # file path with species occurrences
+d_env # directory path with current environmental conditions (raster in tiff format)
+d_fut # directory path with folders with future environmental conditions (raster in tiff format)
+d_eco # file path with shapefile used to constrain models
+
+
+ENMTML(
+ pred_dir = d_env,
+ proj_dir = NULL,
+ occ_file = d_occ,
+ sp = 'species',
+ x = 'x',
+ y = 'y',
+ min_occ = 10,
+ thin_occ = NULL,
+ eval_occ = NULL,
+ colin_var = c(method='PCA'),
+ imp_var = FALSE,
+ sp_accessible_area = c(method='BUFFER', type='2', width='500'),
+ pseudoabs_method = c(method = 'RND'),
+ pres_abs_ratio = 1,
+ part=c(method= 'KFOLD', folds='2'),
+ save_part = FALSE,
+ save_final = TRUE,
+ algorithm = c('SVM', 'RDF', 'MXD'),
+ thr = c(type='MAX_TSS'),
+ msdm = NULL,
+ ensemble = c(method='PCA'),
+ extrapolation = FALSE,
+ cores = 1
+)
+
+# ENMTML function will create a folder named Result a directory
+# prior to the directory specified in the pred_dir argument
+
+d_env # Directory used to define environmental variables
+d_rslt <- d_env \%>\% dirname() \%>\% file.path(., 'Result')
+d_rslt
+# shell.exec(d_rslt) # for Windows users
+# List of txt files and subdirectories
+list.files(d_rslt)
+list.dirs(d_rslt)
 
 
 
