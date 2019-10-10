@@ -450,7 +450,7 @@ ENMTML <- function(pred_dir,
 
   #3.0.Check predictors consistency
   if(length(unique(colSums(!is.na(envT[]))))>1){
-    envT[is.na((sum(envT))[])] <- NA
+    envT <- mask(envT,calc(envT,fun = sum))
     print("Variables had differences, setting any empty cells to NA in all variables")
   }
 
