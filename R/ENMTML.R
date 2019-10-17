@@ -631,9 +631,9 @@ ENMTML <- function(pred_dir,
                     sep = '\t',
                     stringsAsFactors = F)
   occ<-occ[,c(sp,x,y)]
-  #Correct issues caused by species name separated by space
-  occ$species <- gsub(" ","_",occ$species)
   colnames(occ) <- c("sp","x","y")
+  #Correct issues caused by species name separated by space
+  occ$sp <- gsub(" ","_",occ$sp)
   occ_xy <- split(occ[,-1],f=occ$sp)
   spN<-names(occ_xy)
 
