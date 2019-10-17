@@ -30,7 +30,7 @@ PCAFuturo<-function(Env,
   DScale <- data.frame(apply(PcaR,2,scale))
   
   # PCA 
-  DPca <- prcomp(DScale,retx=TRUE,center=F,scale=F)
+  DPca <- prcomp(DScale,retx=TRUE,center=T,scale=T)
 
   #Coefficients
   Coef<-DPca$rotation
