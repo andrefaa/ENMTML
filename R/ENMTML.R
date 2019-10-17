@@ -314,6 +314,7 @@ ENMTML <- function(pred_dir,
   }
   if(is.null(ensemble)) {
     ensemble2 <- "N"
+    ensemble_metric <- NULL
   } else{
     ensemble2 <- ensemble[grep('method', names(ensemble))]
     if (any(ensemble2 %in% c("SUP", "W_MEAN", "PCA_SUP")) & !any(names(ensemble) == 'metric')) {
