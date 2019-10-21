@@ -314,6 +314,7 @@ ENMTML <- function(pred_dir,
   }
   if(is.null(ensemble)) {
     ensemble2 <- "N"
+    ensemble_metric <- NULL
   } else{
     ensemble2 <- ensemble[grep('method', names(ensemble))]
     if (any(ensemble2 %in% c("SUP", "W_MEAN", "PCA_SUP")) & !any(names(ensemble) == 'metric')) {
@@ -450,7 +451,7 @@ ENMTML <- function(pred_dir,
 
   #3.0.Check predictors consistency
   if(length(unique(colSums(!is.na(envT[]))))>1){
-    envT[is.na((sum(envT))[])] <- NA
+    envT <- mask(envT,calc(envT,fun = sum))
     print("Variables had differences, setting any empty cells to NA in all variables")
   }
 
@@ -632,6 +633,8 @@ ENMTML <- function(pred_dir,
                     stringsAsFactors = F)
   occ<-occ[,c(sp,x,y)]
   colnames(occ) <- c("sp","x","y")
+  #Correct issues caused by species name separated by space
+  occ$sp <- gsub(" ","_",occ$sp)
   occ_xy <- split(occ[,-1],f=occ$sp)
   spN<-names(occ_xy)
 
@@ -943,6 +946,7 @@ ENMTML <- function(pred_dir,
       DirMSDM = DirPRI,
       Save = ifelse(save_part, 'Y', 'N'),
       SaveFinal = ifelse(save_final, 'Y', 'N'),
+      ensemble_metric=ensemble_metric,
       sensV=sensV,
       repl = NULL,
       per = NULL,
@@ -1502,6 +1506,7 @@ ENMTML <- function(pred_dir,
         DirMSDM = DirPRI,
         Save = ifelse(save_part, 'Y', 'N'),
         SaveFinal = ifelse(save_final, 'Y', 'N'),
+        ensemble_metric = ensemble_metric,
         sensV = sensV,
         per = per,
         repl = k,
