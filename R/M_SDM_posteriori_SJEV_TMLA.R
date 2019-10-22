@@ -118,16 +118,16 @@ MSDM_Posterior <- function(RecordsData,
         AdeqBin <- Adeq*Bin
         AdeqBin[AdeqBin[] == 0] <- NA
         AdeqBin <- round(AdeqBin,6)
-        AdeqBin <- clump(AdeqBin)
+        AdeqBin <- raster::clump(AdeqBin)
         AdeqPoints <- data.frame(rasterToPoints(AdeqBin)[,1:2])
         AdeqPoints <- cbind(AdeqPoints,ID=extract(AdeqBin,AdeqPoints))
         # Find the patches that contain presences records
         polypoint <- as.numeric(unique(extract(AdeqBin,pts1)))
         AdeqBin2 <- AdeqBin
         AdeqBin2[!AdeqBin2[] %in% polypoint] <- NA
-        AdeqBin2 <- !is.na(AdeqBin2)
+        AdeqBin3 <- !is.na(AdeqBin2)
         if(cutoff=="PRES"){
-          Mask <- AdeqBin2
+          Mask <- AdeqBin3
           Mask[is.na(Mask)] <- 0
           Mask[is.na(Adeq[])] <- NA
           Mask2 <- Adeq*Mask
@@ -214,7 +214,9 @@ MSDM_Posterior <- function(RecordsData,
         
         #Chosen patches
         Mask <- DistBetweenPoly0[DistBetweenPoly0[,3]<=CUT,2]
-        Mask <- AdeqBin%in%c(Mask,npatch1)
+        Mask <- raster::match(AdeqBin,table=c(Mask,npatch1),nomatch=0)
+        Mask <- Mask!=0
+        # Mask <- AdeqBin%in%c(Mask,npatch1)
         Mask[is.na(Adeq)] <- NA
         Mask2 <- Adeq*Mask
         

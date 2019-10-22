@@ -6,10 +6,10 @@ Please follow the "installation" instructions
 
 ## Installation
 ```ruby
-install.packages("devtools")  
+# install.packages("devtools")  
 library(devtools)  
 install_github("andrefaa/ENMTML")  
-library(ENMTheMetaLand)  
+library(ENMTML)  
 ```
 
 **FOR NEW USERS**  
@@ -21,7 +21,7 @@ library(GRaF)
 ## Run
 ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   thin_occ = NULL, eval_occ = NULL, colin_var = NULL,
-  imp_var = NULL, sp_accessible_area = NULL, pseudoabs_method,
+  imp_var = FALSE, sp_accessible_area = NULL, pseudoabs_method,
   pres_abs_ratio = 1, part, save_part = FALSE, save_final = TRUE,
   algorithm, thr, msdm = NULL, ensemble = NULL,
   extrapolation = FALSE, cores = 1)

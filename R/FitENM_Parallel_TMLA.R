@@ -19,6 +19,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    Save="N",
                    SaveFinal=SaveFinal,
                    extrapolation=extrapolation,
+                   ensemble_metric=ensemble_metric,
                    sensV,
                    cores) {
 
@@ -100,11 +101,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   #Txt of Final tables
   if(is.null(repl)==F){
-    VALNAME <- paste('Validation_Partition','_',sep="",repl,'.txt' )
+    VALNAME <- paste('Evaluation_Table','_',sep="",repl,'.txt' )
   }else{
-    VALNAME <- paste('Validation_Partition.txt' )
+    VALNAME <- paste('Evaluation_Table.txt' )
   }
-  VALNAMEII <- paste('Thresholds_Complete.txt' )
+  VALNAMEII <- paste('Thresholds_Algorithms.txt' )
 
 
   # Backqround points----
@@ -2667,6 +2668,223 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           }
         }
+      }
+    }
+    
+    #Ensemble----
+    # Mean Ensemble----
+    if(any(PredictType=="MEAN")){
+      
+      #Partial Models Ensemble
+      Final <- do.call(Map, c(rbind,RastPart))
+      Final <- lapply(Final, function (x) colMeans(x))
+      
+      # Threshold
+      Eval <- list()
+      Boyce <- list()
+      Eval_JS <- list()
+      for(i in 1:N){
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
+        Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+      }
+      
+      #MEAN Validation 
+      Boyce <- mean(unlist(Boyce))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      
+      if(is.null(repl)){
+        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s], Algorithm="MEA", Partition=Part,Validation,Boyce=Boyce)
+      }else{
+        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MEA", Partition=Part,Validation,Boyce=Boyce)          
+      }
+    }
+    
+    # Weighted Mean Ensemble----
+    if(any(PredictType=="W_MEAN")){
+      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
+      
+      #Partial Models Ensemble
+      Final <- do.call(Map, c(rbind,RastPart))
+      ThResW <- unlist(ListValidationT[ensemble_metric])
+      Final <- lapply(Final, function(x) sweep(x, 2, ThResW, '*'))
+      Final <- lapply(Final, function (x) colMeans(x))
+      
+      # Threshold
+      Eval <- list()
+      Boyce <- list()
+      Eval_JS <- list()
+      for(i in 1:N){
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
+        Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+      }
+      
+      #W_MEAN Validation 
+      Boyce <- mean(unlist(Boyce))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      if(is.null(repl)){
+        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s], Algorithm="WMEA",Partition=Part, Validation,Boyce=Boyce)
+      }else{
+        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="WMEA",Partition=Part, Validation,Boyce=Boyce)          
+      }
+    }
+    
+    # Superior Ensemble----
+    if(any(PredictType=='SUP')){
+      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
+  
+      Best <- ListValidationT[which(unlist(ListValidationT[ensemble_metric])>=mean(unlist(ListValidationT[ensemble_metric]))),"Algorithm"]
+      W <- names(ListRaster)%in%Best
+      
+      #Partial Models
+      Final <- do.call(Map, c(rbind,RastPart[W]))
+      Final <- lapply(Final, function (x) colMeans(x))
+      
+      # Threshold
+      Eval <- list()
+      Boyce <- list()
+      Eval_JS <- list()
+      for(i in 1:N){
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
+                                          PredPoint[PredPoint$PresAbse == 0, 2])
+        Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+      }
+      
+      #SUP Validation 
+      Boyce <- mean(unlist(Boyce))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      if(is.null(repl)){
+        ListValidation[["SUP"]] <- data.frame(Sp=spN[s], Algorithm="SUP", Partition=Part,Validation,Boyce=Boyce)
+      }else{
+        ListValidation[["SUP"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SUP",Partition=Part, Validation,Boyce=Boyce)          
+      }
+    }
+    
+    # With PCA ------
+    if (any(PredictType == 'PCA')) {
+      
+      #Partial Models Ensemble
+      if(any(lapply(RastPart, function(x) length(x))>1)){
+        Final <- do.call(Map, c(cbind, RastPart))
+        Final <- lapply(Final, function(x) as.numeric(princomp(x)$scores[,1]))
+        Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      }else{
+        Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
+        Final <- as.numeric(princomp(Final)$scores[,1])
+        Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+      }
+      
+      # Threshold
+      Eval <- list()
+      Boyce <- list()
+      Eval_JS <- list()
+      for(i in 1:N){
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
+                                          PredPoint[PredPoint$PresAbse == 0, 2])
+        Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+      }
+      
+      #PCA Validation 
+      Boyce <- mean(unlist(Boyce))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      if(is.null(repl)){
+        ListValidation[["PCA"]] <- data.frame(Sp=spN[s], Algorithm="PCA",Partition=Part, Validation,Boyce=Boyce)
+      }else{
+        ListValidation[["PCA"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCA", Partition=Part,Validation,Boyce=Boyce)          
+      }
+    }
+    
+    # With PCA over the Mean(Superior) Ensemble----
+    if (any(PredictType == 'PCA_SUP')) {
+      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
+      Best <- ListValidationT[which(unlist(ListValidationT[ensemble_metric])>=mean(unlist(ListValidationT[ensemble_metric]))),"Algorithm"]
+      W <- names(ListRaster)%in%Best
+      
+      #Partial Models
+      if(any(lapply(RastPart, function(x) length(x))>1)){
+        Final <- do.call(Map, c(cbind, RastPart[W]))
+        Final <- lapply(Final, function(x) as.numeric(princomp(x)$scores[,1]))
+        Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
+      }else{
+        Final <- do.call(cbind,lapply(RastPart[W], function(x) do.call(cbind,x)))
+        Final <- as.numeric(princomp(Final)$scores[,1])
+        Final <- list((Final-min(Final))/(max(Final)-min(Final)))
+      }
+      
+      # Threshold
+      Eval <- list()
+      Boyce <- list()
+      Eval_JS <- list()
+      for(i in 1:N){
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
+                                          PredPoint[PredPoint$PresAbse == 0, 2])
+        Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+      }
+      
+      #PCA_SUP Validation 
+      Boyce <- mean(unlist(Boyce))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      if(is.null(repl)){
+        ListValidation[["PCS"]] <- data.frame(Sp=spN[s], Algorithm="PCS",Partition=Part, Validation,Boyce=Boyce)
+      }else{
+        ListValidation[["PCS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCS",Partition=Part, Validation,Boyce=Boyce)          
+      }
+    }
+    
+    #With PCA over the threshold Ensemble----
+    if (any(PredictType == 'PCA_THR')) {
+      ListValidationT <- ldply(ListSummary,data.frame,.id=NULL)
+      ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
+      
+      #Partial Models
+      Final <- do.call(Map, c(cbind, RastPart))
+      ValidTHR <- ListValidationT[grepl(Threshold,as.character(ListValidationT$THR),ignore.case = T),"THR_VALUE"]
+      for (p in 1:length(Final)){
+        Final[[p]] <- sapply(seq(1:length(ValidTHR)),function(x){ifelse(Final[[p]][,x]>=ValidTHR[x],Final[[p]][,x],0)})
+        Final[[p]] <- as.numeric(princomp(Final[[p]])$scores[,1])
+        Final[[p]] <- (Final[[p]]-min(Final[[p]]))/(max(Final[[p]])-min(Final[[p]]))
+      }
+      
+      # Evaluation
+      Eval <- list()
+      Boyce <- list()
+      Eval_JS <- list()
+      for(i in 1:N){
+        PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
+                                          PredPoint[PredPoint$PresAbse == 0, 2])
+        Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+      }
+      
+      #PCA_SUP Validation 
+      Boyce <- mean(unlist(Boyce))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      
+      if(is.null(repl)){
+        ListValidation[["PCT"]] <- data.frame(Sp=spN[s], Algorithm="PCT", Partition=Part,Validation,Boyce=Boyce)
+      }else{
+        ListValidation[["PCT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCT", Partition=Part,Validation,Boyce=Boyce)          
       }
     }
 

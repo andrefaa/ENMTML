@@ -52,7 +52,7 @@
 
 #' @param part character. Partition method for model's validation. Only one method can be chosen. It is necessary to provide a vector for this argument. The next methods are implemented:
 #' \itemize{
-#'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage •	part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
+#'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
 #'   \item KFOLD: Random partition in k-fold cross-validation. Usage part=c(method= 'KFOLD', folds='5'). 'folds' referes to the number of k-folds for patitioning, it assume value >=1.
 #'   \item BANDS: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BANDS', type='1'). 'type' refers to the bands disposition
 #'   \item BLOCK: Geographic partition structured as a checkerboard. Usage part=c(method= 'BLOCK').
@@ -272,7 +272,7 @@ ENMTML <- function(pred_dir,
                    extrapolation=FALSE,
                    cores=1) {
 
-  #1.Check Function Arguments
+  #0.Check Function Arguments----
   cat("Checking for function arguments ...\n")
 
   er <- NULL
@@ -314,6 +314,7 @@ ENMTML <- function(pred_dir,
   }
   if(is.null(ensemble)) {
     ensemble2 <- "N"
+    ensemble_metric <- NULL
   } else{
     ensemble2 <- ensemble[grep('method', names(ensemble))]
     if (any(ensemble2 %in% c("SUP", "W_MEAN", "PCA_SUP")) & !any(names(ensemble) == 'metric')) {
@@ -355,6 +356,9 @@ ENMTML <- function(pred_dir,
   if(!(pseudoabs_method['method']%in%c("RND", "ENV_CONST", "GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST"))){
     stop("'pseudoabs_method' Argument is not valid!. Can be used: 'RND', 'ENV_CONST', 'GEO_CONST', 'GEO_ENV_CONST', 'GEO_ENV_KM_CONST')")
   }
+  if((pseudoabs_method['method']%in%c("GEO_CONST", "GEO_ENV_CONST", "GEO_ENV_KM_CONST")) & length(pseudoabs_method)!=2){
+    stop("'pseudoabs_method' Argument is not valid!. Please specify a 'width' for the buffer!")
+  }
   if(length(pseudoabs_method['method'])>1){
     stop("Please choose only one Pseudo-absence allocation method")
   }
@@ -371,17 +375,18 @@ ENMTML <- function(pred_dir,
     stop("provide a sensitivity value in the vector used in 'thr' argument, see ENMTML function help")
   }
   if(!is.null(msdm)){
-    if(length(msdm)==2){
-      msdm <- msdm['method']
-      msdm_width <- as.numeric(msdm['width'])
-    }
     if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
       stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
     }
+    if(length(msdm)==2){
+      msdm_width <- as.numeric(msdm['width'])
+    }else{
+      msdm_width <- NULL
+    }
   }
-  if(length(msdm)>1){
-    stop("Please choose only one 'msdm' method")
-  }
+  # if(length(msdm["method"])>1){
+  #   stop("Please choose only one 'msdm' method")
+  # }
 
 
 
@@ -399,7 +404,7 @@ ENMTML <- function(pred_dir,
          "maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
          "RStoolbox","flexclust","ape","tools","modEvA","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
-         "usdm","pracma","gbm","caret","adehabitatHS", "visreg"))
+         "usdm","pracma","gbm","caret","adehabitatHS", "visreg","igraph"))
 
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
@@ -446,7 +451,7 @@ ENMTML <- function(pred_dir,
 
   #3.0.Check predictors consistency
   if(length(unique(colSums(!is.na(envT[]))))>1){
-    envT[is.na((sum(envT))[])] <- NA
+    envT <- mask(envT,calc(envT,fun = sum))
     print("Variables had differences, setting any empty cells to NA in all variables")
   }
 
@@ -628,6 +633,8 @@ ENMTML <- function(pred_dir,
                     stringsAsFactors = F)
   occ<-occ[,c(sp,x,y)]
   colnames(occ) <- c("sp","x","y")
+  #Correct issues caused by species name separated by space
+  occ$sp <- gsub(" ","_",occ$sp)
   occ_xy <- split(occ[,-1],f=occ$sp)
   spN<-names(occ_xy)
 
@@ -939,6 +946,7 @@ ENMTML <- function(pred_dir,
       DirMSDM = DirPRI,
       Save = ifelse(save_part, 'Y', 'N'),
       SaveFinal = ifelse(save_final, 'Y', 'N'),
+      ensemble_metric=ensemble_metric,
       sensV=sensV,
       repl = NULL,
       per = NULL,
@@ -1498,6 +1506,7 @@ ENMTML <- function(pred_dir,
         DirMSDM = DirPRI,
         Save = ifelse(save_part, 'Y', 'N'),
         SaveFinal = ifelse(save_final, 'Y', 'N'),
+        ensemble_metric = ensemble_metric,
         sensV = sensV,
         per = per,
         repl = k,
@@ -1521,7 +1530,7 @@ ENMTML <- function(pred_dir,
       write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
 
       #Save Final Validation File
-      val <- list.files(DirR,pattern="Validation_Partition_")
+      val <- list.files(DirR,pattern="Evaluation_Table_")
       valF <- list()
       for(i in 1:length(val)){
         valF[[i]] <- read.table(file.path(DirR,val[i]),sep="\t",header=T)
@@ -1537,7 +1546,7 @@ ENMTML <- function(pred_dir,
       valF$Replicate <- NULL
       valF$Partition <- part['method']
       unlink(file.path(DirR,val))
-      write.table(valF,file.path(DirR,"Validation_Partition.txt"),sep="\t",row.names=F)
+      write.table(valF,file.path(DirR,"Evaluation_Table.txt"),sep="\t",row.names=F)
 
       #Save Final Bootstrap File
       if(per!=1 || part['method']=="KFOLD"){
@@ -1568,8 +1577,8 @@ ENMTML <- function(pred_dir,
   #8.Ensemble----
   if (any(ensemble2!="N")){
     cat("Performing Ensemble....\n")
-    ThrTable <- read.table(file.path(DirR,"Thresholds_Complete.txt"),sep="\t",h=T)
-    ValF <- read.table(file.path(DirR,"Validation_Partition.txt"),sep="\t",h=T)
+    ThrTable <- read.table(file.path(DirR,"Thresholds_Algorithms.txt"),sep="\t",h=T)
+    ValF <- read.table(file.path(DirR,"Evaluation_Table.txt"),sep="\t",h=T)
 
     Ensemble_TMLA(DirR = DirR,
                   ValTable = ValF,
@@ -1586,7 +1595,8 @@ ENMTML <- function(pred_dir,
 
   #9.MSDM Posteriori----
 
-  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCPB')){
+  if(!is.null(msdm) && msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCP-B')){
+    cat("Performing MSDM-Posterior....\n")
     if(any(list.files(DirR)=="Ensemble")){
       DirT <- file.path(DirR,"Ensemble",ensemble2)
       DirPost <- "MSDMPosterior"
@@ -1609,12 +1619,13 @@ ENMTML <- function(pred_dir,
       MSDM_Posterior(
         RecordsData = occINPUT,
         Threshold = thr[grep('type', names(thr))],
-        cutoff = msdm,#Aqui é o tipo de MSDM-Posterior
+        cutoff = msdm["method"],#Aqui é o tipo de MSDM-Posterior
         CUT_Buf = msdm_width,#Aqui é a distancia do Buffer
         DirSave = DirPost[i],
         DirRaster = DirT[i]
       )
     }
+    cat("MSDM-Posterior created!\n")
   }
   cat("Models were created successfully! \n", "Outputs are in: \n", DirR)
 }

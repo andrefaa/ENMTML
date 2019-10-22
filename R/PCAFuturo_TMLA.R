@@ -30,7 +30,7 @@ PCAFuturo<-function(Env,
   DScale <- data.frame(apply(PcaR,2,scale))
   
   # PCA 
-  DPca <- prcomp(DScale,retx=TRUE,center=F,scale=F)
+  DPca <- prcomp(DScale,retx=TRUE,center=T,scale=T)
 
   #Coefficients
   Coef<-DPca$rotation
@@ -58,7 +58,7 @@ PCAFuturo<-function(Env,
   DirP <- as.list(DirP)
   ProjEX <- lapply(DirP, function(x) unique(file_ext(list.files(x))))
   form <- c('bil','asc','txt','tif')
-  ProjEX <- ProjEX[ProjEX%in%form]
+  ProjEX <- unique(unlist(ProjEX)[unlist(ProjEX)%in%form])
 
   if(any(ProjEX %in% c('asc', 'bil', 'tif'))){
     ProjT<-lapply(DirP, function(x) brick(stack(file.path(x,list.files(x,paste0('\\.',ProjEX,'$'))))))
