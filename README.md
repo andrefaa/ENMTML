@@ -5,7 +5,7 @@
 </br>`
 <div style="text-align: center"><b style='color:gray'>Welcome! This is the ENMTML R package </br> to create and process Ecological Niche Models.</div></b> 
 <p align="center">
-<img align="center" src=https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true width="150"></p>
+<img align="center" src=https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true width="170"></p>
 
 
 *******
