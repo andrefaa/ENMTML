@@ -77,13 +77,13 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   + **PEARSON**: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user. Usage </br><b style='color:red'>`colin_var=c(method='PEARSON', threshold='0.7')`</b>.
 * **imp_var:** logical Perform variable importance and curves response for selected algorithms? (default `FALSE`)
 * **sp_accessible_area:** character. Restrict for each species the accessible area, i.e., the area used to model fitting. It is necessary to provide a vector for this argument. Three methods were implemented
-  + **BUFFER** area used to model fitting deliminted by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage <b style='color:red'>`sp_accessible_area=c(method='BUFFER', type='1')`</b>.
-  + **BUFFER** area used to model fitting deliminted by a buffer with a width size difinited by the user in km. Note this width size of buffer will be used for all species. Usage <b style='color:red'>`sp_accessible_area=c(method='BUFFER', type='2', width='300')`</b>.
-  + **MASK** this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage <b style='color:red'>`sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp')`</b>..
+  + **BUFFER** area used to model fitting deliminted by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage </br><b style='color:red'>`sp_accessible_area=c(method='BUFFER', type='1')`</b>.
+  + **BUFFER** area used to model fitting deliminted by a buffer with a width size difinited by the user in km. Note this width size of buffer will be used for all species. Usage </br><b style='color:red'>`sp_accessible_area=c(method='BUFFER', type='2', width='300')`</b>.
+  + **MASK** this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage </br><b style='color:red'>`sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp')`</b>..
 * **pseudoabs_method:** character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
-  + **RND:** Random allocation of pseudo-absences throughout the area used for model fitting. Usage <b style='color:red'>`pseudoabs_method=c(method='RND')`</b>.
-  + **ENV_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage <b style='color:red'>`pseudoabs_method=c(method='ENV_CONST')`</b>.
-  + **GEO_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage <b style='color:red'>`pseudoabs_method=c(method='GEO_CONST', width='50')`</b>.
+  + **RND:** Random allocation of pseudo-absences throughout the area used for model fitting. Usage </br><b style='color:red'>`pseudoabs_method=c(method='RND')`</b>.
+  + **ENV_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage </br><b style='color:red'>`pseudoabs_method=c(method='ENV_CONST')`</b>.
+  + **GEO_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage </br><b style='color:red'>`pseudoabs_method=c(method='GEO_CONST', width='50')`</b>.
   + **GEO_ENV_CONST:** Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage </br><b style='color:red'> `pseudoabs_method=c(method='GEO_ENV_CONST', width='50')`</b>
   + **GEO_ENV_KM_CONST:** Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provide a second value which express the buffer width in km. Usage </br><b style='color:red'>`pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')`</b>.
 * **pres_abs_ratio:** numeric. Presence-Absence ratio (values between 0 and 1).
@@ -111,9 +111,9 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   Usage <b style='color:red'>`part=c('BIO', 'SVM', 'GLM', 'GAM', 'GAU')`.</b>
 * **thr:** character. Threshold used for presence-absence predictions. It is possible to use more than one threshold type. It is necessary to provide a vector for this argument:
   + **LPT:** The highest threshold at which there is no omission. Usage </br><b style='color:red'>`thr=c(type='LPT')`</b>.
-  + **MAX_TSS:** Threshold at which the sum of the sensitivity and specificity is the highest. Usage <>/br<b style='color:red'> `thr=c(type='MAX_TSS')`</b>.
-  + **MAX_KAPPA:** The threshold at which kappa is the highest ("max kappa"). Usage <b style='color:red'>`thr=c(type='MAX_KAPPA')`</b>.
-  + **SENSITIVITY:** A threshold value specified by user. Usage <b style='color:red'>`thr=c(type='SENSITIVITY', sens='0.6')`</b>. 'sens' refers to models will be binarized using this suitability value. Note that this method assumes 'sens' value for all algorithm and species.
+  + **MAX_TSS:** Threshold at which the sum of the sensitivity and specificity is the highest. Usage </br><b style='color:red'> `thr=c(type='MAX_TSS')`</b>.
+  + **MAX_KAPPA:** The threshold at which kappa is the highest ("max kappa"). Usage </br><b style='color:red'>`thr=c(type='MAX_KAPPA')`</b>.
+  + **SENSITIVITY:** A threshold value specified by user. Usage </br><b style='color:red'>`thr=c(type='SENSITIVITY', sens='0.6')`</b>. 'sens' refers to models will be binarized using this suitability value. Note that this method assumes 'sens' value for all algorithm and species.
   + **JACCARD:** The threshold at which Jaccard is the highest. Usage </br><b style='color:red'>`thr=c(type='JACCARD')`</b>.
   + **SORENSEN:** The threshold at which Sorensen is highest. Usage </br><b style='color:red'>`thr=c(type='SORENSEN')`</b>.</br>
   
@@ -129,7 +129,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   
   _a Posteriori_ methods:</b>
   + **OBR:** Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep). Usage </br><b style='color:red'>`msdm=c(method='OBR')`</b>.
-  + **LR:** Lower Quantile, select the nearest 25
+  + **LR:** Lower Quantile, select the nearest 25\% patches (Mendes et al., in prep). Usage </br><b style='color:red'>`msdm=c(method='LR')`</b>.
   + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep). Usage </br><b style='color:red'>`msdm=c(method='PRES')`</b>.
   + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on ocurrences data. Usage </br><b style='color:red'>`msdm=c(method='MCP')`</b>.
   + **MCP-B:** Creates a buffer (with a width size defined by user in km) around the MCP. Usage </br><b style='color:red'>`msdm=c(method='MCP-B', width=100)`</b>. In this case `width=100` means that a buffer with 100km of width will be created around the MCP.</b>
