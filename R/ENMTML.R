@@ -52,7 +52,7 @@
 
 #' @param part character. Partition method for model's validation. Only one method can be chosen. It is necessary to provide a vector for this argument. The next methods are implemented:
 #' \itemize{
-#'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage •	part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
+#'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
 #'   \item KFOLD: Random partition in k-fold cross-validation. Usage part=c(method= 'KFOLD', folds='5'). 'folds' referes to the number of k-folds for patitioning, it assume value >=1.
 #'   \item BANDS: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BANDS', type='1'). 'type' refers to the bands disposition
 #'   \item BLOCK: Geographic partition structured as a checkerboard. Usage part=c(method= 'BLOCK').
