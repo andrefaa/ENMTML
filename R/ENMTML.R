@@ -1,66 +1,66 @@
-#' Create and process Ecological Niche and Species Distribution Models
+#' Create and process Ecological Niche Models
 #'
-#' @param pred_dir character. Directory path with predictors (file formats supported are: ASC, BILL, TIFF or TXT)
+#' @param pred_dir character. Directory path with predictors (file formats supported are ASC, BILL, TIFF or TXT)
 #'
-#' @param proj_dir character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are: ASC, BILL, TIFF or TXT).
+#' @param proj_dir character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).
 #'
-#' @param occ_file character. Directory path with tab-delimited TXT file with species names, latitude and longitude
+#' @param occ_file character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.
 #'
-#' @param sp character. Name of the column with information about species names
+#' @param sp character. Name of the column with information about species names.
 #'
-#' @param x character. Name of the column with information about longitude
+#' @param x character. Name of the column with information about longitude.
 
-#' @param y character. Name of the column with information about latitude
+#' @param y character. Name of the column with information about latitude.
 #'
-#' @param min_occ integer. Minimum number of unique occurrences (species with less than this number will be excluded)
+#' @param min_occ integer. Minimum number of unique occurrences (species with less than this number will be excluded).
 #'
 #' @param thin_occ character Default NULL. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
 #' \itemize{
-#' \item MORAN-Distance defined by Moran Variogram, usage thin_occ=c(method='MORAN').
-#' \item CELLSIZE-Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='CELLSIZE').
-#' \item USER-DEFINED-User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', ditance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted
+#' \item MORAN: Distance defined by Moran Variogram, usage thin_occ=c(method='MORAN').
+#' \item CELLSIZE: Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='CELLSIZE').
+#' \item USER-DEFINED: User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', distance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.
 #' }
 #'
-#' @param eval_occ character. Directory path with tab-delimited TXT file with species names, latitude and longitude, this three columns must have the same columns names than the databased used in the occ_file argument. This is an external occurrence database that will be used to external models validation. (default NULL)
+#' @param eval_occ character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the databased used in the occ_file argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default NULL).
 #'
 #' @param colin_var character. Method to reduce variable collinearity:
 #' \itemize{
 #'   \item PCA: Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables, usage colin_var=c(method='PCA').
-#'   \item VIF: Variance Inflation Factor (Chatterjee and Hadi 2006), , usage colin_var=c(method='VIF').
+#'   \item VIF: Variance Inflation Factor; usage colin_var=c(method='VIF').
 #'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PEARSON', threshold='0.7').
 #' }
 #'
-#' @param imp_var logical Perform variable importance and curves response for selected algorithms? (defaul FALSE)
+#' @param imp_var logical Perform variable importance and curves response for selected algorithms? (default FALSE)
 #'
-#' @param sp_accessible_area character. Restrict for each species the accessible area, i.e., the area used to construct the model. It is necessary to provide a vector for this argument. Three methods were implemented
+#' @param sp_accessible_area character. Restrict for each species the accessible area, i.e., the area used to model fitting. It is necessary to provide a vector for this argument. Three methods were implemented
 #' \itemize{
 #'   \item BUFFER and based on maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
 #'   \item BUFFER and based on A single buffer for all species expressed in km. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
-#'   \item MASK: this method consist in delimit the area used to model calibration based on the polygon where a species occurrences fall. For instance it is possible delimit the calibration area based on ecorregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
+#'   \item MASK: this method consists in delimit the area used to model calibration based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
 #' }
 #'
 #' @param pseudoabs_method character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
 #' \itemize{
-#' \item RND: Random allocation throughout area used to fit models. Usage pseudoabs_method=c(method='RND').
+#' \item RND: Random allocation of pseudo-absences throughout the area used for model fitting. Usage pseudoabs_method=c(method='RND').
 #' \item ENV_CONST: Pseudo-absences are environmentally constrained to a region with lower suitability values predicted by a Bioclim model. Usage pseudoabs_method=c(method='ENV_CONST').
-#' \item GEO_CONST: Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage pseudoabs_method=c(method='GEO_CONST', width='50').
-#' \item GEO_ENV_CONST: Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage pseudoabs_method=c(method='GEO_ENV_CONST', width='50')
-#' \item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provie a second value wich express the buffer width in km. Usage pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')
+#' \item GEO_CONST: Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage pseudoabs_method=c(method='GEO_CONST', width='50').
+#' \item GEO_ENV_CONST: Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage pseudoabs_method=c(method='GEO_ENV_CONST', width='50')
+#' \item GEO_ENV_KM_CONST: Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provide a second value which express the buffer width in km. Usage pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')
 #' }
 #'
 #' @param pres_abs_ratio numeric. Presence-Absence ratio (values between 0 and 1)
 
 #' @param part character. Partition method for model's validation. Only one method can be chosen. It is necessary to provide a vector for this argument. The next methods are implemented:
 #' \itemize{
-#'   \item BOOT: Random bootstrap partition (e.g. 70 % training and 30 % test). Usage part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refres to the proportion of occurrences used for fitting the model, it assumes a value >0 and <=1.
-#'   \item KFOLD: Random partition in k-fold cross-validation. Usage part=c(method= 'KFOLD', folds='5'). 'folds' referes to the number of k-folds for patitioning, it assume value >=1.
-#'   \item BANDS: Geographic partition structured as bands (latitudinal(1) or longitudinal(2)). Usage part=c(method= 'BANDS', type='1'). 'type' refers to the bands disposition
-#'   \item BLOCK: Geographic partition structured as a checkerboard. Usage part=c(method= 'BLOCK').
+#'   \item BOOT: Random bootstrap partition. Usage part=c(method='BOOT', replicates='2',  proportion='0.7'). 'replicate' refers to the number of replicates, it assumes a value >=1. 'proportion' refers to the proportion of occurrences used for model fitting, it assumes a value >0 and <=1. In this example proportion='0.7' mean that 70\% of data will be used for model training, while 30\% for model testing.
+#'   \item KFOLD: Random partition in k-fold cross-validation. Usage part=c(method= 'KFOLD', folds='5'). 'folds' refers to the number of folds for data partitioning, it assumes value >=1.
+#'   \item BANDS: Geographic partition structured as bands arranged in a latitudinal way (type 1) or longitudinal way (type 2). Usage part=c(method= 'BANDS', type='1'). 'type' refers to the bands disposition
+#'   \item BLOCK: Geographic partition structured as a checkerboard (a.k.a. block cross-validation). Usage part=c(method= 'BLOCK').
 #' }
 #'
 #' @param save_part logical. If TRUE, function will save .tif files of partial models, i.e. model created by each occurrence partitions. (default FALSE).
 #'
-#' @param save_final logical. If TRUE, function will Save .tif files of the final model, i.e. fitted with all occurrences data. (default TRUE)
+#' @param save_final logical. If TRUE, function will save .tif files of the final model, i.e. fitted with all occurrences data. (default TRUE)
 #'
 #' @param algorithm character. Algorithm to construct ecological niche models (it is possible to use more than one method):
 #' \itemize{
@@ -79,50 +79,51 @@
 #'   \item GAU: Gaussian Process
 #' }
 #'
-#' @param thr character. Threshold used for presence-absence predictions. It is possible to use more than one threshol type. It is necessary to provide a vector for this argument:
+#' @param thr character. Threshold used for presence-absence predictions. It is possible to use more than one threshold type. It is necessary to provide a vector for this argument:
 #' \itemize{
 #'   \item LPT: The highest threshold at which there is no omission. Usage thr=c(type='LPT').
-#'   \item MAX_TSS: Threshold at which the sum of the sensitivity and specificity is highest.
+#'   \item MAX_TSS: Threshold at which the sum of the sensitivity and specificity is the highest.
 #'   Usage thr=c(type='MAX_TSS').
-#'   \item MAX_KAPPA: The threshold at which kappa is highest ("max kappa"). Usage thr=c(type='MAX_KAPPA').
-#'   \item SENSITIVITY: Fixed (specified) sensitivity. For this type of threshold thr must be use as thr=c(type='SENSITIVITY', sens='0.6'). 'sens' refers to models will be bynarized using this suitability value. Note that this method assume 'sens' value for all algorithm.
-#'   \item JACCARD: The threshold at which Jaccard is highest. Usage thr=c(type='JACCARD').
+#'   \item MAX_KAPPA: The threshold at which kappa is the highest ("max kappa"). Usage thr=c(type='MAX_KAPPA').
+#'   \item SENSITIVITY: A threshold value specified by user. Usage thr=c(type='SENSITIVITY', sens='0.6'). 'sens' refers to models will be binarized using this suitability value. Note that this method assumes 'sens' value for all algorithm and species.
+#'   \item JACCARD: The threshold at which Jaccard is the highest. Usage thr=c(type='JACCARD').
 #'   \item SORENSEN: The threshold at which Sorensen is highest. Usage thr=c(type='SORENSEN').
 #'   }
-#' In the case of use more than one threshold type it is necessary concatenate the names of threshold types, e.g., thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD')). In the case of SENSITIVITY threshold is used it is necessayr specify the desired sensitivity value, e.g. thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')
+#' In the case of use more than one threshold type it is necessary concatenate the names of threshold types, e.g., thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD')). When SENSITIVITY threshold is used in combination with other it is necessary specify the desired sensitivity value, e.g. thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')
 #'
-#' @param msdm character. Include spatial restrictions. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in a Priori and a Posteriori methods. The firt one encompase method taht include geographical layers as predictor of models construction, whereas a Posteriori constrain models based on occurrence and suitability pattenrs. This argument is filled only wiht a method, in the case of use MCP-B method msdm is filled in a different way se below:
+#' @param msdm character. Include spatial restrictions to model projection. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in ‘a Priori’ and ‘a Posteriori’ methods. The first one encompasses method that include geographical layers as predictor of models’ fitting, whereas a Posteriori constrain models based on occurrence and suitability patterns. This argument is filled only with a method, in the case of use MCP-B method msdm is filled in a different way se below:
 #'
-#' a Priori methods:
+#' a Priori methods (layer created area added as a predictor at moment of model fitting):
 #'
 #' \itemize{
-#'   \item XY: Create two layers latitude and longitude layer (added as a predictor).Usage msdm=c(method='XY').
-#'   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence (added as a predictor).Usage msdm=c(method='MIN').
-#'   \item CML: Create a layer with information of the summed distance from each cell to ALL occurrences (added as a predictor).Usage msdm=c(method='CML').
-#'   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data (added as a predictor).Usage msdm=c(method='KER').
+#'   \item XY: Create two layers latitude and longitude layer. Usage msdm=c(method='XY').
+#'   \item MIN: Create a layer with information of the distance from each cell to the closest occurrence. Usage msdm=c(method='MIN').
+#'   \item CML: Create a layer with information of the summed distance from each cell to all occurrences. Usage msdm=c(method='CML').
+#'   \item KER: Create a layer with a Gaussian-Kernel on the occurrence data. Usage msdm=c(method='KER').
 #'   }
 #' a Posteriori methods
 #' \itemize{
-#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep).Usage msdm=c(method='OBR').
-#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep).Usage msdm=c(method='LR').
-#'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep).Usage msdm=c(method='PRES').
-#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data.Usage msdm=c(method='MCP').
-#'   \item MCP-B: Creates a Buffer around the MCP (distance defined by user in km). Usage msdm=c(method='MCP-B', width=100).
+#'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep). Usage msdm=c(method='OBR').
+#'   \item LR: Lower Quantile, select the nearest 25% patches (Mendes et al., in prep). Usage msdm=c(method='LR').
+#'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep). Usage msdm=c(method='PRES').
+#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on ocurrences data. Usage msdm=c(method='MCP').
+#'   \item MCP-B: Creates a buffer (with a width size defined by user in km) around the MCP. Usage msdm=c(method='MCP-B', width=100). In this case width=100 means that a buffer with 100km of width will be created around the MCP.
 #'   }
 #'
-#' @param ensemble character. Method used to ensemble different algorithms. It is possible to use more than one method. It is necessary to provide a vector for this argument.  It is possible to use more than one ensemble method. For SUP, W_MEAN or PCA_SUP method it is necesary provide an evaluation metric to ensemble arguemnts (i.e. AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):
+#' @param ensemble character. Method used to ensemble different algorithms. It is possible to use more than one method. A vector must be provided for this argument. For SUP, W_MEAN or PCA_SUP method it is necessary provide an evaluation metric to ensemble arguments (i.e., AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):
 #'   \itemize{
 #'   \item MEAN: Simple average of the different models. Usage ensemble=c(method='MEAN').
-#'   \item W_MEAN: Weighted average. Usage ensemble=c(method='W_MEAN').
-#'   \item SUP: Average of the best models (TSS over the average). Usage ensemble=c(method='SUP').
+#'   \item W_MEAN: Weighted average of models based on their performance. An evaluation metric must be provided. Usage ensemble=c(method='W_MEAN', metric='TSS').
+#'   \item SUP: Average of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='SUP', metric='TSS').
 #'   \item PCA: Performs a Principal Component Analysis (PCA) and returns the first axis. Usage ensemble=c(method='PCA').
-#'   \item PCA_SUP: PCA of the best models (TSS over the average). For this metdhos it is necesary provide an evaluation metric. Usage ensemble=c(method='PCA_SUP', metric='Fpd').
-#'   \item PCA_THR: PCA only with cells above the threshold. Usage ensemble=c(method='PCA_THR').
+#'   \item PCA_SUP: PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='PCA_SUP', metric='Fpd').
+#'   \item PCA_THR: PCA performed only with those cells with suitability values above the selected threshold. Usage ensemble=c(method='PCA_THR').
 #'   }
 #'
-#'  In the case of use more than one ensemble method it is necessary concatenate the names of ensemble mehtods within the argument, e.g., ensemble=c(type=c('MEAN', 'PCA')), ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')
-#' @param extrapolation logical. If TRUE the function will calculate extrapolation based on Mobility-oriented parity (MOP) method, for current and future conditions.
-#' @param cores numeric. Define the number number of CPU cores to run modeling procedures in parallel.
+#'  In the case of use more than one ensemble method it is necessary concatenate the names of ensemble methods within the argument, e.g., ensemble=c(type=c('MEAN', 'PCA')), ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')
+#'
+#' @param extrapolation logical. If TRUE the function will calculate extrapolation based on Mobility-Oriented Parity analysis (MOP) for current conditions. If the argument proj_dir is used, the extrapolation layers for other regions or time periods will also be calculated.
+#' @param cores numeric. Define the number of CPU cores to run modeling procedures in parallel (default 1).
 #'
 #'
 #'@examples
