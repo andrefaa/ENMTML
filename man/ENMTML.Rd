@@ -26,7 +26,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
 
 \item{min_occ}{integer. Minimum number of unique occurrences (species with less than this number will be excluded).}
 
-\item{thin_occ}{character Default NULL. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available:
+\item{thin_occ}{character. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available (default NULL):
 \itemize{
 \item MORAN: Distance defined by Moran Variogram, usage thin_occ=c(method='MORAN').
 \item CELLSIZE: Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='CELLSIZE').
@@ -46,9 +46,9 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
 
 \item{sp_accessible_area}{character. Restrict for each species the accessible area, i.e., the area used to model fitting. It is necessary to provide a vector for this argument. Three methods were implemented
 \itemize{
-  \item BUFFER and based on maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
-  \item BUFFER and based on A single buffer for all species expressed in km. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
-  \item MASK: this method consists in delimit the area used to model calibration based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
+  \item BUFFER area used to model fitting deliminted by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
+  \item BUFFER area used to model fitting deliminted by a buffer with a width size difinited by the user in km. Note this width size of buffer will be used for all species. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
+  \item MASK: this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
 }}
 
 \item{pseudoabs_method}{character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
