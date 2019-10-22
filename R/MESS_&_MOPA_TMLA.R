@@ -1,5 +1,6 @@
 MOP <- function(Variables,
                          RecordsData,
+                         Algorithm,
                          VarCol,
                          DirProj,
                          DirMask) {
@@ -61,7 +62,7 @@ MOP <- function(Variables,
         occM <- rbind(spOccS[VarCol], occM[VarCol])
         occM <- na.omit(occM)
         MOPr <- mop(g_raster = Variables[[i]], m_occ = occM)
-        
+        plot(MOPr<0.8)
         writeRaster(
           MOPr,
           file.path(DirProj[i], paste0(spN[j], "_MOP.tif")),
