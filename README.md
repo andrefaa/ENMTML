@@ -1,10 +1,19 @@
-   # ENMTML
+---
+title: The __ENMTML__ R package for an integrated construction of Ecological Niche Models
+---
 
-Welcome! This is the R Script from TheMetaLand Lab to create ENMs  
-Overall, there is a main script (ENMTML) and a group of auxiliary functions  
-Please follow the "installation" instructions
+[![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
+</br>`
+<p align="center">
+<img align="center" src=https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true width="150"></p>
+<div style="text-align: center"> <b style='color:gray'>Welcome! This is the **ENMTML** R package </br> to create and process Ecological Niche Models.</div></b> 
 
-## Installation
+
+*******
+Please follow the installation instructions
+
+
+### Installation
 ```ruby
 # install.packages("devtools")  
 library(devtools)  
@@ -14,22 +23,13 @@ library(ENMTML)
 
 **FOR NEW USERS**  
 ```ruby
-install_github('goldingn/GRaF')  
+install_github("goldingn/GRaF")  
 library(GRaF)
 ```
 
-## Run
-ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
-  thin_occ = NULL, eval_occ = NULL, colin_var = NULL,
-  imp_var = NULL, sp_accessible_area = NULL, pseudoabs_method,
-  pres_abs_ratio = 1, part, save_part = FALSE, save_final = TRUE,
-  algorithm, thr, msdm = NULL, ensemble = NULL,
-  extrapolation = FALSE, cores = 1)
 
-**See possible input options below**
-
-## What I can do with ENM_The_MetaLand?  
-There are a couple of pre and post-processing available in the function, here is a list of what is currently available:  
+### What I can do with __ENMTML__ package?  
+There are a couple of pre and post-processing available in the package, here is a list of what is currently available:  
 **1.** Control colinearity on environmental variables  
 **2.** Project to other time/spatial locations (PCA included)  
 **3.** Automatically restrict the accessible area (M) before model fitting   
@@ -39,94 +39,120 @@ There are a couple of pre and post-processing available in the function, here is
 **7.** Different data-partition methods for model evaluation (random or geographically structured)  
 **8.** Twelve different algorithms    
 **9.** Create presence-absence maps   
-**10.** Incorporate spatial restrictions (M-SDM)     
+**10.** Incorporate spatial restrictions (MSDM)     
 **11.** Create Ensemble from the different algorithms  
-**12.** Create Stacked Species Distribution Modelling (S-SDM)
 
 
-## How to run ENM_TheMetaLand?  
-The function has several input arguments, specify all of them according to your desires.  
+### How to run __ENMTML__?  
+The package have in main function *ENMTML* with several arguments, specify all of them according to your modeling needs.  
 
-## Input Parameters:  
-* **pred_dir**: Folder with predictors (4 file formats are supported: ASC/BILL/TIFF/TXT)  
-* **occ_dir**: Path to occurrence file (TXT only!)  
-* **sp:** Name of the column with information about species names  
-* **x:** Name of the column with information about longitude  
-* **y:** Name of the column with information about latitude  
-* **min_occ:** Minimum number of unique occurrences (species with less than this number will be excluded)  
-* **thin_occ:** Perform a spatial filtering (Thinning) on the presences? (Y/N)
-* **colin_var:** Processes to reduce variable collinearity?  
-  + **N**: Use original variables  
-  + **Pearson:** Select variables by Pearson Correlation (Threshold specified by user)  
-  + **VIF:** Variance Inflation Factor (Chatterjee and Hadi 2006)  
-  + **PCA:** Perform a PCA on predictors and use PCs as environmental variables  
-* **imp_var:** Calculate vairable importance and model response curve (Y/N)  
-* **transfer:** Project the model onto another region or time period? (Y/N)  
-* **eval_occ:** Specify a set of occurrences for validation? (Y/N)  
-* **sp_accessible_area:** Create species-specific accessible areas (Y/N)  
-* **pres_abs_ratio:** Presence-Absence Ratio  
-* **pseudoabs_method:** Pseudo-absence Selection Method  
-  + **RND:** Random allocation throughout area used to fit models  
-  + **ENV_CONST:** Pseudo-absences are environmentally constrained to region with lower suitability values predicted by a Bioclim model  
-  + **GEO_CONST:** Pseudo-absences are allocated far from occurrences, constrained by a geographical buffer  
-  + **GEO_ENV_CONST:** Pseudo-absences are cosntrained both environmentally (Bioclim Model) and geographically (buffer)  
-  + **GEO_ENV_KM_CONST:** Pseudo-absences constrained on a three-level proccedure  
-* **part:** Data partition method for model evaluation  
-  + **BOOT:** Random bootstrap partition (e.g. 70 training - 30% test)  
-  + **KFOLD:** Random partition in k-fold cross validation  
-  + **BAND:** Geographic partition structured as bands (latitudinal or longitudinal)  
-  + **BLOCK:** Geographic partition structured as a checkerboard  
-* **save_part:** Save .tif files of the partitions?[Default="N"] (Y/N)
-* **save_final:** Save .tif files of the final model (fitted with all the data)[Default="Y"]? (Y/N)
-* **algorithm:** List of available algorithms  
+```ruby
+ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
+  thin_occ = NULL, eval_occ = NULL, colin_var = NULL,
+  imp_var = FALSE, sp_accessible_area = NULL, pseudoabs_method,
+  pres_abs_ratio = 1, part, save_part = FALSE, save_final = TRUE,
+  algorithm, thr, msdm = NULL, ensemble = NULL,
+  extrapolation = FALSE, cores = 1)
+```
+
+**See possible input options below**
+
+### ENMTML function arguments:  
+* **pred_dir**: character. Directory path with predictors (file formats supported are ASC, BILL, TIFF or TXT)
+* **proj_dir**: character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).
+* **occ_file**: character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.
+* **sp**: character. Name of the column with information about species names.
+* **x**: character. Name of the column with information about longitude.
+* **y**: character. Name of the column with information about latitude.
+* **min_occ**: integer. Minimum number of unique occurrences (species with less than this number will be excluded).
+* **thin_occ**: character. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names 'method' or 'method' and 'distance' (more information below). Three thinning methods are available (default `NULL`):
+  + **MORAN** Distance defined by Moran Variogram. Usage </br> <b style='color:red'>`thin_occ=c(method='MORAN')`</b>.
+  + **CELLSIZE** Distance defined by 2x cellsize (Haversine Transformation). Usage </br> 
+  <b style='color:red'>`thin_occ=c(method='CELLSIZE')`</b>.
+  + **USER-DEFINED** User defined distance. For this option it is neede provide a vector with two values. Usage </br>
+  <b style='color:red'>`thin_occ=c(method='USER-DEFINED', ditance='300')`</b>. The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.
+* **eval_occ:** character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the databased used in the `occ_file` argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default `NULL`).
+* **colin_var:** character. Method to reduce variable collinearity:
+  + **PCA:** Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables. Usage </br> <b style='color:red'>`colin_var=c(method='PCA')`</b>.
+  + **VIF:** Variance Inflation Factor. Usage </br><b style='color:red'>`colin_var=c(method='VIF')`</b>.
+  + **PEARSON**: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user. Usage </br><b style='color:red'>`colin_var=c(method='PEARSON', threshold='0.7')`</b>.
+* **imp_var:** logical Perform variable importance and curves response for selected algorithms? (default `FALSE`)
+* **sp_accessible_area:** character. Restrict for each species the accessible area, i.e., the area used to model fitting. It is necessary to provide a vector for this argument. Three methods were implemented
+  + **BUFFER** area used to model fitting deliminted by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage <b style='color:red'>`sp_accessible_area=c(method='BUFFER', type='1')`</b>.
+  + **BUFFER** area used to model fitting deliminted by a buffer with a width size difinited by the user in km. Note this width size of buffer will be used for all species. Usage <b style='color:red'>`sp_accessible_area=c(method='BUFFER', type='2', width='300')`</b>.
+  + **MASK** this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage <b style='color:red'>`sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp')`</b>..
+* **pseudoabs_method:** character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
+  + **RND:** Random allocation of pseudo-absences throughout the area used for model fitting. Usage <b style='color:red'>`pseudoabs_method=c(method='RND')`</b>.
+  + **ENV_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage <b style='color:red'>`pseudoabs_method=c(method='ENV_CONST')`</b>.
+  + **GEO_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage <b style='color:red'>`pseudoabs_method=c(method='GEO_CONST', width='50')`</b>.
+  + **GEO_ENV_CONST:** Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage <b style='color:red'> `pseudoabs_method=c(method='GEO_ENV_CONST', width='50')`</b>
+  + **GEO_ENV_KM_CONST:** Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provide a second value which express the buffer width in km. Usage <b style='color:red'>`pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')`</b>.
+* **pres_abs_ratio:** numeric. Presence-Absence ratio (values between 0 and 1).
+* **part:** character. Partition method for model's validation. Only one method can be chosen. It is necessary to provide a vector for this argument. The next methods are implemented:
+  + **BOOT:** Random bootstrap partition. Usage </br><b style='color:red'>`part=c(method='BOOT', replicates='2',  proportion='0.7')`</b>. `replicate` refers to the number of replicates, it assumes a value >=1. `proportion` refers to the proportion of occurrences used for model fitting, it assumes a value >0 and <=1. In this example `proportion='0.7'` mean that 70% of data will be used for model training, while 30% for model testing.
+  + **KFOLD:** Random partition in k-fold cross-validation. Usage </br><b style='color:red'>`part=c(method= 'KFOLD', folds='5')`</b>. `folds` refers to the number of folds for data partitioning, it assumes value >=1.
+  + **BANDS:** Geographic partition structured as bands arranged in a latitudinal way (type 1) or longitudinal way (type 2). Usage </br><b style='color:red'>`part=c(method= 'BANDS', type='1')`</b>. `type` refers to the bands disposition.
+  + **BLOCK:** Geographic partition structured as a checkerboard (a.k.a. block cross-validation). Usage </br><b style='color:red'>`part=c(method= 'BLOCK')`</b>.
+* **save_part:** logical. If `TRUE`, function will save .tif files of partial models, i.e. model created by each occurrence partitions. (default `FALSE`).
+* **save_final:** logical. If `TRUE`, function will save .tif files of the final model, i.e. fitted with all occurrences data. (default `TRUE`)
+* **algorithm:** character. Algorithm to construct ecological niche models (it is possible to use more than one method):
   + **BIO:** Bioclim  
   + **MAH:** Mahalanobis  
   + **DOM:** Domain  
-  + **ENF:** ENFA  
-  + **MXS:** Maxent Simple[only linear and quadratic features] (MaxNet)  
-  + **MXD:** Maxent Default[all features] (MaxNet)  
+  + **ENF:** Ecological-Niche Factor Analysis  
+  + **MXS:** Maxent simple (only linear and quadratic features, based on MaxNet package)
+  + **MXD:** Maxent default features (all features, based on MaxNet package)
   + **SVM:** Support Vector Machine  
   + **GLM:** Generalized Linear Model  
-  + **GAM:** Generalizes Additive Model 
+  + **GAM:** Generalized Additive Model 
   + **BRT:** Boosted Regression Tree
   + **RDF:** Random Forest  
   + **MLK:** Maximum Likelihood  
-  + **GAU:** Gaussian   
-* **thr:** Threshold used for presence-absence maps (from package dismo)  
-  + **LPT:** The highest threshold at which there is no omission  
-  + **MAX_TSS:** Threshold at which the sum of the sensitivity and specificity is highest
-  + **MAX_KAPPA:** the threshold at which kappa is highest ("max kappa")
-  + **JACCARD:** the threshold at which Jaccard is highest  
-  + **SORENSEN:** the threshold at which Sorensen is highest  
-  + **SENSITIVITY:** fixed (specified) sensitivity 
-* **msdm:** Include Spatial Restrictions  
-  + **N:** Do not include  
-  + **XY:** Create two layers (Latitude and Longitude of each cell) [added as a predictor]  
-  + **MIN:** Create a layer with information of the distance from each cell to the closest occurrence [added as a predictor]  
-  + **CML:** Create a layer with information of the summed distance from each cell to ALL occurrences [added as a predictor]  
-  + **KER:** Create a layer with a Gaussian-Kernel on the occurrence data [added as a predictor]  
-  + **POST:** Posterior M-SDM Methods (If chosen, prefered method will be asked later) [NOT added as a predictor]  
-    + **OBR:** Occurrence based restriciton, uses the distance between points to exclude far suitable patches (Mendes et al, in prep)  
-    + **LR:** Lower Quantile, select the nearest 25% patches (Mendes et al, in prep)  
-    + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep)  
-    + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon of the occurrence data (Kremen et al, 2008)  
-    + **MCP-B:** Creates a Buffer around the MCP (distance defined by user; Kremen et al, 2008)  
-* **ensemble:** Ensemble of the different algorithms  
-  + **N:** No Ensemble  
-  + **MEAN:** Simple average of the different models  
-  + **W_MEAN:** Weighted Average  
-  + **SUP:** Average of the best models (TSS over the average)  
-  + **PCA:** Performs a PCA and returns the first axis  
-  + **PCA_SUP:** PCA of the best models (TSS over the average)  
-  + **PCA_THR:** PCA only with cells above the threshold  
-* **s_sdm:** Stacked Species Distribution Model (Y/N)
+  + **GAU:** Gaussian Process</br> 
+  Usage <b style='color:red'>`part=c('BIO', 'SVM', 'GLM', 'GAM', 'GAU')`.</b>
+* **thr:** character. Threshold used for presence-absence predictions. It is possible to use more than one threshold type. It is necessary to provide a vector for this argument:
+  + **LPT:** The highest threshold at which there is no omission. Usage </br><b style='color:red'>`thr=c(type='LPT')`</b>.
+  + **MAX_TSS:** Threshold at which the sum of the sensitivity and specificity is the highest. Usage <>/br<b style='color:red'> `thr=c(type='MAX_TSS')`</b>.
+  + **MAX_KAPPA:** The threshold at which kappa is the highest ("max kappa"). Usage <b style='color:red'>`thr=c(type='MAX_KAPPA')`</b>.
+  + **SENSITIVITY:** A threshold value specified by user. Usage <b style='color:red'>`thr=c(type='SENSITIVITY', sens='0.6')`</b>. 'sens' refers to models will be binarized using this suitability value. Note that this method assumes 'sens' value for all algorithm and species.
+  + **JACCARD:** The threshold at which Jaccard is the highest. Usage </br><b style='color:red'>`thr=c(type='JACCARD')`</b>.
+  + **SORENSEN:** The threshold at which Sorensen is highest. Usage </br><b style='color:red'>`thr=c(type='SORENSEN')`</b>.</br>
+  
+  In the case of use more than one threshold type it is necessary concatenate the names of threshold types, e.g., <b style='color:red'>`thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD'))`</b>. When `SENSITIVITY` threshold is used in combination with other it is necessary specify the desired sensitivity value, e.g., <b style='color:red'>`thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')`</b>.
+
+* **msdm:** character. Include spatial restrictions to model projection. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in 'a Priori' and 'a Posteriori' methods. The first one encompasses method that include geographical layers as predictor of models' fitting, whereas a Posteriori constrain models based on occurrence and suitability patterns. This argument is filled only with a method, in the case of use MCP-B method msdm is filled in a different way se below (default `NULL`):</b>
+  
+  _a Priori_ methods (layer created area added as a predictor at moment of model fitting):</b>
+  + **XY:** Create two layers latitude and longitude layer. Usage </br><b style='color:red'>`msdm=c(method='XY')`</b>.
+  + **MIN:** Create a layer with information of the distance from each cell to the closest occurrence. Usage </br><b style='color:red'>`msdm=c(method='MIN')`</b>.
+  + **CML:** Create a layer with information of the summed distance from each cell to all occurrences. Usage</br><b style='color:red'>`msdm=c(method='CML')`</b>.
+  + **KER:** Create a layer with a Gaussian-Kernel on the occurrence data. Usage </br><b style='color:red'>`msdm=c(method='KER')`.</b>
+  
+  _a Posteriori_ methods:</b>
+  + **OBR:** Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep). Usage </br><b style='color:red'>`msdm=c(method='OBR')`</b>.
+  + **LR:** Lower Quantile, select the nearest 25
+  + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep). Usage </br><b style='color:red'>`msdm=c(method='PRES')`</b>.
+  + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on ocurrences data. Usage </br><b style='color:red'>`msdm=c(method='MCP')`</b>.
+  + **MCP-B:** Creates a buffer (with a width size defined by user in km) around the MCP. Usage </br><b style='color:red'>`msdm=c(method='MCP-B', width=100)`</b>. In this case `width=100` means that a buffer with 100km of width will be created around the MCP.</b>
+
+* **ensemble:** character. Method used to ensemble different algorithms. It is possible to use more than one method. A vector must be provided for this argument. For SUP, W_MEAN or PCA_SUP method it is necessary provide an evaluation metric to ensemble arguments (i.e., AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):
+  + **MEAN:** Simple average of the different models. Usage </br><b style='color:red'>`ensemble=c(method='MEAN')`.</b>
+  + **W_MEAN:** Weighted average of models based on their performance. An evaluation metric must be provided. Usage </br><b style='color:red'>`ensemble=c(method='W_MEAN', metric='TSS')`</b>.
+  + **SUP:** Average of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage </br><b style='color:red'>`ensemble=c(method='SUP', metric='TSS')`</b>.
+  + **PCA:** Performs a Principal Component Analysis (PCA) and returns the first axis. Usage </br><b style='color:red'>`ensemble=c(method='PCA')`</b>.
+  + **PCA_SUP:** PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage </br><b style='color:red'>`ensemble=c(method='PCA_SUP', metric='Fpd')`</b>.
+  + **PCA_THR:** PCA performed only with those cells with suitability values above the selected threshold. Usage </br><b style='color:red'>`ensemble=c(method='PCA_THR')`</b>.</br>
+  
+  In the case of use more than one ensemble method it is necessary concatenate the names of ensemble methods within the argument, e.g., <b style='color:red'>`ensemble=c(type=c('MEAN', 'PCA'))`</b>, <b style='color:red'>`ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')`</b>.
+
+* **extrapolation**	logical. If TRUE the function will calculate extrapolation based on Mobility-Oriented Parity analysis (MOP) for current conditions. If the argument proj_dir is used, the extrapolation layers for other regions or time periods will also be calculated (default `FALSE`).
+
+* **cores** numeric. Define the number of CPU cores to run modeling procedures in parallel (default `1`).
+
+</br>
       
-## Is that all?  
-Not everything will be input as arguments at the beggining!  
 
-Some specific questions will be asked during the process (e.g. Select the percentage of data for training(0-1) will be asked if you chose the "boot" partition)  
-
-## Where are my results?  
+### Where are my results?  
 One level above the folder of your environmental variables will be created a **Result** folder, inside you will find a folder for algorithm results, ensemble results (if chosen), projections and maps of areas of extrapolation.  
 There are also four (4) txt files:     
  **N_Unique_OCC:** Number of unique occurrences of each species    
@@ -135,10 +161,10 @@ There are also four (4) txt files:
  **Validation_Partition:** Information of the evaluation of partial models (e.g. while projecting the model onto the 30% left for test)       
  **Thresholds_Complete:** Information about the thresholds used to create the presence-absence maps (Presence-absence maps are created from the Threshold of complete models)    
 
-## Last but not least  
-There are no defaults! We believe every ENM experiment should be carefully planned and that every decision matters! There are some recommended parameters and literature on which those were based, but they were not included as a default option for the modelling routine.  
-The function is still ongoing! So expect frequent updates and always check if you have the stable version!
+### Last but not least  
+There are no defaults! We believe every ecological niche model should be carefully planned and that every decision matters! There are some recommended parameters and literature on which those were based, but they were not included as a default option for the modelling routine.  
 Everytime a new version is updated it will accompanied by a log with the version number and what are the main changes/what was included
 
-## And finally...  
-Enjoy!Test the function and give us feedback! We want to make the world of ENM easier and more accessible to everyone!
+> Test the package and give us feedback [here](https://github.com/andrefaa/ENMTML/issues) or e-mail to andrefaandrade@gmail.com or sjevelazco@gmail.com! 
+
+> Soon we will provide ENMTML package vignete [here]
