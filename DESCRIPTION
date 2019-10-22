@@ -1,4 +1,4 @@
-Package: ENMTML
+﻿Package: ENMTML
 Title: Create and process Ecological Niche and Species Distribution Models, including several pre- and post-processing methods
 Version: 1.0.0
 Authors@R: 
@@ -12,7 +12,7 @@ Authors@R:
            role = c("aut"),
            comment = c(ORCID = "0000-0002-7527-0967")))
 Description: Fit ENMs.....
-License: GPL (>= 2)
+License: GPL (>= 3)
 Depends: R (>= 3.1.0)
 Imports: adehabitatHS, ape, caret, data.table, devtools, dismo, doParallel, 
          flexclust, foreach, gam,gbm, geoR,GRaF, kernlab, maptools, 
