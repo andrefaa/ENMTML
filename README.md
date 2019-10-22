@@ -166,4 +166,4 @@ Everytime a new version is updated it will accompanied by a log with the version
 
 > Test the package and give us feedback [here](https://github.com/andrefaa/ENMTML/issues) or send an e-mail to andrefaandrade@gmail.com or sjevelazco@gmail.com! 
 
-> Soon we will provide ENMTML package vignete [here]
+> Soon we will provide ENMTML package vignette [here]
