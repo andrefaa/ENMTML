@@ -164,6 +164,6 @@ There are also four (4) txt files:
 There are no defaults! We believe every ecological niche model should be carefully planned and that every decision matters! There are some recommended parameters and literature on which those were based, but they were not included as a default option for the modelling routine.  
 Everytime a new version is updated it will accompanied by a log with the version number and what are the main changes/what was included
 
-> Test the package and give us feedback [here](https://github.com/andrefaa/ENMTML/issues) or send a e-mail to andrefaandrade@gmail.com or sjevelazco@gmail.com! 
+> Test the package and give us feedback [here](https://github.com/andrefaa/ENMTML/issues) or send an e-mail to andrefaandrade@gmail.com or sjevelazco@gmail.com! 
 
 > Soon we will provide ENMTML package vignete [here]
