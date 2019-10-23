@@ -37,6 +37,7 @@
 #'   \item BUFFER area used to model fitting deliminted by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
 #'   \item BUFFER area used to model fitting deliminted by a buffer with a width size difinited by the user in km. Note this width size of buffer will be used for all species. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
 #'   \item MASK: this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
+#'   \item USER_DEFINED: users can inform their own masks for accessible area. In this situation the program requires a folder within species-specific masks, one for each species, being that the mask name must match the species name within the occurrence file.For this option it is necessary inform the path to the folder containing the accessible areas. The following file formats can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/accessibleareafolder').
 #' }
 #'
 #' @param pseudoabs_method character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
@@ -390,9 +391,17 @@ ENMTML <- function(pred_dir,
       msdm_width <- NULL
     }
   }
-  # if(length(msdm["method"])>1){
-  #   stop("Please choose only one 'msdm' method")
-  # }
+  
+  if(!is.null(sp_accessible_area)){
+    if(!(sp_accessible_area['method']%in%c('BUFFER','MASK','USER-DEFINED','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
+      stop("'sp_accessible_area' Argument is not valid!(BUFFER/MASK/USER-DEFINED)")
+    }
+    if(sp_accessible_area['method']=="USER-DEFINED"&length(thin_occ)!=2){
+      stop("'sp_accessible_area' Argument is not valid for method=USER-DEFINED! A folder containing the masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath=filepath='C:/Users/mycomputer/accessibleareafolder')")
+    }
+    if(sp_accessible_area['method']=="MASK"&length(sp_accessible_area)!=2){
+      stop("'sp_accessible_area' Argument is not valid for method=MASK! A filepath containing the file used to generate the species-specific masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/ecoregion/olson.shp')")
+  }
 
 
 
