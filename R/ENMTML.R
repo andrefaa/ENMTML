@@ -116,7 +116,7 @@
 #'   \item W_MEAN: Weighted average of models based on their performance. An evaluation metric must be provided. Usage ensemble=c(method='W_MEAN', metric='TSS').
 #'   \item SUP: Average of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='SUP', metric='TSS').
 #'   \item PCA: Performs a Principal Component Analysis (PCA) and returns the first axis. Usage ensemble=c(method='PCA').
-#'   \item PCA_SUP: PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='PCA_SUP', metric='Fpd').
+#'   \item PCA_SUP: PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='PCA_SUP', metric='Fpb').
 #'   \item PCA_THR: PCA performed only with those cells with suitability values above the selected threshold. Usage ensemble=c(method='PCA_THR').
 #'   }
 #'
@@ -321,11 +321,17 @@ ENMTML <- function(pred_dir,
       stop("If you used SUP, W_MEAN or PCA_SUP ensemble method it is necessay provide an evaluation metric to ensemble arguemnt (AUC, Kappa, TSS, Jaccard, Sorensen or Fpb). \n e.g., ensemble=c(method=c('W_MEAN', 'PCA_SUP'), metric='Fpb')")
     } else if (any(ensemble2 %in% c("SUP", "W_MEAN", "PCA_SUP"))) {
       ensemble_metric <- ensemble[grep('metric', names(ensemble))]
+      if(!ensemble_metric%in%c('AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'Boyce')){
+        stop("'metric' used in the 'ensemble' argument did not match with ENMTML metrics\n",
+             "Please select one of these: \n AUC\n Kappa\n TSS\n Jaccard\n Sorensen\n Fpb\n Boyce")
+      }
     }
     if (!any(ensemble2 %in% c("SUP", "W_MEAN", "PCA_SUP"))) {
       ensemble_metric <- NULL
     }
   }
+  
+  
 
   if(!is.null((er))){
     print(er)
