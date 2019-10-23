@@ -2901,6 +2901,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 FinalValidation <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Validation"))))
 FinalSummary <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Summary"))))
 
+cc <- c('Sp', 'Algorithm', 'Partition', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'Boyce', 'AUC_SD', 'Kappa_SD', 'TSS_SD', 'Jaccard_SD', 'Sorensen_SD', 'Fpb_SD', 'Boyce_SD')
+FinalValidation <- FinalValidation[,cc]
 write.table(FinalValidation,paste(DirSave, VALNAME, sep = '/'),sep="\t",
             col.names = T,row.names=F)
 if(repl==1 || is.null(repl)){
