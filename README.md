@@ -139,7 +139,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   + **W_MEAN:** Weighted average of models based on their performance. An evaluation metric must be provided. Usage </br><b style='color:red'>`ensemble=c(method='W_MEAN', metric='TSS')`</b>.
   + **SUP:** Average of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage </br><b style='color:red'>`ensemble=c(method='SUP', metric='TSS')`</b>.
   + **PCA:** Performs a Principal Component Analysis (PCA) and returns the first axis. Usage </br><b style='color:red'>`ensemble=c(method='PCA')`</b>.
-  + **PCA_SUP:** PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage </br><b style='color:red'>`ensemble=c(method='PCA_SUP', metric='Fpd')`</b>.
+  + **PCA_SUP:** PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage </br><b style='color:red'>`ensemble=c(method='PCA_SUP', metric='Fpb')`</b>.
   + **PCA_THR:** PCA performed only with those cells with suitability values above the selected threshold. Usage </br><b style='color:red'>`ensemble=c(method='PCA_THR')`</b>.</br>
   
   In the case of use more than one ensemble method it is necessary concatenate the names of ensemble methods within the argument, e.g., <b style='color:red'>`ensemble=c(type=c('MEAN', 'PCA'))`</b>, <b style='color:red'>`ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')`</b>.
