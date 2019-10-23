@@ -128,7 +128,7 @@ a Posteriori methods
   \item W_MEAN: Weighted average of models based on their performance. An evaluation metric must be provided. Usage ensemble=c(method='W_MEAN', metric='TSS').
   \item SUP: Average of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='SUP', metric='TSS').
   \item PCA: Performs a Principal Component Analysis (PCA) and returns the first axis. Usage ensemble=c(method='PCA').
-  \item PCA_SUP: PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='PCA_SUP', metric='Fpd').
+  \item PCA_SUP: PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage ensemble=c(method='PCA_SUP', metric='Fpb').
   \item PCA_THR: PCA performed only with those cells with suitability values above the selected threshold. Usage ensemble=c(method='PCA_THR').
   }
 
