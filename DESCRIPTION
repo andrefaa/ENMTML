@@ -1,5 +1,5 @@
 Package: ENMTML
-Title: Create and process Ecological Niche and Species Distribution Models, including several pre- and post-processing methods
+Title: Create and process Ecological Niche, including several pre- and post-processing methods
 Version: 1.0.0
 Authors@R: 
     c(person(given = "André F.A.",
