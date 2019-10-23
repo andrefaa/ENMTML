@@ -331,8 +331,8 @@ ENMTML <- function(pred_dir,
       ensemble_metric <- NULL
     }
   }
-  
-  
+
+
 
   if(!is.null((er))){
     print(er)
@@ -618,9 +618,7 @@ ENMTML <- function(pred_dir,
 
   #3.3.Erro Futuro e msdm
   if(!is.null(proj_dir) && !is.null(msdm)){
-    warning("msdm can not be used with future projections")
-    warning("Setting msdm to NULL")
-    msdm <- NULL
+    warning("msdm will be used only for current conditions, i.e. msdm cannot be used for models' projections (other geographic locations or time periods used  in the 'proj_dir' argument).")
   }
 
   #3.4.Aviso caso min_occ<NPreditores
