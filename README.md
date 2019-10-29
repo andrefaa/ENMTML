@@ -1,4 +1,4 @@
-# __ENMTML__ <img src="https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true" align="right" width="120" />
+# __ENMTML__ <img src="https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true" align="right" width="170" />
 [![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
 
 
@@ -6,7 +6,6 @@
 
 
 
-*******
 Please follow the installation instructions
 
 
