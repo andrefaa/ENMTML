@@ -2670,15 +2670,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
       }
     }
-    
+
     #Ensemble----
     # Mean Ensemble----
     if(any(PredictType=="MEAN")){
-      
+
       #Partial Models Ensemble
       Final <- do.call(Map, c(rbind,RastPart))
       Final <- lapply(Final, function (x) colMeans(x))
-      
+
       # Threshold
       Eval <- list()
       Boyce <- list()
@@ -2691,29 +2691,29 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
-      
-      #MEAN Validation 
+
+      #MEAN Validation
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
-      
+
       if(is.null(repl)){
         ListValidation[["MEAN"]] <- data.frame(Sp=spN[s], Algorithm="MEA", Partition=Part,Validation,Boyce=Boyce)
       }else{
-        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MEA", Partition=Part,Validation,Boyce=Boyce)          
+        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MEA", Partition=Part,Validation,Boyce=Boyce)
       }
     }
-    
+
     # Weighted Mean Ensemble----
     if(any(PredictType=="W_MEAN")){
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
-      
+
       #Partial Models Ensemble
       Final <- do.call(Map, c(rbind,RastPart))
       ThResW <- unlist(ListValidationT[ensemble_metric])
       Final <- lapply(Final, function(x) sweep(x, 2, ThResW, '*'))
       Final <- lapply(Final, function (x) colMeans(x))
-      
+
       # Threshold
       Eval <- list()
       Boyce <- list()
@@ -2726,29 +2726,29 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
-      
-      #W_MEAN Validation 
+
+      #W_MEAN Validation
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
       if(is.null(repl)){
         ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s], Algorithm="WMEA",Partition=Part, Validation,Boyce=Boyce)
       }else{
-        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="WMEA",Partition=Part, Validation,Boyce=Boyce)          
+        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="WMEA",Partition=Part, Validation,Boyce=Boyce)
       }
     }
-    
+
     # Superior Ensemble----
     if(any(PredictType=='SUP')){
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
-  
+
       Best <- ListValidationT[which(unlist(ListValidationT[ensemble_metric])>=mean(unlist(ListValidationT[ensemble_metric]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
-      
+
       #Partial Models
       Final <- do.call(Map, c(rbind,RastPart[W]))
       Final <- lapply(Final, function (x) colMeans(x))
-      
+
       # Threshold
       Eval <- list()
       Boyce <- list()
@@ -2761,20 +2761,20 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
-      
-      #SUP Validation 
+
+      #SUP Validation
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
       if(is.null(repl)){
         ListValidation[["SUP"]] <- data.frame(Sp=spN[s], Algorithm="SUP", Partition=Part,Validation,Boyce=Boyce)
       }else{
-        ListValidation[["SUP"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SUP",Partition=Part, Validation,Boyce=Boyce)          
+        ListValidation[["SUP"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SUP",Partition=Part, Validation,Boyce=Boyce)
       }
     }
-    
+
     # With PCA ------
     if (any(PredictType == 'PCA')) {
-      
+
       #Partial Models Ensemble
       if(any(lapply(RastPart, function(x) length(x))>1)){
         Final <- do.call(Map, c(cbind, RastPart))
@@ -2785,7 +2785,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Final <- as.numeric(princomp(Final)$scores[,1])
         Final <- list((Final-min(Final))/(max(Final)-min(Final)))
       }
-      
+
       # Threshold
       Eval <- list()
       Boyce <- list()
@@ -2798,24 +2798,24 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
-      
-      #PCA Validation 
+
+      #PCA Validation
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
       if(is.null(repl)){
         ListValidation[["PCA"]] <- data.frame(Sp=spN[s], Algorithm="PCA",Partition=Part, Validation,Boyce=Boyce)
       }else{
-        ListValidation[["PCA"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCA", Partition=Part,Validation,Boyce=Boyce)          
+        ListValidation[["PCA"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCA", Partition=Part,Validation,Boyce=Boyce)
       }
     }
-    
+
     # With PCA over the Mean(Superior) Ensemble----
     if (any(PredictType == 'PCA_SUP')) {
       ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
       Best <- ListValidationT[which(unlist(ListValidationT[ensemble_metric])>=mean(unlist(ListValidationT[ensemble_metric]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
-      
+
       #Partial Models
       if(any(lapply(RastPart, function(x) length(x))>1)){
         Final <- do.call(Map, c(cbind, RastPart[W]))
@@ -2826,7 +2826,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Final <- as.numeric(princomp(Final)$scores[,1])
         Final <- list((Final-min(Final))/(max(Final)-min(Final)))
       }
-      
+
       # Threshold
       Eval <- list()
       Boyce <- list()
@@ -2839,22 +2839,22 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
-      
-      #PCA_SUP Validation 
+
+      #PCA_SUP Validation
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
       if(is.null(repl)){
         ListValidation[["PCS"]] <- data.frame(Sp=spN[s], Algorithm="PCS",Partition=Part, Validation,Boyce=Boyce)
       }else{
-        ListValidation[["PCS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCS",Partition=Part, Validation,Boyce=Boyce)          
+        ListValidation[["PCS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCS",Partition=Part, Validation,Boyce=Boyce)
       }
     }
-    
+
     #With PCA over the threshold Ensemble----
     if (any(PredictType == 'PCA_THR')) {
       ListValidationT <- ldply(ListSummary,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
-      
+
       #Partial Models
       Final <- do.call(Map, c(cbind, RastPart))
       ValidTHR <- ListValidationT[grepl(Threshold,as.character(ListValidationT$THR),ignore.case = T),"THR_VALUE"]
@@ -2863,7 +2863,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Final[[p]] <- as.numeric(princomp(Final[[p]])$scores[,1])
         Final[[p]] <- (Final[[p]]-min(Final[[p]]))/(max(Final[[p]])-min(Final[[p]]))
       }
-      
+
       # Evaluation
       Eval <- list()
       Boyce <- list()
@@ -2876,15 +2876,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           PredPoint[PredPoint$PresAbse == 0, 2])
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
       }
-      
-      #PCA_SUP Validation 
+
+      #PCA_SUP Validation
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
-      
+
       if(is.null(repl)){
         ListValidation[["PCT"]] <- data.frame(Sp=spN[s], Algorithm="PCT", Partition=Part,Validation,Boyce=Boyce)
       }else{
-        ListValidation[["PCT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCT", Partition=Part,Validation,Boyce=Boyce)          
+        ListValidation[["PCT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCT", Partition=Part,Validation,Boyce=Boyce)
       }
     }
 
@@ -2901,8 +2901,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 FinalValidation <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Validation"))))
 FinalSummary <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Summary"))))
 
-cc <- c('Sp', 'Algorithm', 'Partition', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'Boyce', 'AUC_SD', 'Kappa_SD', 'TSS_SD', 'Jaccard_SD', 'Sorensen_SD', 'Fpb_SD', 'Boyce_SD')
-FinalValidation <- FinalValidation[,cc]
 write.table(FinalValidation,paste(DirSave, VALNAME, sep = '/'),sep="\t",
             col.names = T,row.names=F)
 if(repl==1 || is.null(repl)){
