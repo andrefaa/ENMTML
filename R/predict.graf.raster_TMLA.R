@@ -98,5 +98,4 @@ predict.graf.raster <- function (object, x, type, CI, maxn, ...) {
     out <- writeStop(out)
   }
   names(out) <- colnames(p)
-  return(out)
-}
+  return(out)}
