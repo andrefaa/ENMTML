@@ -151,12 +151,12 @@
 #' # Virtual species occurrences
 #' data("occ")
 #' d_occ <- file.path(d_ex, 'occ.txt')
-#' write.table(occ, d_occ, sep = '\t', row.names = F)
+#' write.table(occ, d_occ, sep = '\t', row.names = FALSE)
 #' # Five bioclimatic variables for current conditions
 #' data("env")
 #' d_env <- file.path(d_ex, 'current_env_var')
 #' dir.create(d_env)
-#' writeRaster(env, file.path(d_env, names(env)), bylayer=T, format='GTiff')
+#' writeRaster(env, file.path(d_env, names(env)), bylayer=TRUE, format='GTiff')
 #' # Five bioclimatic variables for future conditions
 #' # (for more details see predictors_future help)
 #' data("env_fut")
@@ -166,9 +166,9 @@
 #' sapply(d0, dir.create)
 #'
 #' writeRaster(env_fut$`2080_4.5`, file.path(d0[1],
-#'             names(env_fut$`2080_4.5`)), bylayer=T, format='GTiff')
+#'             names(env_fut$`2080_4.5`)), bylayer=TRUE, format='GTiff')
 #' writeRaster(env_fut$`2080_8.5`, file.path(d0[2],
-#'             names(env_fut$`2080_8.5`)), bylayer=T, format='GTiff')
+#'             names(env_fut$`2080_8.5`)), bylayer=TRUE, format='GTiff')
 #'
 #' # Polygon of terrestrial ecoregion
 #' data("ecoregions")
@@ -1641,4 +1641,5 @@ ENMTML <- function(pred_dir,
     cat("MSDM-Posterior created!\n")
   }
   cat("Models were created successfully! \n", "Outputs are in: \n", DirR)
+}
 }

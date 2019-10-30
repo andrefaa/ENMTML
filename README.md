@@ -1,14 +1,11 @@
-# The __ENMTML__ R package for an integrated construction of Ecological Niche Models
-
-
+# __ENMTML__ <img src="https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true" align="right" width="170" />
 [![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
-</br>`
-<div style="text-align: center"><b style='color:gray'>Welcome! This is the ENMTML R package </br> to create and process Ecological Niche Models.</div></b> 
-<p align="center">
-<img align="center" src=https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true width="170"></p>
 
 
-*******
+## An R package for an integrated construction of Ecological Niche Models
+
+
+
 Please follow the installation instructions
 
 
