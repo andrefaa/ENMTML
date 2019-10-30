@@ -401,6 +401,7 @@ ENMTML <- function(pred_dir,
     }
     if(sp_accessible_area['method']=="MASK"&length(sp_accessible_area)!=2){
       stop("'sp_accessible_area' Argument is not valid for method=MASK! A filepath containing the file used to generate the species-specific masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/ecoregion/olson.shp')")
+    }
   }
 
 
@@ -1641,5 +1642,4 @@ ENMTML <- function(pred_dir,
     cat("MSDM-Posterior created!\n")
   }
   cat("Models were created successfully! \n", "Outputs are in: \n", DirR)
-}
 }
