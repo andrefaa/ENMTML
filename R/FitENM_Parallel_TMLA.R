@@ -2914,7 +2914,7 @@ cat("Models fitted!\n")
 InfoModeling <- list(c("###########################################################"),
                      paste('Start date :',Ti),
                      paste('End date :',Sys.time()),
-                     c("Variables:", Variables),
+                     c("Variables:", pred_dir),
                      c("Algorithm:", Algorithm),
                      c("Ensemble:" , PredictType),
                      c("Partition Method:" , Part),
