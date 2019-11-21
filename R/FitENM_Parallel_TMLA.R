@@ -2911,19 +2911,20 @@ if(repl==1 || is.null(repl)){
 cat("Models fitted!\n")
 
   # Save additional information and retuls----
-  InfoModeling <- list(c("###########################################################"),
-       paste('Start date :',Ti),
-       paste('End date :',Sys.time()),
-       c("Algorithm:", Algorithm),
-       c("Ensemble:" , PredictType),
-       c("Partition Method:" , Part),
-       c("Train percentage (random partition only):", per),
-       paste("PA Mask:" , DirMask),
-       paste("MSDM:" , DirMSDM),
-       paste("Resultados em:" , DirSave),
-       paste('No_species:',length(spN)),
-       paste("Threshold:",Threshold),
-       matrix(spN))
+InfoModeling <- list(c("###########################################################"),
+                     paste('Start date :',Ti),
+                     paste('End date :',Sys.time()),
+                     c("Variables:", Variables),
+                     c("Algorithm:", Algorithm),
+                     c("Ensemble:" , PredictType),
+                     c("Partition Method:" , Part),
+                     c("Train percentage (random partition only):", per),
+                     paste("PA Mask:" , DirMask),
+                     paste("MSDM:" , DirMSDM),
+                     paste("Resuls in:" , DirSave),
+                     paste('No species:',length(spN)),
+                     paste("Threshold:",Threshold),
+                     matrix(spN))
   lapply(InfoModeling, write,
          paste(DirSave, "/InfoModeling.txt", sep=""), append=TRUE,
          ncolumns=20, sep='\t')
