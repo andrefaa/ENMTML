@@ -26,12 +26,12 @@ BandsPartition_TMLA <- function(evnVariables,
       Centroids = Km$centers[, 1:2],
       Clusters = Km$cluster
     ))
-    
+
     abse <- ppa2$Centroids
     colnames(abse) <- c("lon", "lat")
-    
+
     ppaNA <- raster::extract(variable[[1]], abse)
-    
+
     if (sum(is.na(ppaNA)) != 0) {
       ppaNA1 <- which(is.na(ppaNA))
       # Wich pseudo absence is a environmental NA
@@ -41,14 +41,14 @@ BandsPartition_TMLA <- function(evnVariables,
       ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
       ppa.clustres <- ppa.clustres[ppaNA1]
       nearest.point <- list()
-      
+
       if (length(ppaNA1) < 2) {
         error <- matrix(abse[ppaNA1, ], 1)
         colnames(error) <- colnames(abse)
       } else{
         error <- abse[ppaNA1, ]
       }
-      
+
       nearest.point <- list()
       for (eee in 1:length(ppaNA1)) {
         x <-
@@ -62,35 +62,14 @@ BandsPartition_TMLA <- function(evnVariables,
     }
     return(abse)
   }
-  
-  # Inverse bioclim
-  inv_bio <- function(e, p) {
-    Model <- dismo::bioclim(e, p)
-    r <- dismo::predict(Model, e)
-    names(r) <- "Group"
-    r <- round(r, 5)
-    r <- (r - minValue(r)) /
-      (maxValue(r) - minValue(r))
-    r <- (1 - r) >= 0.99 #environmental constrain
-    r[which(r[, ] == FALSE)] <- NA
-    return(r)
-  }
-  
-  # Inverse geo
-  inv_geo <- function(e, p, d) {
-    Model <- dismo::circles(p, lonlat = T, d = d)
-    r <- mask(e[[1]], Model@polygons, inverse = T)
-    names(r) <- "Group"
-    r[is.na(r) == F] <- 1
-    r[which(r[, ] == FALSE)] <- NA
-    return(r)
-  }
+
+
   #Development
   #Start Cluster
   cl <- makeCluster(cores, outfile = "")
   registerDoParallel(cl)
-  
-  
+
+
   #Separate data by groups
   RecordsData <-
     lapply(RecordsData, function(x)
@@ -99,9 +78,9 @@ BandsPartition_TMLA <- function(evnVariables,
   RecordsData <- lapply(RecordsData, setNames, colnames)
   RecordsData <- lapply(RecordsData, function(x)
     round(x, digits = 5))
-  
+
   grid <- seq(2, 20, 2)
-  
+
   #Start species loop----
   results <- foreach(
     x = 1:length(RecordsData),
@@ -112,11 +91,11 @@ BandsPartition_TMLA <- function(evnVariables,
     opt <- NULL
     print(names(RecordsData)[x])
     RecordsData.s <- RecordsData[[x]]
-    
+
     for (quad in seq(2, 20, 2)) {
       RecordsData.st <- RecordsData.s
       print(paste(quad, "Quadrants", sep = " "))
-      
+
       #Bands----
       for (segm in 1:quad) {
         axfin <-
@@ -125,15 +104,15 @@ BandsPartition_TMLA <- function(evnVariables,
         axin <-
           min(RecordsData.st[, N]) + ((max(RecordsData.st[, N]) - min(RecordsData.st[, N])) /
                                         quad) * (segm - 1)
-        
+
         RecordsData.st[RecordsData.st[, N] >= axin &
                          RecordsData.st[, N] <= axfin, "Seg"] <- segm
       }
-      
+
       RecordsData.st <-
         cbind(RecordsData.st, ifelse((RecordsData.st$Seg / 2) %% 1, 1, 2))
       colnames(RecordsData.st) <- c("x", "y", "Seg", "Partition")
-      
+
       #Moran's I----
       Moran <-
         Moran_for_Quadrants_Pair_TMLA(
@@ -143,35 +122,35 @@ BandsPartition_TMLA <- function(evnVariables,
           type = type
         )
       Moran <- data.frame(cbind(quad, Moran), stringsAsFactors = F)
-      
+
       #MESS----
       RecordsData_e <-
         cbind(RecordsData.st, extract(evnVariables, RecordsData.st[, 1:2]))
       RecordsData_e <-
         split(RecordsData_e, f = RecordsData_e$Partition)
-      
+
       mess <-
         modEvA::MESS(RecordsData_e[[1]][, -c(1:4)], RecordsData_e[[2]][, -c(1:4)])
       mess <- mean(mess$TOTAL, na.rm = TRUE)
-      
+
       #SD of number of records per Band----
       pa <-
         RecordsData.st$Partition # Vector wiht presences and absences
       Sd <- sd(table(pa)) /
         mean(table(pa))
-      
+
       #Combine calculations in a data frame
       res.t <- data.frame(cbind(Moran, mess, Sd), stringsAsFactors = F)
       colnames(res.t) <- c("Partition", "Moran", "MESS", "SD")
       opt <- rbind(opt, res.t)
     }
     names(opt) <- names(res.t)
-    
+
     # SELLECTION OF THE BEST NUMBER OF BANDS----
     Opt2 <- opt
     Dup <- !duplicated(Opt2[c("Moran", "MESS", "SD")])
     Opt2 <- Opt2[Dup, ]
-    
+
     while (nrow(Opt2) > 1) {
       # I MORAN
       if (nrow(Opt2) == 1)
@@ -185,29 +164,29 @@ BandsPartition_TMLA <- function(evnVariables,
         break
       # SD
       Opt2 <- Opt2[which(Opt2$Sd <= summary(Opt2$Sd)[2]), ]
-      
+
       if (nrow(Opt2) == 2)
         break
-      
+
       if (unique(Opt2$Imoran.Grid.P) &&
           unique(Opt2$Mess.Grid.P) && unique(Opt2$Sd.Grid.P)) {
         Opt2 <- Opt2[nrow(Opt2), ]
       }
     }
-    
+
     if (nrow(Opt2) > 1) {
       Opt2 <- Opt2[nrow(Opt2), ]
     }
-    
+
     resOpt <- cbind(names(RecordsData)[x], Opt2)
-    
+
     #Create Bands Mask
-    
+
     msk <- evnVariables[[1]]
     msk[!is.na(msk[, ])] <- 0
-    
+
     quad <- Opt2$Partition
-    
+
     for (segm in 1:quad) {
       # axfin <- min(RecordsData.s[,N])+((max(RecordsData.s[,N])-min(RecordsData.s[,N]))/quad)*segm
       # axin <- min(RecordsData.s[,N])+((max(RecordsData.s[,N])-min(RecordsData.s[,N]))/quad)*(segm-1)
@@ -223,21 +202,21 @@ BandsPartition_TMLA <- function(evnVariables,
           y0 <- ncol(msk) - floor((axin - msk@extent[1]) / xres(msk))
           for (y in y1:y0) {
             msk[, y] <- 1
-            
+
           }
           msk[][is.na(evnVariables[[1]][])] <- NA
         } else{
           y1 <- ncol(msk) - floor((axfin - msk@extent[1]) / xres(msk))
           y0 <- ncol(msk) - floor((axin - msk@extent[1]) / xres(msk))
-          
+
           for (y in y1:y0) {
             msk[, y] <- 2
-            
+
           }
           msk[][is.na(evnVariables[[1]][])] <- NA
         }
       }
-      
+
       if (N %in% 2) {
         ex <- raster::extent(msk)
         axfin <- ex[3] + ((ex[4] - ex[3]) / quad) * segm
@@ -247,26 +226,26 @@ BandsPartition_TMLA <- function(evnVariables,
         if (((segm / 2) - round(segm / 2)) != 0) {
           y1 <- nrow(msk) - floor((axfin - msk@extent[3]) / yres(msk))
           y0 <- nrow(msk) - floor((axin - msk@extent[3]) / yres(msk))
-          
+
           for (y in y1:y0) {
             msk[y, ] <- 1
-            
+
           }
           msk[][is.na(evnVariables[[1]][])] <- NA
-          
+
         } else{
           y1 <- nrow(msk) - floor((axfin - msk@extent[3]) / yres(msk))
           y0 <- nrow(msk) - floor((axin - msk@extent[3]) / yres(msk))
-          
+
           for (y in y1:y0) {
             msk[y, ] <- 2
-            
+
           }
           msk[][is.na(evnVariables[[1]][])] <- NA
         }
       }
     }
-    
+
     RecordsData.s <-
       cbind(RecordsData.s, ifelse((RecordsData.s$Seg / 2) %% 1, 1, 2))
     RecordsData.s <-
@@ -285,25 +264,25 @@ BandsPartition_TMLA <- function(evnVariables,
       NAflag = -9999,
       overwrite = T
     )
-    
+
     ############################################################
     #                                                          #
     #              Pseudoabsences allocation-----              #####
     #                                                          #
     ############################################################
-    
+
     # Pseudo-Absences with Random allocation-----
     if (pseudoabsencesMethod == "RND") {
       # Clip the mask raster to generate rando pseudoabsences
       pseudo.mask <- msk
       pseudo.mask2 <- list()
-      
+
       for (i in 1:2) {
         mask3 <- pseudo.mask
         mask3[!mask3[] == i] <- NA
         pseudo.mask2[[i]] <- mask3
       }
-      
+
       pseudo.mask <- brick(pseudo.mask2)
       rm(pseudo.mask2)
       # Random allocation of pseudoabsences
@@ -349,16 +328,16 @@ BandsPartition_TMLA <- function(evnVariables,
       absences <- ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
-    
+
     # Pseudo-Absences allocation with Environmental constrain ----
     if (pseudoabsencesMethod == "ENV_CONST") {
       pseudo.mask <-
         inv_bio(e = evnVariables, p = RecordsData.s[, c("x", "y")])
-      
+
       # Split the raster of environmental layer with grids
       pseudo.mask <- pseudo.mask * msk
       pseudo.mask2 <- list()
-      
+
       for (i in 1:2) {
         mask3 <- pseudo.mask
         mask3[!msk[] == i] <- NA
@@ -367,7 +346,7 @@ BandsPartition_TMLA <- function(evnVariables,
       }
       pseudo.mask <- raster::brick(pseudo.mask2)
       rm(pseudo.mask2)
-      
+
       absences <- list()
       for (i in 1:2) {
         set.seed(x)
@@ -410,16 +389,16 @@ BandsPartition_TMLA <- function(evnVariables,
       absences <- ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
-    
+
     # Pseudo-Absences allocation with Geographical constrain-----
     if (pseudoabsencesMethod == "GEO_CONST") {
       pseudo.mask <-
         inv_geo(e = evnVariables[[1]], p = RecordsData.s[, c("x", "y")], d = Geo_Buf)
-      
+
       # Split the raster of environmental layer with grids
       pseudo.mask <- pseudo.mask * msk
       pseudo.mask2 <- list()
-      
+
       for (i in 1:2) {
         mask3 <- pseudo.mask
         mask3[!msk[] == i] <- NA
@@ -428,7 +407,7 @@ BandsPartition_TMLA <- function(evnVariables,
       }
       pseudo.mask <- raster::brick(pseudo.mask2)
       rm(pseudo.mask2)
-      
+
       absences <- list()
       for (i in 1:2) {
         set.seed(x)
@@ -471,7 +450,7 @@ BandsPartition_TMLA <- function(evnVariables,
       absences <- ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
-    
+
     # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
     if (pseudoabsencesMethod == "GEO_ENV_CONST") {
       pseudo.mask <-
@@ -479,11 +458,11 @@ BandsPartition_TMLA <- function(evnVariables,
       pseudo.mask2 <-
         inv_bio(e = evnVariables, p = RecordsData.s[, c("x", "y")])
       pseudo.mask <- pseudo.mask * pseudo.mask2
-      
+
       # Split the raster of environmental layer with grids
       pseudo.mask <- pseudo.mask * msk
       pseudo.mask2 <- list()
-      
+
       for (i in 1:2) {
         mask3 <- pseudo.mask
         mask3[!msk[] == i] <- NA
@@ -492,7 +471,7 @@ BandsPartition_TMLA <- function(evnVariables,
       }
       pseudo.mask <- raster::brick(pseudo.mask2)
       rm(pseudo.mask2)
-      
+
       absences <- list()
       for (i in 1:2) {
         set.seed(x)
@@ -535,22 +514,22 @@ BandsPartition_TMLA <- function(evnVariables,
       absences <- ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
-    
+
     # Pseudo-Absences allocation with Environmentla and Geographical and k-mean constrain-----
     if (pseudoabsencesMethod == "GEO_ENV_KM_CONST") {
       pseudo.mask <- inv_geo(e = evnVariables[[1]],
                              p = RecordsData.s[, c("x", "y")],
                              d = Geo_Buf)
-      
+
       pseudo.mask2 <- inv_bio(e = evnVariables,
                               p = RecordsData.s[, c("x", "y")])
-      
+
       pseudo.mask <- pseudo.mask * pseudo.mask2
-      
+
       # Split the raster of environmental layer with grids
       pseudo.mask <- pseudo.mask * msk
       pseudo.mask2 <- list()
-      
+
       for (i in 1:2) {
         mask3 <- pseudo.mask
         mask3[!msk[] == i] <- NA
@@ -559,7 +538,7 @@ BandsPartition_TMLA <- function(evnVariables,
       }
       pseudo.mask <- raster::brick(pseudo.mask2)
       rm(pseudo.mask2)
-      
+
       absences <- list()
       for (i in 1:2) {
         set.seed(x)
@@ -578,23 +557,23 @@ BandsPartition_TMLA <- function(evnVariables,
             )
           }
         }
-        
+
         absences.0 <- KM(
           rasterToPoints(pseudo.mask[[i]])[, -3],
           raster::mask(evnVariables, pseudo.mask[[i]]),
           (1 / PrAbRatio) * sum(RecordsData.s[, 'Partition'] ==
                                   i)
         )
-        
+
         absences[[i]] <-
           data.frame(absences.0, stringsAsFactors = F)
         rm(absences.0)
       }
-      
+
       for (i in 1:length(absences)) {
         absences[[i]] <- cbind(absences[[i]], rep(i, nrow(absences[[i]])))
       }
-      
+
       absences <-
         lapply(absences, function(x)
           cbind(x, rep(0, nrow(x))))
@@ -604,15 +583,15 @@ BandsPartition_TMLA <- function(evnVariables,
       absences <- ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
-    
+
     RecordsData.s <- rbind(RecordsData.s, absences)
-    
+
     #Final Data Frame Results
     out <- list(ResultList = RecordsData.s,
                 ResOptm = resOpt)
     return(out)
   }
-  
+
   FinalResult <-
     data.frame(data.table::rbindlist(do.call(c, lapply(
       results, "[", "ResultList"
@@ -621,7 +600,7 @@ BandsPartition_TMLA <- function(evnVariables,
     data.frame(data.table::rbindlist(do.call(c, lapply(
       results, "[", "ResOptm"
     ))), stringsAsFactors = F)
-  
+
   write.table(
     FinalInfoGrid,
     paste(DirSave, "BestPartitions.txt", sep = "\\"),
