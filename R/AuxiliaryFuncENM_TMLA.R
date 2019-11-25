@@ -279,18 +279,21 @@ inv_bio <- function(e, p) {
   names(r) <- "Group"
   r <- round(r, 5)
   r <- (r - minValue(r)) /
-    (maxValue(r) - minValue(r))
+    (raster::maxValue(r) - raster::minValue(r))
   r <- (1 - r) >= 0.99 #environmental constrain
   r[which(r[, ] == FALSE)] <- NA
   return(r)
 }
 
+
 # Inverse geo
 inv_geo <- function(e, p, d) {
   Model <- dismo::circles(p, lonlat = T, d = d)
-  r <- mask(e[[1]], Model@polygons, inverse = T)
+  r <- raster::mask(e[[1]], Model@polygons, inverse = T)
   names(r) <- "Group"
   r[is.na(r) == F] <- 1
   r[which(r[, ] == FALSE)] <- NA
   return(r)
 }
+
+
