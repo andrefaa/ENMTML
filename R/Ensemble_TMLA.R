@@ -277,7 +277,7 @@ Ensemble_TMLA <- function(DirR,
       Final <- raster::subset(ListRaster, subset = W)
       FinalT <- raster::calc(Final, mean)
       Final <- STANDAR(FinalT)
-      PredPoint <- raster::raster::extract(Final, SpData[, c("x", "y")])
+      PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
       PredPoint <-
         data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
       Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
