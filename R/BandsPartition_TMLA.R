@@ -21,7 +21,7 @@ BandsPartition_TMLA <- function(evnVariables,
     # NumAbsence = number of centroids sellected as absences
     # This function will be return a list whith the centroids sellected
     # for the clusters
-    var <- extract(variable, cell_coord)
+    var <- raster::extract(variable, cell_coord)
     Km <- kmeans(cbind(cell_coord, var), centers = NumAbsence)
     ppa2 <- (list(
       Centroids = Km$centers[, 1:2],
@@ -31,12 +31,12 @@ BandsPartition_TMLA <- function(evnVariables,
     abse <- ppa2$Centroids
     colnames(abse) <- c("lon", "lat")
 
-    ppaNA <- extract(variable[[1]], abse)
+    ppaNA <- raster::extract(variable[[1]], abse)
 
     if (sum(is.na(ppaNA)) != 0) {
       ppaNA1 <- which(is.na(ppaNA))
       # Wich pseudo absence is a environmental NA
-      ppaNA2 <- data.frame(cbind(ppa2$Clusters, rasterToPoints(variable[[1]])[,-3]), stringsAsFactors = F)
+      ppaNA2 <- data.frame(cbind(ppa2$Clusters, raster::rasterToPoints(variable[[1]])[,-3]), stringsAsFactors = F)
       ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
       ppa.clustres <- ppa.clustres[ppaNA1]
       nearest.point <- list()
@@ -101,7 +101,7 @@ BandsPartition_TMLA <- function(evnVariables,
   results <- foreach(
     x = 1:length(RecordsData),
     .packages = c("raster", "modEvA", "ape", "dismo", "plyr"),
-    .export = c("Moran_for_Quadrants_Pair_TMLA", 'Geo_Buf',"inv_geo","inv_bio")
+    .export = c("Moran_for_Quadrants_Pair_TMLA")
     ) %dopar% {
     # for(x in 1:length(RecordsData)){
     opt <- NULL
@@ -133,7 +133,7 @@ BandsPartition_TMLA <- function(evnVariables,
       RecordsData_e <- cbind(RecordsData.st,extract(evnVariables, RecordsData.st[,1:2]))
       RecordsData_e <- split(RecordsData_e, f=RecordsData_e$Partition)
 
-      mess <- MESS(RecordsData_e[[1]][,-c(1:4)], RecordsData_e[[2]][,-c(1:4)])
+      mess <- modEvA::MESS(RecordsData_e[[1]][,-c(1:4)], RecordsData_e[[2]][,-c(1:4)])
       mess <- mean(mess$TOTAL, na.rm = TRUE)
 
       #SD of number of records per Band----
@@ -189,7 +189,7 @@ BandsPartition_TMLA <- function(evnVariables,
         # axin <- min(RecordsData.s[,N])+((max(RecordsData.s[,N])-min(RecordsData.s[,N]))/quad)*(segm-1)
         # RecordsData.s[RecordsData.s[,N]>=axin & RecordsData.s[,N]<=axfin, "Seg"] <- segm
         if(N%in%1){
-          ex <- extent(msk)
+          ex <- raster::extent(msk)
           axfin <- ex[1]+((ex[2]-ex[1])/quad)*segm
           axin <- ex[1]+((ex[2]-ex[1])/quad)*(segm-1)
           RecordsData.s[RecordsData.s[,N]>=axin & RecordsData.s[,N]<=axfin, "Seg"] <- segm
@@ -212,7 +212,7 @@ BandsPartition_TMLA <- function(evnVariables,
         }
 
         if(N%in%2){
-          ex <- extent(msk)
+          ex <- raster::extent(msk)
           axfin <- ex[3]+((ex[4]-ex[3])/quad)*segm
           axin <- ex[3]+((ex[4]-ex[3])/quad)*(segm-1)
           RecordsData.s[RecordsData.s[,N]>=axin & RecordsData.s[,N]<=axfin, "Seg"] <- segm
@@ -274,14 +274,14 @@ BandsPartition_TMLA <- function(evnVariables,
         for (i in 1:2) {
           set.seed(x)
           if(!is.null(MRst)){
-            SpMask <- raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
             pseudo.mask[[i]] <- pseudo.mask[[i]]*SpMask
             if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[x]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
               stop("Please try again with another restriction type or without restricting the extent")
             }
           }
-          absences.0 <- randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
+          absences.0 <- dismo::randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
@@ -312,22 +312,22 @@ BandsPartition_TMLA <- function(evnVariables,
           mask3[is.na(msk[])] <- NA
           pseudo.mask2[[i]] <- mask3
         }
-        pseudo.mask <- brick(pseudo.mask2)
+        pseudo.mask <- raster::brick(pseudo.mask2)
         rm(pseudo.mask2)
 
         absences <- list()
         for (i in 1:2) {
           set.seed(x)
           if(!is.null(MRst)){
-            SpMask <- raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
             pseudo.mask[[i]] <- pseudo.mask[[i]]*SpMask
             if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[x]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
               stop("Please try again with another restriction type or without restricting the extent")
             }
           }
-          absences.0 <- randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
-                                     ext = extent(pseudo.mask[[i]]),
+          absences.0 <- dismo::randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
+                                     ext = raster::extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
           absences[[i]] <- data.frame(absences.0, stringsAsFactors = F)
@@ -357,7 +357,7 @@ BandsPartition_TMLA <- function(evnVariables,
           mask3[is.na(msk[])] <- NA
           pseudo.mask2[[i]] <- mask3
         }
-        pseudo.mask <- brick(pseudo.mask2)
+        pseudo.mask <- raster::brick(pseudo.mask2)
         rm(pseudo.mask2)
 
         absences <- list()
@@ -371,7 +371,7 @@ BandsPartition_TMLA <- function(evnVariables,
               stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
             }
           }
-          absences.0 <- randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
+          absences.0 <- dismo::randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
@@ -404,7 +404,7 @@ BandsPartition_TMLA <- function(evnVariables,
           mask3[is.na(msk[])] <- NA
           pseudo.mask2[[i]] <- mask3
         }
-        pseudo.mask <- brick(pseudo.mask2)
+        pseudo.mask <- raster::brick(pseudo.mask2)
         rm(pseudo.mask2)
 
         absences <- list()
@@ -418,7 +418,7 @@ BandsPartition_TMLA <- function(evnVariables,
               stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
             }
           }
-          absences.0 <- randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
+          absences.0 <- dismo::randomPoints(pseudo.mask[[i]], (1 / PrAbRatio)*sum(RecordsData.s[,"Partition"]==i),
                                      ext = extent(pseudo.mask[[i]]),
                                      prob = FALSE)
           colnames(absences.0) <- c(x, y)
@@ -458,14 +458,14 @@ BandsPartition_TMLA <- function(evnVariables,
           mask3[is.na(msk[])] <- NA
           pseudo.mask2[[i]] <- mask3
         }
-        pseudo.mask <- brick(pseudo.mask2)
+        pseudo.mask <- raster::brick(pseudo.mask2)
         rm(pseudo.mask2)
 
         absences <- list()
         for (i in 1:2) {
           set.seed(x)
           if(!is.null(MRst)){
-            SpMask <- raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(RecordsData)[x],".tif")))
             pseudo.mask[[i]] <- pseudo.mask[[i]]*SpMask
             if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[x]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
@@ -474,42 +474,8 @@ BandsPartition_TMLA <- function(evnVariables,
           }
 
           absences.0 <- KM(rasterToPoints(pseudo.mask[[i]])[,-3],
-                           mask(evnVariables, pseudo.mask[[i]]),
+                           raster::mask(evnVariables, pseudo.mask[[i]]),
                            (1 / PrAbRatio)*sum(RecordsData.s[,'Partition']==i))
-          # ppa2 <-
-          #   KM(rasterToPoints(pseudo.mask[[i]])[,-3],
-          #      mask(evnVariables, pseudo.mask[[i]]),
-          #      (1 / PrAbRatio)*sum(RecordsData.s[,'Partition']==i))
-          # absences.0 <- ppa2$Centroids
-          # colnames(absences.0) <- c("lon", "lat")
-          #
-          # ppaNA <- extract(pseudo.mask[[i]], absences.0)
-          #
-          # if (sum(is.na(ppaNA)) != 0) {
-          #   ppaNA1 <- which(is.na(ppaNA))
-          #   # Wich pseudo absence is a environmental NA
-          #   ppaNA2 <- as.data.frame(cbind(ppa2$Clusters, rasterToPoints(pseudo.mask[[i]])[,-3]))
-          #   ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
-          #   ppa.clustres <- ppa.clustres[ppaNA1]
-          #   nearest.point <- list()
-          #
-          #   if (length(ppaNA1) < 2) {
-          #     error <- matrix(absences.0[ppaNA1,], 1)
-          #     colnames(error) <- colnames(absences.0)
-          #   } else{
-          #     error <- absences.0[ppaNA1,]
-          #   }
-          #
-          #   nearest.point <- list()
-          #   for (eee in 1:length(ppaNA1)) {
-          #     xcl <- flexclust::dist2(ppa.clustres[[eee]], error, method = "euclidean", p = 2)
-          #     xcl <- as.data.frame(xcl)
-          #     nearest.point[[eee]] <-
-          #       as.data.frame(ppa.clustres[[eee]][which.min(xcl[, eee]),])
-          #   }
-          #   nearest.point <- t(matrix(unlist(nearest.point), 2))
-          #   absences.0[ppaNA1,] <- nearest.point
-          # }
 
           absences[[i]] <- data.frame(absences.0, stringsAsFactors = F)
           rm(absences.0)
