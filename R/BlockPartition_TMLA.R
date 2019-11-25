@@ -41,28 +41,6 @@ BlockPartition_TMLA <- function(evnVariables = NA,
 
   }
 
-  # Inverse bioclim
-  inv_bio <- function(e, p){
-    Model <- dismo::bioclim(e, p)
-    r <- dismo::predict(Model, e)
-    names(r) <- "Group"
-    r <- round(r, 5)
-    r <- (r - minValue(r)) /
-      (maxValue(r) - minValue(r))
-    r <-(1-r)>=0.99 #environmental constrain
-    r[which(r[,]==FALSE)] <- NA
-    return(r)
-  }
-
-  # Inverse geo
-  inv_geo <- function(e, p, d){
-    Model <- dismo::circles(p, lonlat=T, d=d)
-    r <- mask(e[[1]], Model@polygons, inverse=T)
-    names(r) <- "Group"
-    r[is.na(r)==F] <- 1
-    r[which(r[,]==FALSE)] <- NA
-    return(r)
-  }
 
   #Cellsize
   cellSize = seq(0.5, 10, by = .5)
@@ -70,13 +48,13 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   # Mask
   mask <- evnVariables[[1]]
   if(class(mask)!="brick"){
-    mask <- brick(mask)
+    mask <- raster::brick(mask)
   }
   names(mask) <- "Group"
   mask[!is.na(mask[,])] <- 1
 
   #Extent
-  e<-extent(mask)
+  e<-raster::extent(mask)
 
   # Loop for each species-----
   # ResultList <- rep(list(NULL),length(RecordsData))
