@@ -31,7 +31,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     # NumAbsence = number of centroids sellected as absences
     # This function will be return a list whith the centroids sellected
     # for the clusters
-    var <- extract(variable, cell_coord)
+    var <- raster::extract(variable, cell_coord)
     Km <- kmeans(cbind(cell_coord, var), centers = NumAbsence)
     return(list(
       Centroids = Km$centers[, 1:2],
@@ -66,8 +66,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   registerDoParallel(cl)
 
   # LOOP----
-  results <- foreach(s = 1:length(RecordsData), .packages = c("raster","modEvA","ape","dismo"),
-                     .export=c("Geo_Buf","inv_geo","inv_bio")) %dopar% {
+  results <- foreach(s = 1:length(RecordsData), .packages = c("raster","modEvA","ape","dismo")) %dopar% {
   # for(s in 1:length(RecordsData)){
   print(paste(s, SpNames[s]))
   # Extract coordinates----
@@ -77,8 +76,8 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   presences2 <- data.frame(pa=c(rep(1, nrow(presences))),presences)
 
   # Transform the presences points in a DataFrameSpatialPoints
-  coordinates(presences2)=presences2[,c("x","y")]
-  crs(presences2) <-projection(mask)
+  sp::coordinates(presences2)=presences2[,c("x","y")]
+  raster::crs(presences2) <-raster::projection(mask)
 
   #### Data partitioning using a grid approach ####
 
@@ -93,18 +92,18 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     mask3 <- mask2
     res(mask3) <-cellSize[i]
     DIM[i, ] <- dim(mask3)[1:2]
-    values(mask3) <- 1 # Add values to cells /
-    NAS <- c(extract(mask3,presences2)) # Extract values to test if exist NAs
+    raster::values(mask3) <- 1 # Add values to cells /
+    NAS <- c(raster::extract(mask3,presences2)) # Extract values to test if exist NAs
     if(any(is.na(NAS))) {
       while (any(is.na(NAS))) {
-        extent(mask3) <- extent(mask3)+cellSize[i]
-        res(mask3) <- cellSize[i] # Give to cells a size
+        raster::extent(mask3) <- raster::extent(mask3)+cellSize[i]
+        raster::res(mask3) <- cellSize[i] # Give to cells a size
         DIM[i, ] <- dim(mask3)[1:2]
-        values(mask3) <- 1
-        NAS <- extract(mask3, presences2)
+        raster::values(mask3) <- 1
+        NAS <- raster::extract(mask3, presences2)
       }
     }
-    grid[[i]] <- rasterToPolygons(mask3)
+    grid[[i]] <- raster::rasterToPolygons(mask3)
   }
   rm(mask3)
 
@@ -124,12 +123,12 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   # for each grid resolution
   part <- data.frame(matrix(0, nrow(presences2@data), length(grid)))
   for (i in 1:length(grid)) {
-    part[, i] <- over(presences2, grid[[i]][,1])
+    part[, i] <- sp::over(presences2, grid[[i]][,1])
   }
 
   part2 <- list()
   for (i in 1:length(grid)) {
-    part2[[i]] <- data.frame(over(presences2, grid[[i]]), presences)
+    part2[[i]] <- data.frame(sp::over(presences2, grid[[i]]), presences)
   }
 
   # Here will be deleted grids that assigned partitions less than the number
@@ -161,11 +160,11 @@ BlockPartition_TMLA <- function(evnVariables = NA,
 
   # MESS -----
   Mess.Grid.P <- rep(NA, length(grid))
-  Env.P <- extract(evnVariables, presences)
+  Env.P <- raster::extract(evnVariables, presences)
   for (i in 1:ncol(part)) {
     Env.P1 <- cbind(part[i], Env.P)
     Env.P2 <- split(Env.P1[, -1], Env.P1[, 1])
-    mess1 <- MESS(Env.P2[[1]], Env.P2[[2]])
+    mess1 <- modEvA::MESS(Env.P2[[1]], Env.P2[[2]])
     Mess.Grid.P[i] <- mean(mess1$TOTAL, na.rm = TRUE)
     rm(Env.P1)
   }
@@ -226,7 +225,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       dist <- 1/dist
       diag(dist) <- 0
       dist[which(dist==Inf)] <- 0
-      species2$pc1 <- extract(evnVariables[[1]], species2)
+      species2$pc1 <- raster::extract(evnVariables[[1]], species2)
     }
 
     if(type=="all"){
@@ -242,14 +241,14 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       for(i in 1:length(mins)){
         dist[,i] <- ifelse(dist[,i]==mins[i],mins[i],0)
       }
-      species2 <- cbind(presences,pc1=extract(evnVariables[[1]], presences))
+      species2 <- cbind(presences,pc1=raster::extract(evnVariables[[1]], presences))
     }
 
     if(nrow(species2)<3){
       Imoran.Grid.P[p] <- NA
     }else{
       Imoran.Grid.P[p] <-
-        Moran.I(species2$pc1, dist, na.rm = T,scaled=T)$observed
+        ape::Moran.I(species2$pc1, dist, na.rm = T,scaled=T)$observed
     }
   }
 
@@ -295,10 +294,10 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   #Save blocks raster
   pseudo.mask <- mask
   pseudo.mask2 <- list()
-  RtoP <- data.frame(rasterToPoints(mask)[,-3])
-  coordinates(RtoP)=c("x","y")
-  crs(RtoP) <-projection(mask)
-  FILTER <- over(RtoP, Optimum.Grid)
+  RtoP <- data.frame(raster::rasterToPoints(mask)[,-3])
+  sp::coordinates(RtoP)=c("x","y")
+  raster::crs(RtoP) <- raster::projection(mask)
+  FILTER <- sp::over(RtoP, Optimum.Grid)
   pseudo.mask[which(pseudo.mask[]==1)] <- as.matrix(FILTER)
   # writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
   #             format = 'GTiff', NAflag = -9999, overwrite = TRUE)
@@ -309,7 +308,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     pseudo.mask2[[i]] <- mask3
   }
   #
-  pseudo.mask <- brick(pseudo.mask2)
+  pseudo.mask <- raster::brick(pseudo.mask2)
   # rm(pseudo.mask2)
 #                                                          #
 #              Pseudoabsences allocation-                  ####
@@ -320,7 +319,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       pseudo.mask_p <- pseudo.mask
       pseudo.mask <- sum(pseudo.mask_p)
 
-      writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
+      raster::writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
                   format = 'GTiff', NAflag = -9999, overwrite = TRUE)
 
       # Random allocation of Pseudo-Absences
@@ -328,14 +327,14 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       for (i in 1:N) {
         set.seed(s)
         if(!is.null(MRst)){
-          SpMask <- raster(file.path(DirM,paste0(SpNames[s],".tif")))
+          SpMask <- raster::raster(file.path(DirM,paste0(SpNames[s],".tif")))
           pseudo.mask_p[[i]] <- pseudo.mask_p[[i]]*SpMask
           # if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[s]]))){
             # warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
             # stop("Please try again with another restriction type or without restricting the extent")
           # }
         }
-        absences.0 <- randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
+        absences.0 <- dismo::randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
                                    ext = e,
                                    prob = FALSE)
         colnames(absences.0) <- c("x", "y")
@@ -350,24 +349,24 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       pseudo.mask_p <- inv_bio(evnVariables, presences[,-1])
 
       # Split the raster of environmental layer with grids
-      pseudo.mask_p <- mask(pseudo.mask, pseudo.mask_p)
+      pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
       pseudo.mask <- sum(pseudo.mask_p)
 
-      writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
+      raster::writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
                   format = 'GTiff', NAflag = -9999, overwrite = TRUE)
 
       absences <- list()
       for (i in 1:N) {
         set.seed(s)
         if(!is.null(MRst)){
-          SpMask <- raster(file.path(DirM, paste0(SpNames[s], ".tif")))
+          SpMask <- raster::raster(file.path(DirM, paste0(SpNames[s], ".tif")))
           pseudo.mask_p[[i]] <- pseudo.mask_p[[i]] * SpMask
           if(sum(is.na(SpMask[]) == F)<(PrAbRatio * nrow(RecordsData[[s]]))) {
             warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
             stop("Please try again with another restriction type or without restricting the extent")
           }
         }
-        absences.0 <- randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
+        absences.0 <- dismo::randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
                                    ext = e,
                                    prob = FALSE)
         colnames(absences.0) <- c("lon", "lat")
@@ -383,24 +382,24 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       pseudo.mask_p <- inv_geo(e=evnVariables, p=presences[,-1], d=Geo_Buf)
 
       # Split the raster of environmental layer with grids
-      pseudo.mask_p <- mask(pseudo.mask, pseudo.mask_p)
+      pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
       pseudo.mask <- sum(pseudo.mask_p)
 
-      writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
+      raster::writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
                   format = 'GTiff', NAflag = -9999, overwrite = TRUE)
 
       absences <- list()
       for (i in 1:N) {
         set.seed(s)
         if (!is.null(MRst)) {
-          SpMask <- raster(file.path(DirM, paste0(SpNames[s], ".tif")))
+          SpMask <- raster::raster(file.path(DirM, paste0(SpNames[s], ".tif")))
           pseudo.mask_p[[i]] <- pseudo.mask_p[[i]] * SpMask
           if(sum(is.na(SpMask[]) == F) < (PrAbRatio * nrow(RecordsData[[s]]))){
             warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
             stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
           }
         }
-        absences.0 <- randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
+        absences.0 <- dismo::randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
                                    ext = e,
                                    prob = FALSE)
         colnames(absences.0) <- c("lon", "lat")
@@ -418,17 +417,17 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     pseudo.mask_p <- pseudo.mask_p*pseudo.mask_pg
 
     # Split the raster of environmental layer with grids
-    pseudo.mask_p <- mask(pseudo.mask, pseudo.mask_p)
+    pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
     pseudo.mask <- sum(pseudo.mask_p)
 
-    writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
+    raster::writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
                 format = 'GTiff', NAflag = -9999, overwrite = TRUE)
 
     absences <- list()
     for (i in 1:N) {
       set.seed(s)
       if(!is.null(MRst)){
-        SpMask <- raster(file.path(DirM, paste0(SpNames[s], ".tif")))
+        SpMask <- raster::raster(file.path(DirM, paste0(SpNames[s], ".tif")))
         pseudo.mask_p[[i]] <- pseudo.mask_p[[i]] * SpMask
         if (sum(is.na(SpMask[]) == F) < (PrAbRatio * nrow(RecordsData[[s]]))) {
           warning(
@@ -437,7 +436,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
           stop("Please try again with another restriction type or without restricting the extent")
         }
       }
-      absences.0 <- randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
+      absences.0 <- dismo::randomPoints(pseudo.mask_p[[i]], (1 / PrAbRatio)*sum(presences[,1]==i),
                                  prob = FALSE)
       colnames(absences.0) <- c("lon", "lat")
       absences[[i]] <- as.data.frame(absences.0)
@@ -454,17 +453,17 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       pseudo.mask_p <- pseudo.mask_p*pseudo.mask_pg
 
       # Split the raster of environmental layer with grids
-      pseudo.mask_p <- mask(pseudo.mask, pseudo.mask_p)
+      pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
       pseudo.mask <- sum(pseudo.mask_p)
 
-      writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
+      raster::writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
                   format = 'GTiff', NAflag = -9999, overwrite = TRUE)
 
       absences <- list()
       for (i in 1:N) {
         set.seed(s)
         if(!is.null(MRst)){
-          SpMask <- raster(file.path(DirM,paste0(SpNames[s],".tif")))
+          SpMask <- raster::raster(file.path(DirM,paste0(SpNames[s],".tif")))
           pseudo.mask_p[[i]] <- pseudo.mask_p[[i]]*SpMask
           if(sum(is.na(SpMask[])==F)<(PrAbRatio*nrow(RecordsData[[s]]))){
             warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
@@ -473,8 +472,8 @@ BlockPartition_TMLA <- function(evnVariables = NA,
         }
 
         absences.0 <-
-          KM(rasterToPoints(pseudo.mask_p[[i]])[,-3],
-             mask(evnVariables, pseudo.mask_p[[i]]),
+          KM(raster::rasterToPoints(pseudo.mask_p[[i]])[,-3],
+             raster::mask(evnVariables, pseudo.mask_p[[i]]),
              (1 / PrAbRatio)*sum(presences[,1]==i))
         colnames(absences.0) <- c("lon", "lat")
 
