@@ -90,7 +90,21 @@ Ensemble_TMLA <- function(DirR,
     #Species Occurrence Data & Evaluation Table----
     SpData <- RecordsData[RecordsData["sp"] == spN[s],]
     SpVal <- ValTable[ValTable["Sp"] == spN[s],]
-    SpThr <- ThrTable[ThrTable["Sp"] == spN[s], ]
+    SpVal <-
+      SpVal[SpVal$Algorithm %in% c("BIO",
+                                   "MAH",
+                                   "DOM",
+                                   "ENF",
+                                   "GLM",
+                                   "GAM",
+                                   "SVM",
+                                   "BRT",
+                                   "RDF",
+                                   "MXS",
+                                   "MXD",
+                                   "MLK",
+                                   "GAU"),]
+    SpThr <- ThrTable[ThrTable["Sp"] == spN[s],]
 
     #Raster Stack----
     List <- file.path(Folders, paste0(spN[s], ".tif"))
