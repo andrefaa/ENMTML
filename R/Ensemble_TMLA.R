@@ -272,9 +272,9 @@ Ensemble_TMLA <- function(DirR,
       W <- names(ListRaster)[names(ListRaster) %in% Best]
       nom <- names(ListRaster)
 
-      ListRaster <- raster::brick(raster::stack(ListRaster))
-      names(ListRaster) <- nom
-      Final <- raster::subset(ListRaster, subset = W)
+      ListRaster2 <- raster::brick(raster::stack(ListRaster))
+      names(ListRaster2) <- nom
+      Final <- raster::subset(ListRaster2, subset = W)
       FinalT <- raster::calc(Final, mean)
       Final <- STANDAR(FinalT)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
@@ -418,9 +418,9 @@ Ensemble_TMLA <- function(DirR,
       W <- names(ListRaster)[names(ListRaster) %in% Best]
       nom <- names(ListRaster)
 
-      ListRaster <- raster::brick(raster::stack(ListRaster))
-      names(ListRaster) <- nom
-      Final <- raster::subset(ListRaster, subset = W)
+      ListRaster2 <- raster::brick(raster::stack(ListRaster))
+      names(ListRaster2) <- nom
+      Final <- raster::subset(ListRaster2, subset = W)
       Final <- PCA_ENS_TMLA(Final)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
       PredPoint <-
