@@ -1,14 +1,14 @@
 #written by Andre Andrade
 
 PCA_ENS_TMLA<-function(BRICK){
-  if(nlayers(BRICK)==1){
+  if(raster::nlayers(BRICK)==1){
     ens <- BRICK
   }else{
     ens <- rasterPCA(BRICK,spca=T,nComp=1,maskCheck=T)
     ens <- ens$map
     enmean <- calc(BRICK,fun=mean,na.rm=T)
     # enmean <- raster::mean(BRICK)
-    co <- layerStats(raster::stack(enmean, ens), 'pearson', na.rm=T)
+    co <- raster::layerStats(raster::stack(enmean, ens), 'pearson', na.rm=T)
     co <- co[[1]][1,2]
     if(co<0){
       ens <- ens*-1
