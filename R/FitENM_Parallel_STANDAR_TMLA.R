@@ -2834,7 +2834,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Final <- raster::brick(ListRaster)
-        Final <- raster::calc((Final,mean)
+        Final <- raster::calc(Final,mean)
         PredPoint <- raster::extract(Final, SpDataT[, c("x", "y")])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2863,7 +2863,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(Fut)==F && Tst!="Y"){
             for(p in 1:length(ListFut)){
               Final <- raster::brick(ListFut[[p]])
-              Final <- raster::calc((Final,mean)
+              Final <- raster::calc(Final,mean)
               
               raster::writeRaster(Final, 
                           file.path(ModFut[p],"Ensemble","MEAN",spN[s]),
@@ -2920,8 +2920,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Final <- raster::brick(ListRaster)
-        Final <- raster::calc((Final, function(x) x*ThResW)
-        Final <- raster::calc((Final,mean)
+        Final <- raster::calc(Final, function(x) x*ThResW)
+        Final <- raster::calc(Final,mean)
         PredPoint <- raster::extract(Final, SpDataT[, c("x", "y")])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2952,8 +2952,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
             Final <- raster::brick(raster::stack(ListFut[[p]]))
-            Final <- raster::calc((Final, function(x) x*ThResW)
-            Final <- raster::calc((Final,mean)
+            Final <- raster::calc(Final, function(x) x*ThResW)
+            Final <- raster::calc(Final,mean)
             
             raster::writeRaster(Final, 
                         file.path(ModFut[p],"Ensemble","W_MEAN",spN[s]),
@@ -3014,7 +3014,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Final Model
       if(per!=1 && repl==1 || per==1 || N!=1){
         Final <- raster::brick(ListRaster[W])
-        Final <- raster::calc((Final,mean)
+        Final <- raster::calc(Final,mean)
         PredPoint <- raster::extract(Final, SpDataT[, c("x", "y")])
         PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3045,7 +3045,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(is.null(Fut)==F && Tst!="Y"){
           for(p in 1:length(ListFut)){
             Final <- raster::brick(ListFut[[p]][W])
-            Final <- raster::calc((Final,mean)
+            Final <- raster::calc(Final,mean)
             
             raster::writeRaster(Final, 
                         file.path(ModFut[p],"Ensemble","SUP",paste(spN[s],sep="_")),
@@ -3361,7 +3361,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     out <- list(Validation = result,
                 Summary = resultII)
     return(out)
-  }#Fecha loop Especie
+  }#Close species loop
 
 # Save .txt with the models performance---- 
 FinalValidation <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Validation"))))
