@@ -84,7 +84,7 @@ BandsPartition_TMLA <- function(evnVariables,
   #Start species loop----
   results <- foreach(
     x = 1:length(RecordsData),
-    .packages = c("raster", "modEvA", "ape", "dismo", "plyr"),
+    .packages = c("raster", "ape", "dismo", "plyr"),
     .export = c("Moran_for_Quadrants_Pair_TMLA")
   ) %dopar% {
     # for(x in 1:length(RecordsData)){
@@ -130,7 +130,7 @@ BandsPartition_TMLA <- function(evnVariables,
         split(RecordsData_e, f = RecordsData_e$Partition)
 
       mess <-
-        modEvA::MESS(RecordsData_e[[1]][, -c(1:4)], RecordsData_e[[2]][, -c(1:4)])
+        MESS(RecordsData_e[[1]][, -c(1:4)], RecordsData_e[[2]][, -c(1:4)])
       mess <- mean(mess$TOTAL, na.rm = TRUE)
 
       #SD of number of records per Band----
