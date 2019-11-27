@@ -32,7 +32,7 @@ Bootstrap_Moran_e_MESS_TMLA <- function(Env,
 
   mess <-
     lapply(Occ_e, function(x)
-      modeEva::MESS(x[[1]][, -c(1:5)], x[[2]][, -c(1:5)]))
+      MESS(x[[1]][, -c(1:5)], x[[2]][, -c(1:5)]))
   mess <-
     ldply(lapply(mess, function(x)
       mean(x$TOTAL, na.rm = TRUE)), .id = NULL)
@@ -42,9 +42,9 @@ Bootstrap_Moran_e_MESS_TMLA <- function(Env,
   Obj <- ls(pattern = 'Bootstrap_Moran_MESS')
   res <- list()
   for (i in 1:length(Obj)) {
-    res[[i]] <- plry::ldply(get(Obj[i]))
+    res[[i]] <- plyr::ldply(get(Obj[i]))
   }
-  res <- plry::ldply(res)
+  res <- plyr::ldply(res)
   colnames(res)[3] <- "MESS"
   if (is.null(repl) == F) {
     res <- data.frame(res, Replicate = repl)
