@@ -416,7 +416,7 @@ ENMTML <- function(pred_dir,
   }
 
 
-  ipak(c("raster","sp","dismo","kernlab","randomForest","rgdal","gam",
+  ipak(c("raster","sp","dismo","kernlab","randomForest","rgdal",
          "maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
          "RStoolbox","flexclust","ape","tools","SDMTools","SpatialEpi",
          "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
