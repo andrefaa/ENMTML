@@ -92,7 +92,7 @@
 #'   }
 #' In the case of use more than one threshold type it is necessary concatenate the names of threshold types, e.g., thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD')). When SENSITIVITY threshold is used in combination with other it is necessary specify the desired sensitivity value, e.g. thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')
 #'
-#' @param msdm character. Include spatial restrictions to model projection. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in ‘a Priori’ and ‘a Posteriori’ methods. The first one encompasses method that include geographical layers as predictor of models’ fitting, whereas a Posteriori constrain models based on occurrence and suitability patterns. This argument is filled only with a method, in the case of use MCP-B method msdm is filled in a different way se below:
+#' @param msdm character. Include spatial restrictions to model projection. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in 'a Priori' and 'a Posteriori' methods. The first one encompasses method that include geographical layers as predictor of models' fitting, whereas a Posteriori constrain models based on occurrence and suitability patterns. This argument is filled only with a method, in the case of use MCP-B method msdm is filled in a different way se below:
 #'
 #' a Priori methods (layer created area added as a predictor at moment of model fitting):
 #'
@@ -1064,7 +1064,7 @@ ENMTML <- function(pred_dir,
       }
 
       if(part['method']=="KFOLD"){
-        print(paste("Adjsuting fold....",k,sep=""))
+        print(paste("Adjusting fold....",k,sep=""))
         occFoldK <- lapply(occFold, function(x) ifelse(x$Partition!=k,1,2))
         occFoldK <- Map(cbind,occ_xy,occFoldK)
         occFoldK <- lapply(occFoldK, setNames, colsK)
@@ -1633,8 +1633,8 @@ ENMTML <- function(pred_dir,
       MSDM_Posterior(
         RecordsData = occINPUT,
         Threshold = thr[grep('type', names(thr))],
-        cutoff = msdm["method"],#Aqui é o tipo de MSDM-Posterior
-        CUT_Buf = msdm_width,#Aqui é a distancia do Buffer
+        cutoff = msdm["method"],#MSDM-Posterior type
+        CUT_Buf = msdm_width,#Buffer distance
         DirSave = DirPost[i],
         DirRaster = DirT[i]
       )
