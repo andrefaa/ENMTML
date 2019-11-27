@@ -266,7 +266,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   # Construction of models LOOP-----
   results <- foreach(s = 1:length(spN),
                      .packages = c("raster", "dismo",
-    "kernlab", "randomForest", "maxnet", "maxlike::maxlike",
+    "kernlab", "randomForest", "maxnet", "maxlike",
     "GRaF", "plyr", "mgcv", "RStoolbox", "adehabitatHS",
     "caret", "visreg", "glmnet", "gbm" ),
                      .export = c( "Validation2_0", "maxnet2",
