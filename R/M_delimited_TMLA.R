@@ -63,15 +63,15 @@ M_delimited <- function(var,
     #   BufferDistanceKm <- BufferDistanceKm$Dist * 1000
     # }
     
-    varCord <- data.frame(raster::coordinates(var))
+    varCord <- data.frame(sp::coordinates(var))
     varCord <- varCord[which(!is.na(var[[1]][])), ]
     varCord$Cell <- raster::cellFromXY(var, xy = varCord)
-    raster::coordinates(varCord) <- ~ x + y
+    sp::coordinates(varCord) <- ~ x + y
     raster::crs(varCord) <-
       "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
     
     M_list <- lapply(occ_xy, function(x) {
-      raster::coordinates(x) <- ~ x + y
+      sp::coordinates(x) <- ~ x + y
       raster::crs(x) <-
         "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
       return(x)
