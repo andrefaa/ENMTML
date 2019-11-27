@@ -24,7 +24,7 @@ rem_out <- function(r) {
 
 # Prediction for Mahalanobis and Domaint------
 PREDICT_DomainMahal <- function(mod, variables) {
-  df <- na.omit(rasterToPoints(variables))
+  df <- na.omit(raster::rasterToPoints(variables))
   pred <- dismo::predict(mod, df[, -c(1:2)])
   result <- variables[[1]]
   result[which(!is.na(result[]))] <- pred
@@ -37,7 +37,7 @@ PREDICT <- function(Variables, Models_List) {
   ListRaster <- as.list(names(Models_List))
   names(ListRaster) <- names(Models_List)
   Algorithm <- names(Models_List)
-
+  
   if (any(Algorithm == "BIOCLIM") == TRUE) {
     ListRaster[["BIOCLIM"]] <-
       round(predict(Variables, Models_List[["BIO"]]), 4)
@@ -106,115 +106,10 @@ PREDICT <- function(Variables, Models_List) {
   return(ListRaster)
 }
 
-# Predict Raster wiht GRaF package GAUSS algorithm
-predict.graf.raster <- function (object, x, type, CI, maxn, ...) {
-  # the following adapted from dismo:::predict
-  variables <- colnames(object$x)
-  if (is.null(CI)) {
-    # if CIs aren't required
-    out <- raster(x)
-  } else {
-    if (CI == 'std') {
-      # if the SD is needed (latent case)
-      out <- brick(x,
-                   nl = 2)
-    } else {
-      # if proper CIs are required
-      out <- brick(x,
-                   nl = 3)
-    }
-  }
-  ncols <- ncol(out)
-
-  firstrow <- 1
-  firstcol <- 1
-
-  if (!canProcessInMemory(out, 3)) {
-    filename <- rasterTmpFile()
-    out <- writeStart(out, filename = filename, ...)
-    inMemory <- FALSE
-  } else {
-    v <- array(NA, dim = c(nrow(out), ncol(out), nlayers(out)))
-    inMemory <- TRUE
-  }
-
-  tr <- blockSize(out, n = nlayers(x) + 2)
-  pb <- pbCreate(tr$n)
-
-  for (i in 1:tr$n) {
-    rr <- firstrow + tr$row[i] - 1
-
-    rowvals <- getValuesBlock(x,
-                              row = rr,
-                              nrows = tr$nrows[i],
-                              firstcol,
-                              ncols)
-    rowvals <- rowvals[, variables, drop = FALSE]
-
-    res <- matrix(NA,
-                  nrow = nrow(rowvals),
-                  ncol = nlayers(out))
-    rowvals <- na.omit(rowvals)
-    if (length(rowvals) > 0) {
-      newdata <- data.frame(rowvals)
-      # loop through and convert factors to factors
-      for (col in ncol(newdata)) {
-        if (is.factor(object$obsx[, col])) {
-          newdata[, col] <- factor(newdata[, col])
-        }
-      }
-
-      # predict to this batch of pixels
-      p <- predict.graf(
-        object,
-        newdata = newdata,
-        type = type,
-        CI = CI,
-        maxn = maxn,
-        ...
-      )
-      naind <- as.vector(attr(rowvals, "na.action"))
-      if (!is.null(naind)) {
-        res[-naind,] <- p
-      } else {
-        res <- p
-      }
-    }
-
-    if (inMemory) {
-      res <- array(res, dim = c(ncol(out), tr$nrows[i], nlayers(out)))
-      res <- aperm(res, c(2, 1, 3))
-      rows <- tr$row[i]:(tr$row[i] + tr$nrows[i] - 1)
-      v[rows, ,] <- res
-    } else {
-      out <- writeValues(out, res, tr$row[i])
-    }
-    pbStep(pb, i)
-  }
-  pbClose(pb)
-
-  if (inMemory) {
-    # permute v so that it gets vectorized in the right direction
-    v <- aperm(v, c(2, 1, 3))
-    for (i in 1:nlayers(out)) {
-      out <- setValues(out,
-                       as.vector(v[, , i]),
-                       layer = i)
-    }
-  } else {
-    out <- writeStop(out)
-  }
-  names(out) <- colnames(p)
-  return (out)
-}
-
 hingeval <-
-
   function(x, min, max)
-
   {
     pmin(1, pmax(0, (x - min) / (max - min)))
-
   }
 
 ############################################################
@@ -231,17 +126,17 @@ KM <- function(cell_coord, variable, NumAbsence) {
   # This function will be return a list whith the centroids sellected
   # for the clusters
   var <- raster::extract(variable, cell_coord)
-  Km <- kmeans(cbind(cell_coord, var), centers = NumAbsence)
+  Km <- stats::kmeans(cbind(cell_coord, var), centers = NumAbsence)
   ppa2 <- (list(
     Centroids = Km$centers[, 1:2],
     Clusters = Km$cluster
   ))
-
+  
   abse <- ppa2$Centroids
   colnames(abse) <- c("lon", "lat")
-
+  
   ppaNA <- raster::extract(variable[[1]], abse)
-
+  
   if (sum(is.na(ppaNA)) != 0) {
     ppaNA1 <- which(is.na(ppaNA))
     # Wich pseudo absence is a environmental NA
@@ -250,24 +145,24 @@ KM <- function(cell_coord, variable, NumAbsence) {
     ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
     ppa.clustres <- ppa.clustres[ppaNA1]
     nearest.point <- list()
-
+    
     if (length(ppaNA1) < 2) {
-      error <- matrix(abse[ppaNA1, ], 1)
+      error <- matrix(abse[ppaNA1,], 1)
       colnames(error) <- colnames(abse)
     } else{
-      error <- abse[ppaNA1, ]
+      error <- abse[ppaNA1,]
     }
-
+    
     nearest.point <- list()
     for (eee in 1:length(ppaNA1)) {
       x <-
         flexclust::dist2(ppa.clustres[[eee]], error, method = "euclidean", p = 2)
       x <- as.data.frame(x)
       nearest.point[[eee]] <-
-        as.data.frame(ppa.clustres[[eee]][which.min(x[, eee]), ])
+        as.data.frame(ppa.clustres[[eee]][which.min(x[, eee]),])
     }
     nearest.point <- t(matrix(unlist(nearest.point), 2))
-    abse[ppaNA1, ] <- nearest.point
+    abse[ppaNA1,] <- nearest.point
   }
   return(abse)
 }
@@ -278,10 +173,10 @@ inv_bio <- function(e, p) {
   r <- dismo::predict(Model, e)
   names(r) <- "Group"
   r <- round(r, 5)
-  r <- (r - minValue(r)) /
+  r <- (r - raster::minValue(r)) /
     (raster::maxValue(r) - raster::minValue(r))
   r <- (1 - r) >= 0.99 #environmental constrain
-  r[which(r[, ] == FALSE)] <- NA
+  r[which(r[,] == FALSE)] <- NA
   return(r)
 }
 
@@ -292,8 +187,6 @@ inv_geo <- function(e, p, d) {
   r <- raster::mask(e[[1]], Model@polygons, inverse = T)
   names(r) <- "Group"
   r[is.na(r) == F] <- 1
-  r[which(r[, ] == FALSE)] <- NA
+  r[which(r[,] == FALSE)] <- NA
   return(r)
 }
-
-

@@ -79,7 +79,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     DirENSFCat <- file.path(sort(rep(ModFut,length(PredictType))),"Ensemble",PredictType,Threshold)
   }
 
-  # Extracting enviromental variables----
+  # raster::extracting enviromental variables----
   Ncol <- ncol(RecordsData) + 1
   RecordsData <- na.omit(data.frame(RecordsData, raster::extract(Variables, RecordsData[, c("x", "y")])))
   Ncol2 <- ncol(RecordsData)
@@ -137,11 +137,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
            msk2[!msk[]==x] <- NA
            NCell <- sum(!is.na(msk2[]))
            if (NCell > 10000) {
-             ab.0 <- data.frame(randomPoints(msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],10000))
+             ab.0 <- data.frame(dismo::randomPoints(msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],10000))
              var.0 <- data.frame(raster::extract(Variables,ab.0))
            }else{
              ab.0 <-
-               randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],abs(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
+               dismo::randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],abs(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
              var.0 <- data.frame(raster::extract(Variables, ab.0))
            }
            ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
@@ -151,12 +151,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
            # RecordsDataM <- rbind(RecordsDataM[[i]],ab.0)
            # rm(ab.0)
          }
-        ab.0 <- ldply(ab0L,data.frame,.id=NULL)
+        ab.0 <- plyr::ldply(ab0L,data.frame,.id=NULL)
         return(ab.0)
        }
 
        RecordsDataM <- lapply(seq_along(RecordsDataM), function(x) rbind(RecordsDataM[[x]], ab.0[[x]]))
-       RecordsDataM <- ldply(RecordsDataM,data.frame,.id=NULL)
+       RecordsDataM <- plyr::ldply(RecordsDataM,data.frame,.id=NULL)
        cols <-  c("x","y","Partition","PresAbse",names(Variables))
        RecordsDataM[,cols] <-  apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
      }
@@ -191,12 +191,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           msk2[!msk[]==x] <- NA
           NCell <- sum(!is.na(msk2[]))
           if (NCell > 10000) {
-            ab.0 <- data.frame(randomPoints(msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],10000))
-            var.0 <- extract(Variables,ab.0)
+            ab.0 <- data.frame(dismo::randomPoints(msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],10000))
+            var.0 <- raster::extract(Variables,ab.0)
           }else{
             ab.0 <-
-              randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
-            var.0 <- extract(Variables, ab.0)
+              dismo::randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
+            var.0 <- raster::extract(Variables, ab.0)
           }
           ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
           colnames(ab.0) <- colnames(RecordsData)
@@ -205,12 +205,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           # RecordsDataM <- rbind(RecordsDataM,ab.0)
           # rm(ab.0)
         }
-        ab.0 <- ldply(ab0L,data.frame,.id=NULL)
+        ab.0 <- plyr::ldply(ab0L,data.frame,.id=NULL)
         return(ab.0)
       }
 
       RecordsDataM <- lapply(seq_along(RecordsDataM), function(x) rbind(RecordsDataM[[x]], ab.0[[x]]))
-      RecordsDataM <- ldply(RecordsDataM,data.frame,.id=NULL)
+      RecordsDataM <- plyr::ldply(RecordsDataM,data.frame,.id=NULL)
       cols <-  c("x","y","Partition","PresAbse",names(Variables))
       RecordsDataM[,cols] = apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
     }
@@ -266,7 +266,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   # Construction of models LOOP-----
   results <- foreach(s = 1:length(spN),
                      .packages = c("raster", "dismo",
-    "kernlab", "randomForest", "maxnet", "maxlike",
+    "kernlab", "randomForest", "maxnet", "maxlike::maxlike",
     "GRaF", "plyr", "mgcv", "RStoolbox", "adehabitatHS",
     "caret", "visreg", "glmnet", "gbm" ),
                      .export = c( "Validation2_0", "maxnet2",
@@ -306,17 +306,17 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #Include MSDM----
     if(is.null(DirMSDM)==F){
       if(grepl("XY",DirMSDM)){
-        MSDM <- stack(file.path(DirMSDM,list.files(DirMSDM,pattern=".tif")))
+        MSDM <- raster::stack(file.path(DirMSDM,list.files(DirMSDM,pattern=".tif")))
         names(MSDM) <- c("Lat","Long")
       }else{
         MSDM <- raster(file.path(DirMSDM,paste(spN[s],".tif",sep="")))
         names(MSDM) <- "MSDM"
       }
-      SpDataT <- cbind(SpData,extract(MSDM,SpData[c("x","y")]))
+      SpDataT <- cbind(SpData,raster::extract(MSDM,SpData[c("x","y")]))
       colnames(SpDataT) <- c(colnames(SpData),names(MSDM))
-      VariablesT <- stack(Variables,MSDM)
+      VariablesT <- raster::stack(Variables,MSDM)
       if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
-        SpDataTM <- cbind(SpDataM,extract(MSDM,SpDataM[c("x","y")]))
+        SpDataTM <- cbind(SpDataM,raster::extract(MSDM,SpDataM[c("x","y")]))
         colnames(SpDataTM) <- c(colnames(SpDataM),names(MSDM))
       }
       VarColT <- c(VarCol,names(MSDM))
@@ -364,7 +364,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #BIO model
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][PAtrain[[i]][, "PresAbse"] == 1,]
-        Model[[i]] <- bioclim(dataPr[, VarColT])
+        Model[[i]] <- dismo::bioclim(dataPr[, VarColT])
       }
 
       #BIO evaluation
@@ -400,38 +400,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
           PartRas <- (predict(Model[[i]], VariablesT))
           if(N!=1){
-            writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+            raster::writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(PartRas>=Thr_Alg[t],
+              raster::writeRaster(PartRas>=Thr_Alg[t],
                           paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
           }
           if(is.null(repl)==F){
-            writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+            raster::writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(PartRas>=Thr_Alg[t],
+              raster::writeRaster(PartRas>=Thr_Alg[t],
                           paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
           }else{
-            writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
+            raster::writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(PartRas>=Thr_Alg[t],
+              raster::writeRaster(PartRas>=Thr_Alg[t],
                           paste(grep("BIO",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
@@ -443,16 +443,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       # Save final model
       if(repl==1 || is.null(repl)){
         if(is.null(repl) && N==1){
-          Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences
+          Model <- dismo::bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences
           FinalModelT <- predict(Model, VariablesT)
           FinalModel <- STANDAR(FinalModelT)
-          PredPoint <- extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
+          PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
         }else{
-          Model <- bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
+          Model <- dismo::bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
           FinalModelT <- predict(Model, VariablesT)
           FinalModel <- STANDAR(FinalModelT)
-          PredPoint <- extract(FinalModel,SpDataT[,2:3])
+          PredPoint <- raster::extract(FinalModel,SpDataT[,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         }
         #Final Model "Evaluation"
@@ -487,7 +487,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         for(k in 1:length(VariablesP)){
           ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
-          PredPoint <- extract(ListFut[[ProjN[k]]][["BIO"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["BIO"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -525,7 +525,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          RastPart[["DOM"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
+          RastPart[["DOM"]][[i]] <- predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["DOM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -552,7 +552,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
             if(N!=1){
-              writeRaster(
+              raster::writeRaster(
                 PartRas,
                 paste(grep("DOM", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
                 format = 'GTiff',
@@ -560,32 +560,32 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
+              raster::writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
+              raster::writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("DOM",foldCatAlg[t],value=T), '/',spN[s],sep=""),
                             format='GTiff',
                             overwrite=TRUE)
@@ -602,13 +602,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                                   SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
+            PredPoint <- raster::extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- dismo::domain(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[,c("x","y")])
+            PredPoint <- raster::extract(FinalModel,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
           #Final Model Thresholds
@@ -643,7 +643,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
+          PredPoint <- predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -681,7 +681,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          RastPart[["MAH"]][[i]] <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
+          RastPart[["MAH"]][[i]] <- predict(Model[[i]], PAtest[[i]][VarColT])
           RastPart[["MAH"]][[i]][RastPart[["MAH"]][[i]][] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MAH"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -710,7 +710,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PartRas <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
             PartRas[PartRas[] < -10] <- -10
             if(N!=1){
-              writeRaster(
+              raster::writeRaster(
                 PartRas,
                 paste(grep("MAH", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
                 format = 'GTiff',
@@ -718,32 +718,32 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
+              raster::writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
+              raster::writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("MAH",foldCatAlg[t],value=T), '/',spN[s],sep=""),
                             format='GTiff',
                             overwrite=TRUE)
@@ -761,14 +761,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
             FinalModelT[FinalModelT[] < -10] <- -10
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
+            PredPoint <- raster::extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
             Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
             FinalModelT[FinalModelT[] < -10] <- -10
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[,c("x","y")])
+            PredPoint <- raster::extract(FinalModel,SpDataT[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
           #Final Model Thresholds
@@ -805,7 +805,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          PredPoint <- dismo::predict(Model[[i]], PAtest[[i]][VarColT])
+          PredPoint <- predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint[PredPoint[] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -835,7 +835,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #ENF model
       for (i in 1:N) {
         dataPr <- PAtrainM[[i]][, c("PresAbse", VarColT)]
-        dudi <- dudi.pca(dataPr[, VarColT],scannf = FALSE)
+        dudi <- ade4::dudi.pca(dataPr[, VarColT],scannf = FALSE)
         Model[[i]] <- adehabitatHS::madifa(dudi,dataPr$PresAbse,scannf = FALSE)
       }
 
@@ -879,7 +879,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
             Zli <- as.matrix(scale(na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
-            POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
+            POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
             ZER <- ZER[-POS]
@@ -888,45 +888,45 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             m <- apply(Sli, 2, mean)
             cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
             PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
-            XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+            XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
-            gridded(PredRAS) <- ~x+y
+            sp::gridded(PredRAS) <- ~x+y
             PartRas <- (raster(PredRAS))
             rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRAS"))
             if(N!=1){
-              writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("ENF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
@@ -938,12 +938,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(repl==1 || is.null(repl)){
           if(is.null(repl)){
-            dudi <- dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
+            dudi <- ade4::dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
             Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-            POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+            POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
             ZER <- ZER[-POS]
@@ -952,21 +952,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             m <- apply(Sli, 2, mean)
             cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
             PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-            XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+            XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
-            gridded(PredRAS) <- ~x+y
+            sp::gridded(PredRAS) <- ~x+y
             FinalModelT <- rem_out(raster(PredRAS))
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataTM[,c("x","y")])
+            PredPoint <- raster::extract(FinalModel,SpDataTM[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }else{
-            dudi <- dudi.pca(SpDataT[, VarColT],scannf = FALSE)
+            dudi <- ade4::dudi.pca(SpDataT[, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
             Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-            POSPRE <- cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+            POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
             ZER <- ZER[-POS]
@@ -975,13 +975,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             m <- apply(Sli, 2, mean)
             cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
             PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-            XY <- xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
+            XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
-            gridded(PredRAS) <- ~x+y
+            sp::gridded(PredRAS) <- ~x+y
             FinalModelT <- rem_out(raster(PredRAS))
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataTM[,c("x","y")])
+            PredPoint <- raster::extract(FinalModel,SpDataTM[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }
           #Final Model Thresholds
@@ -1012,7 +1012,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               PredRas <- values(VariablesP[[k]])
               POS <- which(is.na(PredRas[,1]))
               Zli <- as.matrix(na.omit(values(VariablesP[[k]])) %*% as.matrix(Model$co))
-              POSPRE <- cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+              POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
               ZER <- rep(0,nrow(PredRas))
               ZER[POSPRE] <- 1
               ZER <- ZER[-POS]
@@ -1021,10 +1021,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               m <- apply(Sli, 2, mean)
               cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
               PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-              XY <- xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
+              XY <- raster::xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
               PredRAS <- data.frame(cbind(XY,ENF=NA))
               PredRAS[-POS,"ENF"] <- PredRas
-              gridded(PredRAS) <- ~x+y
+              sp::gridded(PredRAS) <- ~x+y
               PredRas <- STANDAR_FUT(rem_out(raster(PredRAS)),FinalModelT)
               if(minValue(PredRas)<0){
                 PredRas <- PredRas-minValue(PredRas)
@@ -1042,7 +1042,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           PredRas <- values(VariablesP[[k]])
           POS <- which(is.na(PredRas[,1]))
           Zli <- as.matrix(na.omit(values(VariablesP[[k]])) %*% as.matrix(Model[[i]]$co))
-          POSPRE <- cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
+          POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
           ZER <- rep(0,nrow(PredRas))
           ZER[POSPRE] <- 1
           ZER <- ZER[-POS]
@@ -1051,12 +1051,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           m <- apply(Sli, 2, mean)
           cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
           PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-          XY <- xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
+          XY <- raster::xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
           PredRAS <- data.frame(cbind(XY,ENF=NA))
           PredRAS[-POS,"ENF"] <- PredRas
-          gridded(PredRAS) <- ~x+y
+          sp::gridded(PredRAS) <- ~x+y
           ListFut[[ProjN[k]]][["ENF"]] <- rem_out(raster(PredRas))
-          PredPoint <- extract(ListFut[[ProjN[k]]][["ENF"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["ENF"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1086,7 +1086,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrainM[[i]]
         Model[[i]] <- maxnet2(p=dataPr[,"PresAbse"], data=dataPr[,VarColT], f =
-                               maxnet.formula(dataPr[,"PresAbse"],
+                               maxnet::maxnet.formula(dataPr[,"PresAbse"],
                                               dataPr[,VarColT], classes="default"))
       }
       #MXD evaluation
@@ -1122,38 +1122,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
-              writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("MXD",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
@@ -1166,18 +1166,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(repl==1 || is.null(repl)){
           if(is.null(repl) && N==1){
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f =
-                               maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
+                               maxnet::maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
                                               classes="default"))
             FinalModelT <- predict(VariablesT,Model, clamp=F, type="cloglog")
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
           }else{
             Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f =
-                               maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
+                               maxnet::maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="default"))
             FinalModelT <- predict(VariablesT,Model, clamp=F, type="cloglog")
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataTM[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1212,7 +1212,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(k in 1:length(VariablesP)){
           ListFut[[ProjN[k]]][["MXD"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
 
-          PredPoint <- extract(ListFut[[ProjN[k]]][["MXD"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MXD"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1242,7 +1242,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrainM[[i]]
         Model[[i]] <- maxnet2(p=dataPr[,"PresAbse"], data=dataPr[,VarColT], f =
-                                maxnet.formula(dataPr[,"PresAbse"],dataPr[,VarColT], classes="lq"))
+                                maxnet::maxnet.formula(dataPr[,"PresAbse"],dataPr[,VarColT], classes="lq"))
       }
       #MXS evaluation
       if((is.null(Fut)==F && !is.null(Tst))==F){
@@ -1277,38 +1277,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
             if(N!=1){
-              writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("MXS",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
@@ -1321,18 +1321,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(repl==1 || is.null(repl)){
           if(is.null(repl) && N==1){
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f =
-                               maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
+                               maxnet::maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
                                               classes="lq"))
             FinalModelT <- predict(VariablesT,Model, clamp=F, type="cloglog")
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
           }else{
             Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f =
-                               maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
+                               maxnet::maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
             FinalModelT <- predict(VariablesT,Model, clamp=F, type="cloglog")
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataTM[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }
 
@@ -1368,7 +1368,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(k in 1:length(VariablesP)){
           ListFut[[ProjN[k]]][["MXS"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
 
-          PredPoint <- extract(ListFut[[ProjN[k]]][["MXS"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MXS"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1408,10 +1408,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
           # x <- PAtrain[[i]][PAtrainM[[i]][,"PresAbse"]==1, VarColT]
           # z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
-          Model[[i]] <- maxlike(Fmula, stack(VariablesT), dataPr,
+          Model[[i]] <- maxlike::maxlike(Fmula, raster::stack(VariablesT), dataPr,
                                 link=c("cloglog"),method="BFGS",
                                 hessian = FALSE, removeDuplicates=FALSE)
-          # Model[[i]] <- maxlike(Fmula,x=x,z=z,
+          # Model[[i]] <- maxlike::maxlike(Fmula,x=x,z=z,
           #                      link=c("cloglog"),method="Nelder-Mead",
           #                      hessian = FALSE, removeDuplicates=FALSE)
         }
@@ -1449,38 +1449,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
               PartRas <- (predict(VariablesT,Model[[i]]))
               if(N!=1){
-                writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                 }
               }
               if(is.null(repl)==F){
-                writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                 }
               }else{
-                writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(grep("MLK",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
@@ -1492,20 +1492,20 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save final model
           if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
-              Model <- maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=stack(VariablesT),
+              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=raster::stack(VariablesT),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
                                method="BFGS",removeDuplicates=FALSE)
               FinalModelT <- predict(Model)
               FinalModel <- STANDAR(FinalModelT)
-              PredPoint <- extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
+              PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
             }else{
-              Model <- maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=stack(VariablesT),
+              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=raster::stack(VariablesT),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
                                method="BFGS",removeDuplicates=FALSE)
               FinalModelT <- predict(Model)
               FinalModel <- STANDAR(FinalModelT)
-              PredPoint <- extract(FinalModel,SpDataTM[, 2:3])
+              PredPoint <- raster::extract(FinalModel,SpDataTM[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
             }
             # x <- SpDataTM[SpDataTM[,"PresAbse"]==1, VarColT]
@@ -1543,7 +1543,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(k in 1:length(VariablesP)){
             ListFut[[ProjN[k]]][["MLK"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
 
-            PredPoint <- extract(ListFut[[ProjN[k]]][["MLK"]], PAtest[[i]][, c("x", "y")])
+            PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MLK"]], PAtest[[i]][, c("x", "y")])
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1575,7 +1575,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][, c("PresAbse", VarColT)]
         set.seed(0)
-        Model[[i]] <- ksvm(Fmula,data = dataPr,type="C-svc",kernel = "rbfdot",C = 1, prob.model=T)
+        Model[[i]] <- kernlab::ksvm(Fmula,data = dataPr,type="C-svc",kernel = "rbfdot",C = 1, prob.model=T)
       }
 
       #SVM evaluation
@@ -1611,38 +1611,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]]))
             if(N!=1){
-              writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("SVM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
@@ -1654,29 +1654,29 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         # Save final model
         if(repl==1 || is.null(repl)){
           if(is.null(repl) && N==1){
-            Model <- ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
+            Model <- kernlab::ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
             FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
             FinalGrid <- Variables[[1]]
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
-            # gridded(FinalModel) <- ~ x+y
+            # sp::gridded(FinalModel) <- ~ x+y
             # FinalModel <- (raster(FinalModel))
             FinalModelT <- FinalGrid
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
           }else{
-            Model <- ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
+            Model <- kernlab::ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
             FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
             FinalGrid <- Variables[[1]]
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
-            # gridded(FinalModel) <- ~ x+y
+            # sp::gridded(FinalModel) <- ~ x+y
             FinalModelT <- FinalGrid
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
           Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1711,7 +1711,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(k in 1:length(VariablesP)){
           ListFut[[ProjN[k]]][["SVM"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
 
-          PredPoint <- extract(ListFut[[ProjN[k]]][["SVM"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["SVM"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1743,7 +1743,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         set.seed(1)
         # Model[[i]] <- randomForest(as.factor(PresAbse)~.,data=dataPr[,c("PresAbse",VarColT)],
         #                             importance=T, type="regression")
-        Model[[i]] <- tuneRF(dataPr[,-1], (dataPr[,1]), trace=F,
+        Model[[i]] <- randomForest::tuneRF(dataPr[,-1], (dataPr[,1]), trace=F,
                              stepFactor=2, ntreeTry=1000, doBest=T, plot=F)
       }
       #RDF evaluation
@@ -1779,38 +1779,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PartRas <- (predict(VariablesT,Model[[i]]))
             if(N!=1){
-              writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
               }
             }else{
-              writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],".tif", sep=""),
+              raster::writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                writeRaster(PartRas>=Thr_Alg[t],
+                raster::writeRaster(PartRas>=Thr_Alg[t],
                             paste(grep("RDF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
@@ -1826,21 +1826,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             # Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[SpDataT$Partition==1,c("PresAbse",VarColT)],
             #                       importance=T, type="classification")
             # FinalModelT <- 1-predict(VariablesT,Model,type="prob")
-            Model <- tuneRF(SpDataT[SpDataT$Partition==1,VarColT], (SpDataT[SpDataT$Partition==1,"PresAbse"]), trace=F,
+            Model <- randomForest::tuneRF(SpDataT[SpDataT$Partition==1,VarColT], (SpDataT[SpDataT$Partition==1,"PresAbse"]), trace=F,
                             stepFactor=2, ntreeTry=500, doBest=T, plot = F)
             FinalModelT <- predict(VariablesT,Model)
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }else{
             # Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[,c("PresAbse",VarColT)],
             #                       importance=T, type="classification")
             # FinalModelT <- 1-predict(VariablesT,Model,type="prob")
-            Model <- tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
+            Model <- randomForest::tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
                             stepFactor=2, ntreeTry=500, doBest=T, plot = F)
             FinalModelT <- predict(VariablesT,Model)
             FinalModel <- STANDAR(FinalModelT)
-            PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+            PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
           }
 
@@ -1886,7 +1886,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ListFut[[ProjN[k]]][["RDF"]] <- (ListFut[[ProjN[k]]][["RDF"]])
           }
 
-          PredPoint <- extract(ListFut[[ProjN[k]]][["RDF"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["RDF"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1961,38 +1961,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
               PartRas <- (predict(VariablesT,Model[[i]],type="response"))
               if(N!=1){
-                writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                 }
               }
               if(is.null(repl)==F){
-                writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                 }
               }else{
-                writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(grep("GAM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
@@ -2008,14 +2008,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                  select = T, family = binomial)
               FinalModelT <- predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
-              PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+              PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
             }else{
               Model <- mgcv::gam(formula=Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"),
                                  select = T, family = binomial)
               FinalModelT <- predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
-              PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+              PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
             }
             #Final Model Threshold
@@ -2055,7 +2055,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               ListFut[[ProjN[k]]][["GAM"]] <- (ListFut[[ProjN[k]]][["GAM"]])
             }
 
-            PredPoint <- extract(ListFut[[ProjN[k]]][["GAM"]], PAtest[[i]][, c("x", "y")])
+            PredPoint <- raster::extract(ListFut[[ProjN[k]]][["GAM"]], PAtest[[i]][, c("x", "y")])
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2])
@@ -2130,38 +2130,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
               PartRas <- (predict(VariablesT,Model[[i]],type="response"))
               if(N!=1){
-                writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                 }
               }
               if(is.null(repl)==F){
-                writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                 }
               }else{
-                writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                raster::writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                             format='GTiff',
                             overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  writeRaster(PartRas>=Thr_Alg[t],
+                  raster::writeRaster(PartRas>=Thr_Alg[t],
                               paste(grep("GLM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
@@ -2177,13 +2177,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
               FinalModelT <- predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
-              PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+              PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
             }else{
               Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
               FinalModelT <- predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
-              PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+              PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
             }
             Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2222,7 +2222,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               ListFut[[ProjN[k]]][["GLM"]] <- (ListFut[[ProjN[k]]][["GLM"]])
             }
 
-            PredPoint <- extract(ListFut[[ProjN[k]]][["GLM"]], PAtest[[i]][, c("x", "y")])
+            PredPoint <- raster::extract(ListFut[[ProjN[k]]][["GLM"]], PAtest[[i]][, c("x", "y")])
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2])
@@ -2289,38 +2289,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
           PartRas <- (predict(VariablesT,Model[[i]]))
           if(N!=1){
-            writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+            raster::writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(PartRas>=Thr_Alg[t],
+              raster::writeRaster(PartRas>=Thr_Alg[t],
                           paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
           }
           if(is.null(repl)==F){
-            writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+            raster::writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(PartRas>=Thr_Alg[t],
+              raster::writeRaster(PartRas>=Thr_Alg[t],
                           paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
             }
           }else{
-            writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],".tif", sep=""),
+            raster::writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(PartRas>=Thr_Alg[t],
+              raster::writeRaster(PartRas>=Thr_Alg[t],
                           paste(grep("GAU",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
@@ -2336,14 +2336,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           FinalModelT <- predict.graf.raster(Model, VariablesT, type = "response",
                                              CI = NULL, maxn = NULL)$posterior.mode
           FinalModel <- STANDAR(FinalModelT)
-          PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+          PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
         }else{
           Model <- graf(SpDataT[,"PresAbse"], SpDataT[,VarColT],opt.l=F,method="Laplace")
           FinalModelT <- predict.graf.raster(Model, VariablesT, type = "response",
                                              CI = NULL, maxn = NULL)$posterior.mode
           FinalModel <- STANDAR(FinalModelT)
-          PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+          PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
         }
 
@@ -2385,7 +2385,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ListFut[[ProjN[k]]][["GAU"]] <- (ListFut[[ProjN[k]]][["GAU"]])
         }
 
-        PredPoint <- extract(ListFut[[ProjN[k]]][["GAU"]], PAtest[[i]][, c("x", "y")])
+        PredPoint <- raster::extract(ListFut[[ProjN[k]]][["GAU"]], PAtest[[i]][, c("x", "y")])
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2])
@@ -2424,7 +2424,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ModelT <- NULL
           while(is.null(ModelT)){
             print(learn.rate)
-            try(ModelT <- gbm.step(data=dataPr, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli",
+            try(ModelT <- dismo::gbm.step(data=dataPr, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli",
                                        tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
                                        plot.main = F))
             learn.rate <- learn.rate-0.0005
@@ -2452,7 +2452,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Boyce <- list()
             Eval_JS <- list()
             for (i in 1:N) {
-              RastPart[["BRT"]][[i]] <- predict.gbm(Model[[i]], PAtest[[i]][, VarColT],
+              RastPart[["BRT"]][[i]] <- gbm::predict.gbm(Model[[i]], PAtest[[i]][, VarColT],
                                                     n.trees=Model[[i]]$gbm.call$best.trees,type="response")
               PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BRT"]][[i]])
               Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
@@ -2481,38 +2481,38 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 PartRas <- (predict(VariablesT,Model[[i]],
                                                n.trees=Model[[i]]$gbm.call$best.trees,type="response"))
                 if(N!=1){
-                  writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                  raster::writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
-                    writeRaster(PartRas>=Thr_Alg[t],
+                    raster::writeRaster(PartRas>=Thr_Alg[t],
                                 paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
                   }
                 }
                 if(is.null(repl)==F){
-                  writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                  raster::writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
-                    writeRaster(PartRas>=Thr_Alg[t],
+                    raster::writeRaster(PartRas>=Thr_Alg[t],
                                 paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
                   }
                 }else{
-                  writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                  raster::writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
                               format='GTiff',
                               overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
-                    writeRaster(PartRas>=Thr_Alg[t],
+                    raster::writeRaster(PartRas>=Thr_Alg[t],
                                 paste(grep("BRT",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
@@ -2527,7 +2527,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Model <- NULL
               if(is.null(repl) && N==1){
                 while(is.null(Model)){
-                  try(Model <- gbm.step(data=SpDataT[SpDataT$Partition==1,], gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli",
+                  try(Model <- dismo::gbm.step(data=SpDataT[SpDataT$Partition==1,], gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli",
                                         tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
                                         plot.main = F))
                   learn.rate <- learn.rate-0.0005
@@ -2542,11 +2542,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 FinalModelT <- predict(VariablesT,Model,
                                        n.trees=Model$gbm.call$best.trees,type="response")
                 FinalModel <- STANDAR(FinalModelT)
-                PredPoint <- extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
+                PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
                 PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
               }else{
                 while(is.null(Model)){
-                  try(Model <- gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli",
+                  try(Model <- dismo::gbm.step(data=SpDataT, gbm.x=VarColT, gbm.y="PresAbse", family = "bernoulli",
                                         tree.complexity= 5, learning.rate=learn.rate, bag.fraction= 0.75,silent=T,
                                         plot.main = F))
                   learn.rate <- learn.rate-0.0005
@@ -2561,7 +2561,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 FinalModelT <- predict(VariablesT,Model,
                                        n.trees=Model$gbm.call$best.trees,type="response")
                 FinalModel <- STANDAR(FinalModelT)
-                PredPoint <- extract(FinalModel,SpDataT[, 2:3])
+                PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
                 PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
               }
               Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2603,7 +2603,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 ListFut[[ProjN[k]]][["BRT"]] <- (ListFut[[ProjN[k]]][["BRT"]])
               }
 
-              PredPoint <- extract(ListFut[[ProjN[k]]][["BRT"]], PAtest[[i]][, c("x", "y")])
+              PredPoint <- raster::extract(ListFut[[ProjN[k]]][["BRT"]], PAtest[[i]][, c("x", "y")])
               PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
               Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                            PredPoint[PredPoint$PresAbse == 0, 2])
@@ -2635,14 +2635,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- lapply(ListSummary, '[', c('THR','THR_VALUE'))
           for(i in 1:length(ListRaster)){
             foldAlg <- grep(pattern=names(Thr)[i],x=folders,value=T)
-            writeRaster(round(ListRaster[[i]], 4),
+            raster::writeRaster(round(ListRaster[[i]], 4),
                         paste(foldAlg, '/',spN[s],".tif", sep=""),
                         format='GTiff',
                         overwrite=TRUE)
             Thr_Alg <- Thr[[i]][Thr[[i]]$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern=names(Thr)[i],x=foldCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(ListRaster[[i]]>=Thr_Alg[t],
+              raster::writeRaster(ListRaster[[i]]>=Thr_Alg[t],
                           paste(foldCatAlg[t], '/',spN[s],".tif", sep=""),
                           format='GTiff',
                           overwrite=TRUE)
@@ -2656,12 +2656,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(p in 1:length(ListFut)){
           ListFut[[p]] <- ListFut[[p]][unlist(lapply(ListFut[[p]],function(x) class(x)=="RasterLayer"))]
           for(o in 1:length(ListFut[[p]])){
-            writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],names(Thr)[o],spN[s]),
+            raster::writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],names(Thr)[o],spN[s]),
                         format='GTiff',overwrite=TRUE)
             Thr_Alg <- Thr[[o]][Thr[[o]]$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern=Algorithm[o],x=foldCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              writeRaster(ListFut[[p]][[o]]>=Thr_Alg[t],
+              raster::writeRaster(ListFut[[p]][[o]]>=Thr_Alg[t],
                           file.path(ModFut[p],names(Thr)[o],Threshold[t],paste0(spN[s],".tif")),
                           format='GTiff',
                           overwrite=TRUE)
@@ -2705,7 +2705,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     # Weighted Mean Ensemble----
     if(any(PredictType=="W_MEAN")){
-      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- plyr::ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
 
       #Partial Models Ensemble
@@ -2739,7 +2739,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     # Superior Ensemble----
     if(any(PredictType=='SUP')){
-      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- plyr::ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
 
       Best <- ListValidationT[which(unlist(ListValidationT[ensemble_metric])>=mean(unlist(ListValidationT[ensemble_metric]))),"Algorithm"]
@@ -2778,11 +2778,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Partial Models Ensemble
       if(any(lapply(RastPart, function(x) length(x))>1)){
         Final <- do.call(Map, c(cbind, RastPart))
-        Final <- lapply(Final, function(x) as.numeric(princomp(x)$scores[,1]))
+        Final <- lapply(Final, function(x) as.numeric(stats::princomp(x)$scores[,1]))
         Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
       }else{
         Final <- do.call(cbind,lapply(RastPart, function(x) do.call(cbind,x)))
-        Final <- as.numeric(princomp(Final)$scores[,1])
+        Final <- as.numeric(stats::princomp(Final)$scores[,1])
         Final <- list((Final-min(Final))/(max(Final)-min(Final)))
       }
 
@@ -2811,7 +2811,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     # With PCA over the Mean(Superior) Ensemble----
     if (any(PredictType == 'PCA_SUP')) {
-      ListValidationT <- ldply(ListValidation,data.frame,.id=NULL)
+      ListValidationT <- plyr::ldply(ListValidation,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
       Best <- ListValidationT[which(unlist(ListValidationT[ensemble_metric])>=mean(unlist(ListValidationT[ensemble_metric]))),"Algorithm"]
       W <- names(ListRaster)%in%Best
@@ -2819,11 +2819,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Partial Models
       if(any(lapply(RastPart, function(x) length(x))>1)){
         Final <- do.call(Map, c(cbind, RastPart[W]))
-        Final <- lapply(Final, function(x) as.numeric(princomp(x)$scores[,1]))
+        Final <- lapply(Final, function(x) as.numeric(stats::princomp(x)$scores[,1]))
         Final <- lapply(Final, function(x) (x-min(x))/(max(x)-min(x)))
       }else{
         Final <- do.call(cbind,lapply(RastPart[W], function(x) do.call(cbind,x)))
-        Final <- as.numeric(princomp(Final)$scores[,1])
+        Final <- as.numeric(stats::princomp(Final)$scores[,1])
         Final <- list((Final-min(Final))/(max(Final)-min(Final)))
       }
 
@@ -2852,7 +2852,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     #With PCA over the threshold Ensemble----
     if (any(PredictType == 'PCA_THR')) {
-      ListValidationT <- ldply(ListSummary,data.frame,.id=NULL)
+      ListValidationT <- plyr::ldply(ListSummary,data.frame,.id=NULL)
       ListValidationT <- ListValidationT[ListValidationT$Algorithm%in%Algorithm,]
 
       #Partial Models
@@ -2860,7 +2860,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       ValidTHR <- ListValidationT[grepl(Threshold,as.character(ListValidationT$THR),ignore.case = T),"THR_VALUE"]
       for (p in 1:length(Final)){
         Final[[p]] <- sapply(seq(1:length(ValidTHR)),function(x){ifelse(Final[[p]][,x]>=ValidTHR[x],Final[[p]][,x],0)})
-        Final[[p]] <- as.numeric(princomp(Final[[p]])$scores[,1])
+        Final[[p]] <- as.numeric(stats::princomp(Final[[p]])$scores[,1])
         Final[[p]] <- (Final[[p]]-min(Final[[p]]))/(max(Final[[p]])-min(Final[[p]]))
       }
 
@@ -2889,8 +2889,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
 
     #Final Data Frame Results
-    result <- ldply(ListValidation,data.frame,.id=NULL)
-    resultII <- ldply(ListSummary,data.frame,.id=NULL)
+    result <- plyr::ldply(ListValidation,data.frame,.id=NULL)
+    resultII <- plyr::ldply(ListSummary,data.frame,.id=NULL)
 
     out <- list(Validation = result,
                 Summary = resultII)
