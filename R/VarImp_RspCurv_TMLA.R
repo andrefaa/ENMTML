@@ -177,10 +177,7 @@ VarImp_RspCurv <- function(Model,
   
   #Random Forests----
   if (Algorithm %in% "RDF") {
-    V_IMP <- caret::varImp(Model,
-                    type = 1,
-                    numTrees = Model$ntree,
-                    scale = T)
+    V_IMP <- randomForest::importance(Model)
     V_IMP <- round(V_IMP / sum(V_IMP), 3)
     V_IMP <-
       cbind(
@@ -268,7 +265,7 @@ VarImp_RspCurv <- function(Model,
   }
   
   #GLM,GAM----
-  if (Algorithm %in% c("GLM", "GAM")) {
+  if (Algorithm %in% "GLM") {
     V_IMP <- caret::varImp(Model)
     V_IMP <- round(V_IMP / sum(V_IMP), 3)
     V_IMP <-
@@ -299,19 +296,22 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     if (Algorithm %in% "GLM") {
+      CCC <- sum(!grepl('[(]', names(Model$coefficients)))
       png(
         file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-        width = 1050 * ceiling(length(Model$coefficients) / 3),
-        height = 1050 * ceiling(length(Model$coefficients) / 3),
+        width = 3200,
+        height = 3200,
         units = "px",
         res = 800
       )
-      par(mfrow = c(ceiling(length(
-        Model$coefficients
-      ) / 3), 3))
-      gam::plot.Gam(x = Model,
-               residuals = F,
-               ask = F)
+      par(mfrow = c(CCC / 3, 3))
+      visreg::visreg(
+        Model,
+        scale = "response",
+        rug = F,
+        line = list(lwd = 1),
+        plot = T
+      )
       dev.off()
     } else{
       png(
@@ -373,7 +373,10 @@ VarImp_RspCurv <- function(Model,
       units = "px",
       res = 800
     )
-    plot(Model)
+    par(mfrow = c(ceiling(length(
+      ncol(Model$x)
+    ) / 3), 3))
+    GRaF::plot.graf(Model)
     dev.off()
   }
 }

@@ -995,7 +995,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
           #Variable Importance & Response Curves
           if(VarImp==TRUE){
-            VarImp_RspCurv(Model=Model,Algorithm='ENF',folders=folders,spN=spN[s],SpDataT = SpDataT,
+            VarImp_RspCurv(Model=Model,Algorithm='ENF',folders=folders,spN=spN[s],SpDataT = SpDataTM,
                            VarColT=VarColT,Outcome=PredPoint$PredPoint)
           }
 
