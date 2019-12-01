@@ -52,18 +52,20 @@ OccsThin <- function(occ,
     #Thinning
     occPOS <- vector("list", length = length(breaksD))
     for (i in 1:length(v1)) {
-      occT <-
-        thin(
-          occDF[occDF$.id == spN[i], ],
-          lat.col = "y",
-          long.col = "x",
-          spec.col = ".id",
-          thin.par = v1[[i]],
-          reps = 20,
-          write.files = F,
-          locs.thinned.list.return = T,
-          write.log.file = F
-        )
+      invisible(capture.output(
+        occT <-
+          spThin::thin(
+            occDF[occDF$.id == spN[i],],
+            lat.col = "y",
+            long.col = "x",
+            spec.col = ".id",
+            thin.par = v1[[i]],
+            reps = 20,
+            write.files = F,
+            locs.thinned.list.return = T,
+            write.log.file = F
+          )
+      ))
       occT <-
         occT[[which(sapply(occT, function(x)
           nrow(x)) == max(sapply(occT, function(x)
@@ -100,18 +102,20 @@ OccsThin <- function(occ,
     #Thinning
     occPOS <- vector("list", length = length(occ))
     for (i in 1:length(occPOS)) {
-      occT <-
-        spThin::thin(
-          occDF[occDF$.id == spN[i], ],
-          lat.col = "y",
-          long.col = "x",
-          spec.col = ".id",
-          thin.par = distance,
-          reps = 20,
-          write.files = F,
-          locs.thinned.list.return = T,
-          write.log.file = F
-        )
+      invisible(capture.output(
+        occT <-
+          spThin::thin(
+            occDF[occDF$.id == spN[i], ],
+            lat.col = "y",
+            long.col = "x",
+            spec.col = ".id",
+            thin.par = distance,
+            reps = 20,
+            write.files = F,
+            locs.thinned.list.return = T,
+            write.log.file = F
+          )
+      ))
       occT <-
         occT[[which(sapply(occT, function(x)
           nrow(x)) == max(sapply(occT, function(x)
@@ -153,18 +157,20 @@ OccsThin <- function(occ,
     #Thinning
     occPOS <- vector("list", length = length(occ))
     for (i in 1:length(occPOS)) {
-      occT <-
-        spThin::thin(
-          occDF[occDF$.id == spN[i], ],
-          lat.col = "y",
-          long.col = "x",
-          spec.col = ".id",
-          thin.par = distance,
-          reps = 20,
-          write.files = F,
-          locs.thinned.list.return = T,
-          write.log.file = F
-        )
+      invisible(capture.output(
+        occT <-
+          spThin::thin(
+            occDF[occDF$.id == spN[i],],
+            lat.col = "y",
+            long.col = "x",
+            spec.col = ".id",
+            thin.par = distance,
+            reps = 20,
+            write.files = F,
+            locs.thinned.list.return = T,
+            write.log.file = F
+          )
+      ))
       occT <-
         occT[[which(sapply(occT, function(x)
           nrow(x)) == max(sapply(occT, function(x)
