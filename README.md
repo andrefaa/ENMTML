@@ -108,7 +108,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   + **RDF:** Random Forest  
   + **MLK:** Maximum Likelihood  
   + **GAU:** Gaussian Process</br> 
-  Usage <b style='color:red'>`part=c('BIO', 'SVM', 'GLM', 'GAM', 'GAU')`.</b>
+  Usage <b style='color:red'> algorithm=c('BIO', 'SVM', 'GLM', 'GAM', 'GAU').</b>
 * **thr:** character. Threshold used for presence-absence predictions. It is possible to use more than one threshold type. It is necessary to provide a vector for this argument:
   + **LPT:** The highest threshold at which there is no omission. Usage </br><b style='color:red'>`thr=c(type='LPT')`</b>.
   + **MAX_TSS:** Threshold at which the sum of the sensitivity and specificity is the highest. Usage </br><b style='color:red'> `thr=c(type='MAX_TSS')`</b>.
