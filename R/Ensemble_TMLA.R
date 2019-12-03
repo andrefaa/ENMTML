@@ -10,7 +10,7 @@ Ensemble_TMLA <- function(DirR,
                           ensemble_metric = NULL) {
   #Start Cluster----
   cl <- parallel::makeCluster(cores, outfile = "")
-  registerDoParallel(cl)
+  doParallel::registerDoParallel(cl)
 
   #Create Folders----
   DirENS <- paste(DirR, "Ensemble", sep = "/")

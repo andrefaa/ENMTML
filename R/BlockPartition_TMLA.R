@@ -62,7 +62,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
 
   #Start Cluster
   cl <- parallel::makeCluster(cores, outfile = "")
-  registerDoParallel(cl)
+  doParallel::registerDoParallel(cl)
 
   # LOOP----
   results <-
