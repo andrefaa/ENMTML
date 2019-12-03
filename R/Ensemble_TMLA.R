@@ -9,7 +9,7 @@ Ensemble_TMLA <- function(DirR,
                           cores,
                           ensemble_metric = NULL) {
   #Start Cluster----
-  cl <- makeCluster(cores, outfile = "")
+  cl <- parallel::makeCluster(cores, outfile = "")
   registerDoParallel(cl)
 
   #Create Folders----
@@ -65,7 +65,7 @@ Ensemble_TMLA <- function(DirR,
         grep(
           list.files(x, full.names = T),
           pattern = 'Ensemble',
-          inv = T,
+          invert = T,
           value = T
         ))
   }
@@ -558,7 +558,7 @@ Ensemble_TMLA <- function(DirR,
           for (k in 1:raster::nlayers(ListRaster)) {
             FinalSp <- Final[[k]]
             FinalSp[FinalSp < ValidTHR[k]] <- 0
-            if (all(na.omit(FinalSp[]) == 0)) {
+            if (all(parallel::makeCluster(FinalSp[]) == 0)) {
               Final[Final[[k]]] <- NULL
             } else{
               Final[[k]] <- FinalSp
@@ -597,12 +597,12 @@ Ensemble_TMLA <- function(DirR,
   }
   # Save .txt with the models performance----
   FinalSummary <- do.call("rbind", result)
-  write.table(
+  utils::write.table(
     FinalSummary,
     paste(DirR, "Thresholds_Ensemble.txt", sep = '/'),
     sep = "\t",
     col.names = T,
     row.names = F
   )
-  stopCluster(cl)
+  parallel::stopCluster(cl)
 }

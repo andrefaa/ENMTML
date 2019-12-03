@@ -11,7 +11,7 @@ MOP <- function(Variables,
   #DirProj: Output folder
   
   mop <- function(g_raster, m_occ, percent = 10) {
-    m0 <- na.omit(raster::rasterToPoints(g_raster))
+    m0 <- stats::na.omit(raster::rasterToPoints(g_raster))
     m2 <- g <- m0[, -c(1:2)] # G region
     m0 <- m0[, c(1:2)]
     m1 <- m_occ # data (pres-abs-backgrou) from M region
@@ -66,7 +66,7 @@ MOP <- function(Variables,
         rm(MP)
         rm(MM)
         occM <- rbind(spOccS[VarCol], occM[VarCol])
-        occM <- na.omit(occM)
+        occM <- stats::na.omit(occM)
         MOPr <- mop(g_raster = Variables[[i]], m_occ = occM)
         plot(MOPr < 0.8)
         raster::writeRaster(

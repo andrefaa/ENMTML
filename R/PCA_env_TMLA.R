@@ -10,7 +10,7 @@ PCA_env_TMLA <- function(env, Dir) {
   #Perform PCA
   env <- RStoolbox::rasterPCA(env, spca = T)
   coef <- data.frame(cbind(Variables = nomes, env$model$loadings))
-  write.table(
+  utils::write.table(
     coef,
     file.path(DirPCATab, "Coefficients.txt"),
     sep = "\t",
@@ -18,7 +18,7 @@ PCA_env_TMLA <- function(env, Dir) {
   )
   vars <- env$model$sdev ^ 2
   vars <- vars / sum(vars)
-  write.table(
+  utils::write.table(
     data.frame(
       Axis = names(vars),
       Variance = round(vars, digits = 10)

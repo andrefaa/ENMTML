@@ -52,7 +52,7 @@ OccsThin <- function(occ,
     #Thinning
     occPOS <- vector("list", length = length(breaksD))
     for (i in 1:length(v1)) {
-      invisible(capture.output(
+      invisible(utils::capture.output(
         occT <-
           spThin::thin(
             occDF[occDF$.id == spN[i],],
@@ -83,7 +83,7 @@ OccsThin <- function(occ,
       data.frame(Species = spN,
                  UniqueOcc = sapply(occ, function(x)
                    nrow(x)))
-    write.table(
+    utils::write.table(
       uni,
       file.path(DirR, "N_Occ_Thinned.txt"),
       sep = "\t",
@@ -102,7 +102,7 @@ OccsThin <- function(occ,
     #Thinning
     occPOS <- vector("list", length = length(occ))
     for (i in 1:length(occPOS)) {
-      invisible(capture.output(
+      invisible(utils::capture.output(
         occT <-
           spThin::thin(
             occDF[occDF$.id == spN[i], ],
@@ -133,7 +133,7 @@ OccsThin <- function(occ,
       data.frame(Species = spN,
                  UniqueOcc = sapply(occ, function(x)
                    nrow(x)))
-    write.table(
+    utils::write.table(
       uni,
       file.path(DirR, "N_Occ_Thinned.txt"),
       sep = "\t",
@@ -157,7 +157,7 @@ OccsThin <- function(occ,
     #Thinning
     occPOS <- vector("list", length = length(occ))
     for (i in 1:length(occPOS)) {
-      invisible(capture.output(
+      invisible(utils::capture.output(
         occT <-
           spThin::thin(
             occDF[occDF$.id == spN[i],],
@@ -188,7 +188,7 @@ OccsThin <- function(occ,
       data.frame(Species = spN,
                  UniqueOcc = sapply(occ, function(x)
                    nrow(x)))
-    write.table(
+    utils::write.table(
       uni,
       file.path(DirR, "N_Occ_Thinned.txt"),
       sep = "\t",

@@ -21,7 +21,7 @@ BandsPartition_TMLA <- function(evnVariables,
     # This function will be return a list whith the centroids sellected
     # for the clusters
     var <- raster::extract(variable, cell_coord)
-    Km <- kmeans(cbind(cell_coord, var), centers = NumAbsence)
+    Km <- stats::kmeans(cbind(cell_coord, var), centers = NumAbsence)
     ppa2 <- (list(
       Centroids = Km$centers[, 1:2],
       Clusters = Km$cluster
@@ -66,7 +66,7 @@ BandsPartition_TMLA <- function(evnVariables,
 
   #Development
   #Start Cluster
-  cl <- makeCluster(cores, outfile = "")
+  cl <- parallel::makeCluster(cores, outfile = "")
   registerDoParallel(cl)
 
 
@@ -75,7 +75,7 @@ BandsPartition_TMLA <- function(evnVariables,
     lapply(RecordsData, function(x)
       cbind(x, rep(0, nrow(x))))
   colnames <- c("x", "y", "Seg")
-  RecordsData <- lapply(RecordsData, setNames, colnames)
+  RecordsData <- lapply(RecordsData, stats::setNames(), colnames)
   RecordsData <- lapply(RecordsData, function(x)
     round(x, digits = 5))
 
@@ -136,7 +136,7 @@ BandsPartition_TMLA <- function(evnVariables,
       #SD of number of records per Band----
       pa <-
         RecordsData.st$Partition # Vector wiht presences and absences
-      Sd <- sd(table(pa)) /
+      Sd <- stats::sd(table(pa)) /
         mean(table(pa))
 
       #Combine calculations in a data frame
@@ -601,18 +601,18 @@ BandsPartition_TMLA <- function(evnVariables,
       results, "[", "ResOptm"
     ))), stringsAsFactors = F)
 
-  write.table(
+  utils::write.table(
     FinalInfoGrid,
     paste(DirSave, "BestPartitions.txt", sep = "\\"),
     sep = "\t",
     row.names = F
   )
-  write.table(
+  utils::write.table(
     FinalResult,
     paste(DirSave, "OccBands.txt", sep = "\\"),
     sep = "\t",
     row.names = F
   )
-  stopCluster(cl)
+  parallel::stopCluster(cl)
   return(FinalResult)
 }

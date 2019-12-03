@@ -7,14 +7,14 @@ Occ_Unicas_TMLA <- function(env,
       raster::extract(env, x, cellnumber = T))
   occ.v <- mapply(cbind, occ.xy, occ.v, SIMPLIFY = F)
   occ.v <- lapply(occ.v, function(x)
-    na.omit(x))
+    stats::na.omit(x))
   occ.v <- lapply(occ.v, function(x)
     x[!duplicated(x$cells), ])
   uni <-
     data.frame(Species = spN,
                UniqueOcc = sapply(occ.v, function(x)
                  nrow(x)))
-  write.table(
+  utils::write.table(
     uni,
     file.path(DirO, "Number_Unique_Occurrences.txt"),
     sep = "\t",

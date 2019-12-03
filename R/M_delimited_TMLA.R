@@ -43,7 +43,7 @@ M_delimited <- function(var,
       names(occ_km) <- names(occ_xy)
       occ_km <-
         lapply(occ_km, function(x)
-          as.matrix(dist(x, diag = F)))
+          as.matrix(stats::dist(x, diag = F)))
       for (i in 1:length(occ_km)) {
         diag(occ_km[[i]]) <- Inf
       }
@@ -59,7 +59,7 @@ M_delimited <- function(var,
     }
     # if (Buffer_Opt == 3) {
     #   cat("Please select the txt file with species specific distances in km")
-    #   BufferDistanceKm <- read.table(file.choose(),sep="\t",h=T)
+    #   BufferDistanceKm <- utils::read.table(file.choose(),sep="\t",h=T)
     #   BufferDistanceKm <- BufferDistanceKm$Dist * 1000
     # }
     
@@ -77,7 +77,7 @@ M_delimited <- function(var,
       return(x)
     })
     
-    cl <- makeCluster(detectCores() - 1)
+    cl <- parallel::makeCluster(parallel::detectCores() - 1)
     registerDoParallel(cl)
     foreach(i = 1:length(M_list),
             .packages = c("raster")) %dopar% {
@@ -99,7 +99,7 @@ M_delimited <- function(var,
                                   format = "GTiff",
                                   overwrite = T)
             }
-    stopCluster(cl)
+    parallel::stopCluster(cl)
   }
   
   if (method == 'MASK') {
@@ -115,7 +115,7 @@ M_delimited <- function(var,
       EcoregionsFile <- raster::rasterize(EcoregionsFile, var)
     }
     if (EcoregionsFileExt == 'txt') {
-      EcoregionsFile <- read.table(Dir, h = T)
+      EcoregionsFile <- utils::read.table(Dir, h = T)
       sp::gridded(EcoregionsFile) <- ~ x + y
       EcoregionsFile <-
         raster::brick(raster::stack(EcoregionsFile))
@@ -126,11 +126,11 @@ M_delimited <- function(var,
       lapply(occ_xy, function(x)
         raster::extract(EcoregionsFile, x))
     sp.Ecoregions <- lapply(sp.Ecoregions, function(x) {
-      x <- unique(na.omit(x))
+      x <- unique(stats::na.omit(x))
       x <- x[x != 0]
     })
     
-    cl <- makeCluster(detectCores() - 1)
+    cl <- parallel::makeCluster(parallel::detectCores() - 1)
     registerDoParallel(cl)
     foreach(i = 1:length(sp.Ecoregions),
             .packages = c("raster")) %dopar% {
@@ -146,7 +146,7 @@ M_delimited <- function(var,
                 overwrite = T
               )
             }
-    stopCluster(cl)
+    parallel::stopCluster(cl)
   }
   
   if (method == 'USER-DEFINED') {
@@ -175,7 +175,7 @@ M_delimited <- function(var,
       EcoregionsFile <- raster::rasterize(EcoregionsFile, var)
     }
     if (EcoregionsFileExt == 'txt') {
-      EcoregionsFile <- read.table(Dir, h = T)
+      EcoregionsFile <- utils::read.table(Dir, h = T)
       sp::gridded(EcoregionsFile) <- ~ x + y
       EcoregionsFile <- raster::brick(raster::stack(EcoregionsFile))
       if (is.na(raster::crs(EcoregionsFile))) {

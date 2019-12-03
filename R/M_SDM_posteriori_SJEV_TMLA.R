@@ -99,7 +99,7 @@ MSDM_Posterior <- function(RecordsData,
       
       pts1 <- SpData[SpData[, "PresAbse"] == 1, c("x", "y")]
       spraster <- raster::rasterize(pts1, Adeq, field = 1)
-      sps <- as(spraster, 'SpatialPixels')@coords
+      sps <- methods::as(spraster, 'SpatialPixels')@coords
       dist <- flexclust::dist2(sps, sps, method = 'euclidean', p = 2)
       dist[dist == 0] <- NA
       distmin <- apply(dist, 1, function(x)
@@ -178,7 +178,7 @@ MSDM_Posterior <- function(RecordsData,
       } else{
         # Create a vector wich contain the number (e.i. ID) of the patches
         # with presences
-        filter1 <- unique(na.omit(raster::values(AdeqBin2)))
+        filter1 <- unique(stats::na.omit(raster::values(AdeqBin2)))
         # In this step are created two data.frame one with the patches coordinates
         # that contain presences and another with patches coordinates without presences
         CoordPathP <-
@@ -237,7 +237,7 @@ MSDM_Posterior <- function(RecordsData,
         if (cutoff == 'OBR') {
           # Cutoff based on the maximum value of the minimum distance
           spraster <- raster::rasterize(pts1, Adeq, field = 1)
-          sps <- as(spraster, 'SpatialPixels')@coords
+          sps <- methods::as(spraster, 'SpatialPixels')@coords
           dist <- flexclust::dist2(sps, sps, method = 'euclidean', p = 2)
           dist[dist == 0] <- NA
           distmin <- apply(dist, 1, function(x)
