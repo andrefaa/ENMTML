@@ -49,7 +49,7 @@ Bootstrap_Moran_e_MESS_TMLA <- function(Env,
   if (is.null(repl) == F) {
     res <- data.frame(res, Replicate = repl)
   }
-  write.table(
+  utils::write.table(
     res,
     file.path(DirO, VALNAME),
     sep = "\t",

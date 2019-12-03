@@ -151,7 +151,7 @@
 #' # Virtual species occurrences
 #' data("occ")
 #' d_occ <- file.path(d_ex, 'occ.txt')
-#' write.table(occ, d_occ, sep = '\t', row.names = FALSE)
+#' utils::write.table(occ, d_occ, sep = '\t', row.names = FALSE)
 #' # Five bioclimatic variables for current conditions
 #' data("env")
 #' d_env <- file.path(d_ex, 'current_env_var')
@@ -449,7 +449,7 @@ ENMTML <- function(pred_dir,
     }
   }
   if(env == 'txt'){
-    envT<-read.table(list.files(pattern='\\.txt$'),h=T)
+    envT<-utils::read.table(list.files(pattern='\\.txt$'),h=T)
     sp::gridded(envT)<- ~x+y
     envT<-raster::stack(envT)
     try(envT <- raster::brick(envT))
@@ -502,8 +502,8 @@ ENMTML <- function(pred_dir,
       VF <- usdm::vifstep(envT, th = 10)
       envT <- usdm::exclude(envT, VF)
       if (!is.null(proj_dir)) {
-        RasM <- colMeans(na.omit(values(envT)))
-        RasSTD <- apply(na.omit(values(envT)), 2, std)
+        RasM <- colMeans(stats::na.omit(values(envT)))
+        RasSTD <- apply(stats::na.omit(values(envT)), 2, pracma::std())
       }
       envT <- raster::scale(envT)
 
@@ -521,7 +521,7 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-raster::brick(raster::stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
           }
           if(ProjT == 'txt'){
-            ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
+            ProjTT<-utils::read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
             sp::gridded(ProjTT)<- ~x+y
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
@@ -556,8 +556,8 @@ ENMTML <- function(pred_dir,
       diag(corr_matrix) <- 0
       envT <- envT[[names(envT)[!apply(corr_matrix,2,function(x) any(x > 0.70))]]]
       if(!is.null(proj_dir)){
-        RasM <- colMeans(na.omit(values(envT)))
-        RasSTD <- apply(na.omit(values(envT)),2,std)
+        RasM <- colMeans(stats::na.omit(values(envT)))
+        RasSTD <- apply(stats::na.omit(values(envT)),2,pracma::std())
       }
       envT <- raster::scale(envT)
 
@@ -578,7 +578,7 @@ ENMTML <- function(pred_dir,
               )))
           }
           if(ProjT == 'txt'){
-            ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
+            ProjTT<-utils::read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
             sp::gridded(ProjTT)<- ~x+y
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
@@ -608,7 +608,7 @@ ENMTML <- function(pred_dir,
         }
         if (ProjT == 'txt') {
           ProjTT <-
-            read.table(file.path(Pfol[i], list.files(Pfol[i], pattern = '\\.txt$'), h =
+            utils::read.table(file.path(Pfol[i], list.files(Pfol[i], pattern = '\\.txt$'), h =
                                    T))
           sp::gridded(ProjTT) <- ~ x + y
           EnvF[[i]] <- raster::brick(raster::stack(ProjTT))
@@ -643,7 +643,7 @@ ENMTML <- function(pred_dir,
   }
 
   # Read txt with occurences data
-  occ <- read.table(occ_file,
+  occ <- utils::read.table(occ_file,
                     h = T,
                     sep = '\t',
                     stringsAsFactors = F)
@@ -671,7 +671,7 @@ ENMTML <- function(pred_dir,
 
   #4.3.Save Thinned & Unique Occurrences
   ndb <- plyr::ldply(occA)[,1:3]
-  write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
+  utils::write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
 
   #4.3.Remove species with less than min_occ----
   occ <- occA[sapply(occA,function (x) nrow(x)>=min_occ)]
@@ -683,7 +683,7 @@ ENMTML <- function(pred_dir,
     cat(paste("Species with less than ",min_occ, " Unique Occurrences were removed! \n"))
     print(names(occ_xy)[names(occ_xy)%in%spN==F])
     ndb <- plyr::ldply(occ)[,1:3]
-    write.table(ndb,file.path(DirR,"Occurrences_Filtered.txt"),sep="\t",row.names=F)
+    utils::write.table(ndb,file.path(DirR,"Occurrences_Filtered.txt"),sep="\t",row.names=F)
     rm(ndb)
   }
   occ_xy <- lapply(occ,function(x) x[,c("x","y")])
@@ -769,7 +769,7 @@ ENMTML <- function(pred_dir,
       if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
         warning("Partition Already Exist! Using pre-created partitions! ")
         setwd(DirB)
-        occINPUT <- read.table(file.path(DirB,"OccBands.txt"),sep="\t",header=T, stringsAsFactors = F)
+        occINPUT <- utils::read.table(file.path(DirB,"OccBands.txt"),sep="\t",header=T, stringsAsFactors = F)
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
@@ -826,7 +826,7 @@ ENMTML <- function(pred_dir,
 
       if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
         cat("Partition Already Exist! Using pre-created partitions! \n")
-        occINPUT <- read.table(file.path(DirB,"OccBlocks.txt"),sep="\t",header=T)
+        occINPUT <- utils::read.table(file.path(DirB,"OccBlocks.txt"),sep="\t",header=T)
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
@@ -882,7 +882,7 @@ ENMTML <- function(pred_dir,
       cat(paste0("Species [",spINV,"] will be dropped!\n"))
       occINPUT <- subset(occINPUT,!occINPUT$sp%in%spINV)
       spN <- spN[!spN%in%spINV]
-      write.table(spINV,file.path(DirB,"DroppedSpecies.txt"),sep="\t",row.names=F)
+      utils::write.table(spINV,file.path(DirB,"DroppedSpecies.txt"),sep="\t",row.names=F)
       unlink(grep(paste(spINV,collapse="|"),list.files(DirM,full.names=T),value=T))
       unlink(grep(paste(spINV,collapse="|"),list.files(DirB,full.names=T),value=T))
     }
@@ -969,7 +969,7 @@ ENMTML <- function(pred_dir,
 
     #7.0.Dataset for evaluation
     if(!is.null(eval_occ)){
-      OccTst <- read.table(eval_occ,sep="\t",h=T)
+      OccTst <- utils::read.table(eval_occ,sep="\t",h=T)
       OccTst<-OccTst[,c(sp,x,y)]
       colnames(OccTst) <- c("sp","x","y")
       OccTst_xy <- split(OccTst[,-1],f=OccTst$sp)
@@ -1002,8 +1002,8 @@ ENMTML <- function(pred_dir,
       per<-1
       occFold<- lapply(occ_xy, function(x) cbind(x,dismo::kfold(x,rep)))
       colsK <-  c("x","y","Partition");
-      occFold <- lapply(occFold, setNames, colsK)
-      write.table(plyr::ldply(occFold,data.frame,.id="sp"),file.path(DirR,"CrossValidationGroups.txt"),sep="\t",row.names=F)
+      occFold <- lapply(occFold, stats::setNames, colsK)
+      utils::write.table(plyr::ldply(occFold,data.frame,.id="sp"),file.path(DirR,"CrossValidationGroups.txt"),sep="\t",row.names=F)
     }
 
     #Adjusting for determined evaluation dataset
@@ -1061,7 +1061,7 @@ ENMTML <- function(pred_dir,
         cat(paste0("Adjusting fold....", k, "\n"))
         occFoldK <- lapply(occFold, function(x) ifelse(x$Partition!=k,1,2))
         occFoldK <- Map(cbind,occ_xy,occFoldK)
-        occFoldK <- lapply(occFoldK, setNames, colsK)
+        occFoldK <- lapply(occFoldK, stats::setNames, colsK)
         occTR <- lapply(occFoldK, function(x) split(x,f=x$Partition)[[1]])
         PresAbse <- lapply(occTR, function(x) rep(1,nrow(x)))
         occTR <- Map(cbind,occTR,PresAbse)
@@ -1538,49 +1538,49 @@ ENMTML <- function(pred_dir,
       #Save Final Occurrence Table
       occTREINO <- plyr::ldply(occTREINO,data.frame,.id=NULL)
       occTESTE <- plyr::ldply(occTESTE,data.frame,.id=NULL)
-      write.table(occTREINO,file.path(DirR,"Occurrences_Fitting.txt"),sep="\t",row.names=F)
-      write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
+      utils::write.table(occTREINO,file.path(DirR,"Occurrences_Fitting.txt"),sep="\t",row.names=F)
+      utils::write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
 
       #Save Final Validation File
       val <- list.files(DirR,pattern="Evaluation_Table_")
       valF <- list()
       for(i in 1:length(val)){
-        valF[[i]] <- read.table(file.path(DirR,val[i]),sep="\t",header=T)
+        valF[[i]] <- utils::read.table(file.path(DirR,val[i]),sep="\t",header=T)
       }
       valF <- plyr::ldply(valF,data.frame,.id=NULL)
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
       valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
-      valF_SD <- aggregate(.~Sp+Algorithm, data=valF, sd)
+      valF_SD <- aggregate(.~Sp+Algorithm, data=valF, stats::sd())
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)
       valF$Replicate <- NULL
       valF$Partition <- part['method']
       unlink(file.path(DirR,val))
-      write.table(valF,file.path(DirR,"Evaluation_Table.txt"),sep="\t",row.names=F)
+      utils::write.table(valF,file.path(DirR,"Evaluation_Table.txt"),sep="\t",row.names=F)
 
       #Save Final Bootstrap File
       if(per!=1 || part['method']=="KFOLD"){
         Boot <- list.files(DirR,pattern="Bootstrap_Moran_MESS_")
         BootF <- list()
         for(i in Boot){
-          BootF[[i]] <- read.table(file.path(DirR,i),sep="\t",header=T)
+          BootF[[i]] <- utils::read.table(file.path(DirR,i),sep="\t",header=T)
         }
         BootF <- plyr::ldply(BootF,data.frame,.id=NULL)
         BootF <- BootF[order(as.character(BootF[,1])),]
         BootF_Mean <- aggregate(.~sp, data=BootF, mean)
-        BootF_SD <- aggregate(.~sp, data=BootF, sd)
+        BootF_SD <- aggregate(.~sp, data=BootF, stats::sd())
         BootF_SD <- BootF_SD[,-c(1,4)]
         colnames(BootF_SD) <- paste0(colnames(BootF_SD),"_SD")
         BootF <- cbind(BootF_Mean,BootF_SD)
         BootF$Replicate <- NULL
         unlink(file.path(DirR,Boot))
         if(part['method']=="BOOT"){
-          write.table(BootF,file.path(DirR,"Bootstrap_Moran_MESS.txt"),sep="\t",row.names=F)
+          utils::write.table(BootF,file.path(DirR,"Bootstrap_Moran_MESS.txt"),sep="\t",row.names=F)
         }
         if(part['method']=="KFOLD"){
-          write.table(BootF,file.path(DirR,"CrossValidation_Moran_MESS.txt"),sep="\t",row.names=F)
+          utils::write.table(BootF,file.path(DirR,"CrossValidation_Moran_MESS.txt"),sep="\t",row.names=F)
         }
       }
     }
@@ -1589,8 +1589,8 @@ ENMTML <- function(pred_dir,
   #8.Ensemble----
   if (any(ensemble2!="N")){
     cat("Performing Ensemble....\n")
-    ThrTable <- read.table(file.path(DirR,"Thresholds_Algorithms.txt"),sep="\t",h=T)
-    ValF <- read.table(file.path(DirR,"Evaluation_Table.txt"),sep="\t",h=T)
+    ThrTable <- utils::read.table(file.path(DirR,"Thresholds_Algorithms.txt"),sep="\t",h=T)
+    ValF <- utils::read.table(file.path(DirR,"Evaluation_Table.txt"),sep="\t",h=T)
 
     Ensemble_TMLA(DirR = DirR,
                   ValTable = ValF,

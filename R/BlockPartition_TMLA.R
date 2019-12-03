@@ -31,7 +31,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     # This function will be return a list whith the centroids sellected
     # for the clusters
     var <- raster::extract(variable, cell_coord)
-    Km <- kmeans(cbind(cell_coord, var), centers = NumAbsence)
+    Km <- stats::kmeans(cbind(cell_coord, var), centers = NumAbsence)
     return(list(
       Centroids = Km$centers[, 1:2],
       Clusters = Km$cluster
@@ -61,7 +61,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   # BestGridList <- rep(list(NULL),length(RecordsData))
 
   #Start Cluster
-  cl <- makeCluster(cores, outfile = "")
+  cl <- parallel::makeCluster(cores, outfile = "")
   registerDoParallel(cl)
 
   # LOOP----
@@ -160,7 +160,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       pa <- presences2@data[, 1] # Vector wiht presences and absences
       Sd.Grid.P <- rep(NA, length(grid))
       for (i in 1:ncol(part)) {
-        Sd.Grid.P[i] <- sd(table(part[pa == 1, i])) /
+        Sd.Grid.P[i] <- stats::sd(table(part[pa == 1, i])) /
           mean(table(part[pa == 1, i]))
       }
 
@@ -587,11 +587,11 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       # Final data.frame result2----
       out <- list(ResultList = result,
                   BestGridList = Opt2)
-      # write.table(result,paste(DirSave, paste0(SpNames[s],".txt"), sep="\\"), sep="\t",row.names=F)
+      # utils::write.table(result,paste(DirSave, paste0(SpNames[s],".txt"), sep="\\"), sep="\t",row.names=F)
       return(out)
     }
 
-  stopCluster(cl)
+  parallel::stopCluster(cl)
   FinalResult <-
     data.frame(data.table::rbindlist(do.call(c, lapply(
       results, "[", "ResultList"
@@ -602,13 +602,13 @@ BlockPartition_TMLA <- function(evnVariables = NA,
     ))))
 
   colnames(FinalResult) <- c("sp", "x", "y", "Partition", "PresAbse")
-  write.table(
+  utils::write.table(
     FinalResult,
     paste(DirSave, "OccBlocks.txt", sep = "\\"),
     sep = "\t",
     row.names = F
   )
-  write.table(
+  utils::write.table(
     FinalInfoGrid,
     paste(DirSave, "BestPartitions.txt", sep = '/'),
     sep = "\t",

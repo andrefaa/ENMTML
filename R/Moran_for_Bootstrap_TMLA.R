@@ -23,7 +23,7 @@ Moran_for_Bootstrap_TMLA <- function(pc1,
     occSP <- occ[occ$sp == i, ]
     
     #Moran Correction
-    sp.dists <- 1 / (as.matrix(dist(cbind(
+    sp.dists <- 1 / (as.matrix(stats::dist(cbind(
       occSP$x, occSP$y
     ))))
     diag(sp.dists) <- 0

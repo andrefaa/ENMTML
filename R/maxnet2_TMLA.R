@@ -2,11 +2,11 @@ maxnet2 <- function(p,
                     data,
                     f = maxnet.formula(p, data),
                     regmult = 1.0,
-                    regfun = maxnet.default.regularization,
+                    regfun = maxnet::maxnet.default.regularization(),
                     ...)
   
 {
-  mm <- model.matrix(f, data)
+  mm <- stats::model.matrix(f, data)
   reg <- regfun(p, mm) * regmult
   weights <- p + (1 - p) * 100
   glmnet::glmnet.control(pmin = 1.0e-8, fdev = 0)
@@ -76,8 +76,8 @@ predict.maxnet <-
       sub("thresholds\\((.*)\\):(.*)$",
           "thresholdval(\\1,\\2)",
           terms)
-    f <- formula(paste("~", paste(terms, collapse = " + "), "-1"))
-    mm <- model.matrix(f, data.frame(newdata))
+    f <- stats::formula(paste("~", paste(terms, collapse = " + "), "-1"))
+    mm <- stats::model.matrix(f, data.frame(newdata))
     if (clamp)
       mm <-
       t(pmin(pmax(t(mm), object$featuremins[names(object$betas)]),

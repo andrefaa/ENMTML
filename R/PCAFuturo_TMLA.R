@@ -20,17 +20,17 @@ PCAFuturo <- function(Env,
   
   #1.Present PCA
   DF <- raster::rasterToPoints(Env)
-  DF <- na.omit(DF)
+  DF <- stats::na.omit(DF)
   PcaR <- DF[, -c(1:2)]
   
   means <- colMeans(PcaR)
-  stds <- apply(PcaR, 2, sd)
+  stds <- apply(PcaR, 2, stats::sd())
   
   #Scale transform
   DScale <- data.frame(apply(PcaR, 2, scale))
   
   # PCA
-  DPca <- prcomp(DScale,
+  DPca <- stats::prcomp(DScale,
                  retx = TRUE,
                  center = T,
                  scale = T)
@@ -38,7 +38,7 @@ PCAFuturo <- function(Env,
   #Coefficients
   Coef <- DPca$rotation
   Coef2 <- data.frame(cbind(Variable = names(Env), Coef))
-  write.table(
+  utils::write.table(
     Coef2,
     file.path(DirPCATab, "Coeficient.txt"),
     sep = "\t",
@@ -49,7 +49,7 @@ PCAFuturo <- function(Env,
   NEixos <- length(summary(DPca)$importance[3, ])
   CumVar <- summary(DPca)$importance[3, ]
   VarEx <- data.frame(CumVar)
-  write.table(
+  utils::write.table(
     VarEx,
     file.path(DirPCATab, "CumulativeVariance.txt"),
     sep = "\t",
@@ -92,18 +92,18 @@ PCAFuturo <- function(Env,
   if (any(ProjEX %in% 'txt')) {
     ProjT <- list()
     for (j in DirP) {
-      ProjT[[i]] <-
-        read.table(file.path(DirP[[i]], list.files(DirP[[i]], pattern = '.txt'), h =
+      ProjT[[j]] <-
+        utils::read.table(file.path(DirP[[j]], list.files(DirP[[j]], pattern = '.txt'), h =
                                T))
-      sp::gridded(ProjT[[i]]) <- ~ x + y
-      ProjT[[i]] <- raster::brick(raster::stack(ProjT[[i]]))
+      sp::gridded(ProjT[[j]]) <- ~ x + y
+      ProjT[[j]] <- raster::brick(raster::stack(ProjT[[j]]))
     }
   }
   
   ProjE <- lapply(ProjT, function(x)
     raster::rasterToPoints(x))
   ProjE <- lapply(ProjE, function(x)
-    na.omit(x))
+    stats::na.omit(x))
   ProjER <-
     lapply(ProjE, function(z)
       z[, !(colnames(z) %in% c("x", "y"))])

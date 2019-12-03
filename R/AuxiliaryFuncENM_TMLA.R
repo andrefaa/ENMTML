@@ -16,15 +16,15 @@ STANDAR_FUT <- function(ModelFut, ModelPre) {
 # Function to remove outliers from MAH and DOMAIN preiction
 rem_out <- function(r) {
   ss <- quantile(r[], na.rm = T)
-  me <- median(r[], na.rm = T)
-  out <- boxplot.stats(r[])[[4]]
+  me <- stats::median(r[], na.rm = T)
+  out <- grDevices::boxplot.stats(r[])[[4]]
   r[which(r[] %in% out[out <= me])] <- ss[2]
   return(r)
 }
 
 # Prediction for Mahalanobis and Domaint------
 PREDICT_DomainMahal <- function(mod, variables) {
-  df <- na.omit(raster::rasterToPoints(variables))
+  df <- stats::na.omit(raster::rasterToPoints(variables))
   pred <- dismo::predict(mod, df[, -c(1:2)])
   result <- variables[[1]]
   result[which(!is.na(result[]))] <- pred

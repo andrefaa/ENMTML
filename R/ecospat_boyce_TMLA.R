@@ -82,7 +82,7 @@ ecospat.boyce <-
       r <-
         c(1:length(f))[f != c(f[-1], FALSE)]  #index to remove successive duplicates
       b <-
-        cor(f[r], vec.mov[to.keep][r], method = "spearman")  # calculation of the spearman correlation (i.e. Boyce index) after removing successive duplicated values
+        stats::cor(f[r], vec.mov[to.keep][r], method = "spearman")  # calculation of the spearman correlation (i.e. Boyce index) after removing successive duplicated values
     }
 
     HS <-

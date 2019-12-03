@@ -14,7 +14,7 @@ Validation2_0 <- function(Eval,
     P <- sum(PredPoint$PresAbse == 1)
     A <- sum(PredPoint$PresAbse == 0)
     Prev <-
-      sum(na.omit((RastPart[[i]] > Thr[i])[])) / length(na.omit(RastPart[[i]][]))
+      sum(stats::na.omit((RastPart[[i]] > Thr[i])[])) / length(stats::na.omit(RastPart[[i]][]))
     UPR <- Conf["fn"] / (Conf["tp"] + Conf["fn"])
     Xis <- P / A * (1 - Prev) / Prev
     c <- P / (Prev * A)

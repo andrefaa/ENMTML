@@ -23,7 +23,7 @@ Validation_Table_TMLA <- function(Eval,
   }
   if (N != 1) {
     resSD <-
-      data.frame(matrix(round(apply(summres, 2, sd), 3), nrow = 1, ncol = 6))
+      data.frame(matrix(round(apply(summres, 2, stats::sd()), 3), nrow = 1, ncol = 6))
     res <-
       data.frame(matrix(round(colMeans(summres), 3), nrow = 1, ncol = 6))
     colnames(res) <- colnames(summres)

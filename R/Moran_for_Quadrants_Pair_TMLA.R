@@ -14,7 +14,7 @@ Moran_for_Quadrants_Pair_TMLA <- function(occ, pc1, quad, type = "") {
   
   #Moran Correction
   
-  sp.dists <- 1 / (as.matrix(dist(cbind(occ$x, occ$y))))
+  sp.dists <- 1 / (as.matrix(stats::dist(cbind(occ$x, occ$y))))
   diag(sp.dists) <- 0
   sp.dists[sp.dists == Inf] <- 0
   

@@ -41,7 +41,7 @@ VarImp_RspCurv <- function(Model,
       )
     row.names(V_IMP) <- NULL
     if (file.exists(paste(DirV, "/VariableImportance.txt", sep = ""))) {
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -50,7 +50,7 @@ VarImp_RspCurv <- function(Model,
         col.names = F
       )
     } else{
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -60,25 +60,25 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     if (Algorithm != 'ENF') {
-      png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+      grDevices::png(
+        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
         width = 3200,
         height = 3200,
         units = "px",
         res = 800
       )
       dismo::response(Model)
-      dev.off()
+      grDevices::dev.off()
     } else{
-      png(
-        file.path(DirV, paste0("ENFAAxis_", spN, ".png")),
+      grDevices::png(
+        file.path(DirV, paste0("ENFAAxis_", spN, ".grDevices::png")),
         width = 3200,
         height = 3200,
         units = "px",
         res = 800
       )
       ade4::scatter(Model)
-      dev.off()
+      grDevices::dev.off()
     }
   }
   
@@ -96,7 +96,7 @@ VarImp_RspCurv <- function(Model,
       )
     row.names(V_IMP) <- NULL
     if (file.exists(paste(DirV, "/VariableImportance.txt", sep = ""))) {
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -105,7 +105,7 @@ VarImp_RspCurv <- function(Model,
         col.names = F
       )
     } else{
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -115,15 +115,15 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     if (!Algorithm %in% "MLK") {
-      png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+      grDevices::png(
+        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
         width = 3200,
         height = 3200,
         units = "px",
         res = 800
       )
       plot(Model, type = "cloglog")
-      dev.off()
+      grDevices::dev.off()
     } else{
       plot(Model)
     }
@@ -144,7 +144,7 @@ VarImp_RspCurv <- function(Model,
       )
     row.names(V_IMP) <- NULL
     if (file.exists(paste(DirV, "/VariableImportance.txt", sep = ""))) {
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -153,7 +153,7 @@ VarImp_RspCurv <- function(Model,
         col.names = F
       )
     } else{
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -162,8 +162,8 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+    grDevices::png(
+      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
       width = 3200,
       height = 3200,
       units = "px",
@@ -172,7 +172,7 @@ VarImp_RspCurv <- function(Model,
     dismo::gbm.plot(Model,
              plot.layout = c(length(Model$var.names) / 3, 3),
              write.title = F)
-    dev.off()
+    grDevices::dev.off()
   }
   
   #Random Forests----
@@ -188,7 +188,7 @@ VarImp_RspCurv <- function(Model,
       )
     row.names(V_IMP) <- NULL
     if (file.exists(paste(DirV, "/VariableImportance.txt", sep = ""))) {
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -197,7 +197,7 @@ VarImp_RspCurv <- function(Model,
         col.names = F
       )
     } else{
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -206,14 +206,14 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+    grDevices::png(
+      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
       width = 3200,
       height = 3200,
       units = "px",
       res = 800
     )
-    par(mfrow = c(ceiling(nrow(
+    graphics::par(mfrow = c(ceiling(nrow(
       Model$importance
     ) / 3), 3))
     for (o in 1:nrow(Model$importance)) {
@@ -225,7 +225,7 @@ VarImp_RspCurv <- function(Model,
         main = NULL
       )
     }
-    dev.off()
+    grDevices::dev.off()
   }
   
   #Support Vector Machine----
@@ -241,7 +241,7 @@ VarImp_RspCurv <- function(Model,
       )
     row.names(V_IMP) <- NULL
     if (file.exists(paste(DirV, "/VariableImportance.txt", sep = ""))) {
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -250,7 +250,7 @@ VarImp_RspCurv <- function(Model,
         col.names = F
       )
     } else{
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -259,9 +259,9 @@ VarImp_RspCurv <- function(Model,
       )
     }
     # #Response Curves
-    # png(file.path(DirV,paste0("Response_Curves_",VarColT[k],".png")),width = 3200, height = 3200, units = "px", res = 800)
+    # grDevices::png(file.path(DirV,paste0("Response_Curves_",VarColT[k],".grDevices::png")),width = 3200, height = 3200, units = "px", res = 800)
     # partialPlot(Model,pred.data=SpDataT[,VarColT],main=NULL)
-    # dev.off()
+    # grDevices::dev.off()
   }
   
   #GLM,GAM----
@@ -277,7 +277,7 @@ VarImp_RspCurv <- function(Model,
       )
     row.names(V_IMP) <- NULL
     if (file.exists(paste(DirV, "/VariableImportance.txt", sep = ""))) {
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -286,7 +286,7 @@ VarImp_RspCurv <- function(Model,
         col.names = F
       )
     } else{
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -297,14 +297,14 @@ VarImp_RspCurv <- function(Model,
     #Response Curves
     if (Algorithm %in% "GLM") {
       CCC <- sum(!grepl('[(]', names(Model$coefficients)))
-      png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+      grDevices::png(
+        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
         width = 3200,
         height = 3200,
         units = "px",
         res = 800
       )
-      par(mfrow = c(CCC / 3, 3))
+      graphics::par(mfrow = c(CCC / 3, 3))
       visreg::visreg(
         Model,
         scale = "response",
@@ -312,16 +312,16 @@ VarImp_RspCurv <- function(Model,
         line = list(lwd = 1),
         plot = T
       )
-      dev.off()
+      grDevices::dev.off()
     } else{
-      png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+      grDevices::png(
+        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
         width = 3200,
         height = 3200,
         units = "px",
         res = 800
       )
-      par(mfrow = c(ceiling(length(
+      graphics::par(mfrow = c(ceiling(length(
         Model$var.summary
       ) / 3), 3))
       visreg::visreg(
@@ -331,7 +331,7 @@ VarImp_RspCurv <- function(Model,
         line = list(lwd = 1),
         plot = T
       )
-      dev.off()
+      grDevices::dev.off()
     }
   }
   
@@ -348,7 +348,7 @@ VarImp_RspCurv <- function(Model,
       )
     row.names(V_IMP) <- NULL
     if (file.exists(paste(DirV, "/VariableImportance.txt", sep = ""))) {
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -357,7 +357,7 @@ VarImp_RspCurv <- function(Model,
         col.names = F
       )
     } else{
-      write.table(
+      utils::write.table(
         V_IMP,
         paste(DirV, "/VariableImportance.txt", sep = ""),
         append = TRUE,
@@ -366,17 +366,17 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+    grDevices::png(
+      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
       width = 3200,
       height = 3200,
       units = "px",
       res = 800
     )
-    par(mfrow = c(ceiling(length(
+    graphics::par(mfrow = c(ceiling(length(
       ncol(Model$x)
     ) / 3), 3))
     GRaF::plot.graf(Model)
-    dev.off()
+    grDevices::dev.off()
   }
 }

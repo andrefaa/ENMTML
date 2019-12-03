@@ -27,7 +27,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   options(warn = -1)
 
   #Start Cluster
-  cl <- makeCluster(cores,outfile="")
+  cl <- parallel::makeCluster(cores,outfile="")
   registerDoParallel(cl)
 
   # Directory to save----
@@ -81,7 +81,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   # raster::extracting enviromental variables----
   Ncol <- ncol(RecordsData) + 1
-  RecordsData <- na.omit(data.frame(RecordsData, raster::extract(Variables, RecordsData[, c("x", "y")])))
+  RecordsData <- stats::na.omit(data.frame(RecordsData, raster::extract(Variables, RecordsData[, c("x", "y")])))
   Ncol2 <- ncol(RecordsData)
   VarCol <- colnames(RecordsData[,Ncol:Ncol2])
 
@@ -146,7 +146,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
            }
            ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
            colnames(ab.0) <- colnames(RecordsData)
-           ab0L[[x]] <- na.omit(ab.0)
+           ab0L[[x]] <- stats::na.omit(ab.0)
            rm(var.0)
            # RecordsDataM <- rbind(RecordsDataM[[i]],ab.0)
            # rm(ab.0)
@@ -200,7 +200,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
           colnames(ab.0) <- colnames(RecordsData)
-          ab0L[[x]] <- na.omit(ab.0)
+          ab0L[[x]] <- stats::na.omit(ab.0)
           rm(var.0)
           # RecordsDataM <- rbind(RecordsDataM,ab.0)
           # rm(ab.0)
@@ -384,7 +384,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #BIO Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
         if(is.null(repl)){
@@ -498,7 +498,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #BIO Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -536,7 +536,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #DOM Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -654,7 +654,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #DOM Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -693,7 +693,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #MAH Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -817,7 +817,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #MAH Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -851,7 +851,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Sli <- apply(Zli, 2, f1)
           m <- apply(Sli, 2, mean)
           cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-          RastPart[["ENF"]][[i]] <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+          RastPart[["ENF"]][[i]] <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["ENF"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -862,7 +862,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #ENF Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -878,7 +878,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(scale(na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
+            Zli <- as.matrix(scale(stats::na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
             POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -887,7 +887,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Sli <- apply(Zli, 2, f1)
             m <- apply(Sli, 2, mean)
             cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-            PredRas <- data.frame(MD = mahalanobis(Zli, center = m, cov = cov))
+            PredRas <- data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov))
             XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
@@ -942,7 +942,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
+            Zli <- as.matrix(stats::na.omit(values(VariablesT)) %*% as.matrix(Model$co))
             POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -951,7 +951,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Sli <- apply(Zli, 2, f1)
             m <- apply(Sli, 2, mean)
             cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-            PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+            PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
             XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
@@ -965,7 +965,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
             PredRas <- values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(na.omit(values(VariablesT)) %*% as.matrix(Model$co))
+            Zli <- as.matrix(stats::na.omit(values(VariablesT)) %*% as.matrix(Model$co))
             POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -974,7 +974,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Sli <- apply(Zli, 2, f1)
             m <- apply(Sli, 2, mean)
             cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-            PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+            PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
             XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
             PredRAS <- data.frame(cbind(XY,ENF=NA))
             PredRAS[-POS,"ENF"] <- PredRas
@@ -1011,7 +1011,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             for(k in 1:length(VariablesP)){
               PredRas <- values(VariablesP[[k]])
               POS <- which(is.na(PredRas[,1]))
-              Zli <- as.matrix(na.omit(values(VariablesP[[k]])) %*% as.matrix(Model$co))
+              Zli <- as.matrix(stats::na.omit(values(VariablesP[[k]])) %*% as.matrix(Model$co))
               POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
               ZER <- rep(0,nrow(PredRas))
               ZER[POSPRE] <- 1
@@ -1020,7 +1020,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Sli <- apply(Zli, 2, f1)
               m <- apply(Sli, 2, mean)
               cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-              PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+              PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
               XY <- raster::xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
               PredRAS <- data.frame(cbind(XY,ENF=NA))
               PredRAS[-POS,"ENF"] <- PredRas
@@ -1041,7 +1041,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(k in 1:length(VariablesP)){
           PredRas <- values(VariablesP[[k]])
           POS <- which(is.na(PredRas[,1]))
-          Zli <- as.matrix(na.omit(values(VariablesP[[k]])) %*% as.matrix(Model[[i]]$co))
+          Zli <- as.matrix(stats::na.omit(values(VariablesP[[k]])) %*% as.matrix(Model[[i]]$co))
           POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
           ZER <- rep(0,nrow(PredRas))
           ZER[POSPRE] <- 1
@@ -1050,7 +1050,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Sli <- apply(Zli, 2, f1)
           m <- apply(Sli, 2, mean)
           cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-          PredRas <- (data.frame(MD = mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+          PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
           XY <- raster::xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
           PredRAS <- data.frame(cbind(XY,ENF=NA))
           PredRAS[-POS,"ENF"] <- PredRas
@@ -1067,7 +1067,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #ENF Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -1106,7 +1106,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #MXD Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -1223,7 +1223,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #MXD Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -1261,7 +1261,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #MXS Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -1379,7 +1379,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #MXS Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -1402,7 +1402,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Model <- list()
         Fmula <- paste( " ~ ", paste(c(VarColT, paste("I(",VarColT, "^2)", sep = "")),
                                      collapse = " + "), sep = "")
-        Fmula <- as.formula(Fmula)
+        Fmula <- stats::as.formula(Fmula)
         #MLK model
         for (i in 1:N) {
           dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
@@ -1433,7 +1433,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
 
           #MXS Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -1553,7 +1553,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MLK"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
 
             #MLK Validation
-            BoyceSD <- sd(unlist(Boyce))
+            BoyceSD <- stats::sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
@@ -1569,7 +1569,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #SUPPORT VECTOR MACHINE (SVM)-----
     if (any(Algorithm == "SVM")) {
       Model <- list()
-      Fmula <- formula(paste("PresAbse", '~ .'))
+      Fmula <- stats::formula(paste("PresAbse", '~ .'))
 
       #SVM model
       for (i in 1:N) {
@@ -1595,7 +1595,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #SVM Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -1722,7 +1722,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #SVM Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -1763,7 +1763,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
 
         #RDF Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -1897,7 +1897,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
           #RDF Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -1920,7 +1920,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Model <- list()
         Fmula <- paste("s(", VarColT,",k=3)", sep="")
         Fmula <- paste("PresAbse", paste(Fmula, collapse = " + "), sep = " ~ ")
-        Fmula <- as.formula(Fmula)
+        Fmula <- stats::as.formula(Fmula)
 
         #GAM model
         for (i in 1:N) {
@@ -1945,7 +1945,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
 
           #GAM Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -2066,7 +2066,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
             #GAM Validation
-            BoyceSD <- sd(unlist(Boyce))
+            BoyceSD <- stats::sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
@@ -2090,11 +2090,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Model <- list()
         Fmula <- paste( "PresAbse ~ ", paste(c(VarColT, paste("I(",VarColT, "^2)", sep = "")),
                                      collapse = " + "), sep = "")
-        Fmula <- as.formula(Fmula)
+        Fmula <- stats::as.formula(Fmula)
         #GLM model
         for (i in 1:N) {
           dataPr <- PAtrain[[i]][, c("PresAbse", VarColT)]
-          Model[[i]] <- glm(Fmula, data = dataPr, family = binomial)
+          Model[[i]] <- stats::glm(Fmula, data = dataPr, family = binomial)
         }
 
         #GLM evaluation
@@ -2114,7 +2114,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
 
           #GLM Validation
-          BoyceSD <- sd(unlist(Boyce))
+          BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
           Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
           if(is.null(repl)){
@@ -2173,14 +2173,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           # Save final model
           if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
-              # Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family = binomial(link = "logit"))
-              Model <- glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
+              # Model <- stats::glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family = binomial(link = "logit"))
+              Model <- stats::glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  binomial)
               FinalModelT <- predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
             }else{
-              Model <- glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family =  gaussian(link = "identity"))
+              Model <- stats::glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family =  binomial)
               FinalModelT <- predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
@@ -2233,7 +2233,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
             #GLM Validation
-            BoyceSD <- sd(unlist(Boyce))
+            BoyceSD <- stats::sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
@@ -2273,7 +2273,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
 
       #GAU Validation
-      BoyceSD <- sd(unlist(Boyce))
+      BoyceSD <- stats::sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
       Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
       if(is.null(repl)){
@@ -2396,7 +2396,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
         #GAU Validation
-        BoyceSD <- sd(unlist(Boyce))
+        BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
         Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
         if(is.null(repl)){
@@ -2464,7 +2464,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
 
             #BRT Validation
-            BoyceSD <- sd(unlist(Boyce))
+            BoyceSD <- stats::sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
             Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
             if(is.null(repl)){
@@ -2614,7 +2614,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
               #BRT Validation
-              BoyceSD <- sd(unlist(Boyce))
+              BoyceSD <- stats::sd(unlist(Boyce))
               Boyce <- mean(unlist(Boyce))
               Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
               if(is.null(repl)){
@@ -2901,10 +2901,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 FinalValidation <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Validation"))))
 FinalSummary <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Summary"))))
 
-write.table(FinalValidation,paste(DirSave, VALNAME, sep = '/'),sep="\t",
+utils::write.table(FinalValidation,paste(DirSave, VALNAME, sep = '/'),sep="\t",
             col.names = T,row.names=F)
 if(repl==1 || is.null(repl)){
-  write.table(FinalSummary,paste(DirSave, VALNAMEII, sep = '/'),sep="\t",
+  utils::write.table(FinalSummary,paste(DirSave, VALNAMEII, sep = '/'),sep="\t",
               col.names = T,row.names=F)
 }
 
@@ -2927,5 +2927,5 @@ InfoModeling <- list(c("########################################################
   lapply(InfoModeling, write,
          paste(DirSave, "/InfoModeling.txt", sep=""), append=TRUE,
          ncolumns=20, sep='\t')
-  stopCluster(cl)
+  parallel::stopCluster(cl)
 }
