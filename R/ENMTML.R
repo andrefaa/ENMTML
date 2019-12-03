@@ -156,7 +156,7 @@
 #' data("env")
 #' d_env <- file.path(d_ex, 'current_env_var')
 #' dir.create(d_env)
-#' writeRaster(env, file.path(d_env, names(env)), bylayer=TRUE, format='GTiff')
+#' raster::writeRaster(env, file.path(d_env, names(env)), bylayer=TRUE, format='GTiff')
 #' # Five bioclimatic variables for future conditions
 #' # (for more details see predictors_future help)
 #' data("env_fut")
@@ -165,9 +165,9 @@
 #' d0 <- file.path(d_fut, names(env_fut))
 #' sapply(d0, dir.create)
 #'
-#' writeRaster(env_fut$`2080_4.5`, file.path(d0[1],
+#' raster::writeRaster(env_fut$`2080_4.5`, file.path(d0[1],
 #'             names(env_fut$`2080_4.5`)), bylayer=TRUE, format='GTiff')
-#' writeRaster(env_fut$`2080_8.5`, file.path(d0[2],
+#' raster::writeRaster(env_fut$`2080_8.5`, file.path(d0[2],
 #'             names(env_fut$`2080_8.5`)), bylayer=TRUE, format='GTiff')
 #'
 #' # Polygon of terrestrial ecoregion
@@ -432,7 +432,7 @@ ENMTML <- function(pred_dir,
   options(warn = 1)
   setwd(pred_dir)
 
-  env <- unique(file_ext(list.files()))
+  env <- unique(tools::file_ext(list.files()))
   form <- c('bil', 'asc', 'txt', 'tif')
   env <- env[env %in% form]
   if (length(env) > 1) {
@@ -440,42 +440,42 @@ ENMTML <- function(pred_dir,
   }
 
   if(any(env == c('asc', 'bil', 'tif'))){
-    envT<-stack(list.files(pattern=paste0('\\.',env,'$')))
-    try(envT <- brick(envT))
+    envT<-raster::stack(list.files(pattern=paste0('\\.',env,'$')))
+    try(envT <- raster::brick(envT))
     if(class(envT)=="RasterBrick"){
-      print("RasterBrick successfully created!")
+      cat("RasterBrick successfully created!\n")
     }else{
-      print("Failed to create RasterBrick, using Raster Stack instead!")
+      cat("Failed to create RasterBrick, using Raster Stack instead!\n")
     }
   }
   if(env == 'txt'){
     envT<-read.table(list.files(pattern='\\.txt$'),h=T)
-    gridded(envT)<- ~x+y
-    envT<-stack(envT)
-    try(envT <- brick(envT))
+    sp::gridded(envT)<- ~x+y
+    envT<-raster::stack(envT)
+    try(envT <- raster::brick(envT))
     if(class(envT)=="RasterBrick"){
-      print("RasterBrick successfully created!")
+      cat("RasterBrick successfully created!\n")
     }else{
-      print("Failed to create RasterBrick, using Raster Stack instead!")
+      cat("Failed to create RasterBrick, using Raster Stack instead!\n")
     }
   }
 
   #CRS
-  if(is.na(crs(envT))){
-    crs(envT) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+  if(is.na(raster::crs(envT))){
+    raster::crs(envT) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   }
 
   #3.0.Check predictors consistency
   if(length(unique(colSums(!is.na(envT[]))))>1){
-    envT <- mask(envT,calc(envT,fun = sum))
-    print("Variables had differences, setting any empty cells to NA in all variables")
+    envT <- raster::mask(envT,raster::calc(envT,fun = sum))
+    cat("Variables had differences, setting any empty cells to NA in all variables\n")
   }
 
   #3.1.Projection----
   if(!is.null(proj_dir)){
     DirP<-proj_dir
     Pfol<-file.path(DirP,list.files(DirP))
-    if(any(file_ext(list.files(DirP))%in%form)){
+    if(any(tools::file_ext(list.files(DirP))%in%form)){
       stop("Select a folder containing folders with environment conditions for different regions or time periods, NOT a folder with this variables!")
     }
 
@@ -484,10 +484,10 @@ ENMTML <- function(pred_dir,
     #Check Present/Future Names Consistency
     FutN <- list()
     for(i in 1:length(Pfol)){
-      ProjT <- unique(file_ext(list.files(Pfol[[i]])))
+      ProjT <- unique(tools::file_ext(list.files(Pfol[[i]])))
       form <- c('bil','asc','txt','tif')
       ProjT <- ProjT[ProjT%in%form]
-      FutN[[i]] <- file_path_sans_ext(list.files(Pfol[[i]],pattern=ProjT))
+      FutN[[i]] <- tools::file_path_sans_ext(list.files(Pfol[[i]],pattern=ProjT))
     }
     if(any(unlist(lapply(FutN, function(x) (names(envT)!=x))))){
       stop("Present/Future Variables Do Not Match! Make sure Present/Future Variables have the same names")
@@ -499,8 +499,8 @@ ENMTML <- function(pred_dir,
     #3.1.1.VIF----
     if(colin_var%in%"VIF") {
       cat("Performing a reduction of variables collinearity ...\n")
-      VF <- vifstep(envT, th = 10)
-      envT <- exclude(envT, VF)
+      VF <- usdm::vifstep(envT, th = 10)
+      envT <- usdm::exclude(envT, VF)
       if (!is.null(proj_dir)) {
         RasM <- colMeans(na.omit(values(envT)))
         RasSTD <- apply(na.omit(values(envT)), 2, std)
@@ -510,7 +510,7 @@ ENMTML <- function(pred_dir,
       if(!is.null(proj_dir)) {
         EnvF <- list()
         for (i in 1:length(Pfol)) {
-          ProjT <- unique(file_ext(list.files(Pfol[i])))
+          ProjT <- unique(tools::file_ext(list.files(Pfol[i])))
           form <- c('bil', 'asc', 'txt', 'tif')
           ProjT <- ProjT[ProjT %in% form]
           if (length(ProjT) > 1) {
@@ -518,12 +518,12 @@ ENMTML <- function(pred_dir,
           }
 
           if(any(ProjT == c('asc', 'bil', 'tif'))){
-            EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
+            EnvF[[i]]<-raster::brick(raster::stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
           }
           if(ProjT == 'txt'){
             ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
-            gridded(ProjTT)<- ~x+y
-            EnvF[[i]]<-brick(stack(ProjTT))
+            sp::gridded(ProjTT)<- ~x+y
+            EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
           }
 
@@ -540,7 +540,7 @@ ENMTML <- function(pred_dir,
       if(!is.null(proj_dir)){
         EnvF <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol,Save="Y")
         names(EnvF) <- PfolN
-        envT <- brick(stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
+        envT <- raster::brick(raster::stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
       }else{
         envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
       }
@@ -549,9 +549,8 @@ ENMTML <- function(pred_dir,
     #3.3.3.Pearson----
     if(colin_var['method']=="PEARSON"){
       cat("Performing a reduction of variables collinearity ...\n")
-      cat("Select correlation threshold:(0-1)\n")
       Cor_TH <- as.numeric(colin_var["threshold"])
-      Pear <- layerStats(envT, 'pearson', na.rm=T)
+      Pear <- raster::layerStats(envT, 'pearson', na.rm=T)
       corr_matrix <- abs(Pear$'pearson correlation coefficient')
       corr_matrix[upper.tri(corr_matrix)] <- 0
       diag(corr_matrix) <- 0
@@ -560,12 +559,12 @@ ENMTML <- function(pred_dir,
         RasM <- colMeans(na.omit(values(envT)))
         RasSTD <- apply(na.omit(values(envT)),2,std)
       }
-      envT <- scale(envT)
+      envT <- raster::scale(envT)
 
       if(!is.null(proj_dir)){
         EnvF <- list()
         for(i in 1:length(Pfol)){
-          ProjT <- unique(file_ext(list.files(Pfol[i])))
+          ProjT <- unique(tools::file_ext(list.files(Pfol[i])))
           form <- c('bil','asc','txt','tif')
           ProjT <- ProjT[ProjT%in%form]
           if(length(ProjT)>1){
@@ -573,12 +572,15 @@ ENMTML <- function(pred_dir,
           }
 
           if(any(ProjT == c('asc', 'bil', 'tif'))){
-            EnvF[[i]]<-brick(stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
+            EnvF[[i]] <-
+              raster::brick(raster::stack(file.path(
+                Pfol[i], list.files(Pfol[i], pattern = paste0('\\.', ProjT, '$'))
+              )))
           }
           if(ProjT == 'txt'){
             ProjTT<-read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
-            gridded(ProjTT)<- ~x+y
-            EnvF[[i]]<-brick(stack(ProjTT))
+            sp::gridded(ProjTT)<- ~x+y
+            EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
           }
 
@@ -592,7 +594,7 @@ ENMTML <- function(pred_dir,
     if (!is.null(proj_dir)) {
       EnvF <- list()
       for (i in 1:length(Pfol)) {
-        ProjT <- unique(file_ext(list.files(Pfol[i])))
+        ProjT <- unique(tools::file_ext(list.files(Pfol[i])))
         form <- c('bil', 'asc', 'txt', 'tif')
         ProjT <- ProjT[ProjT %in% form]
         if (length(ProjT) > 1) {
@@ -600,7 +602,7 @@ ENMTML <- function(pred_dir,
         }
         if (any(ProjT == c('asc', 'bil', 'tif'))) {
           EnvF[[i]] <-
-            brick(stack(file.path(
+            raster::brick(raster::stack(file.path(
               Pfol[i], list.files(Pfol[i], pattern = paste0('\\.', ProjT, '$'))
             )))
         }
@@ -608,8 +610,8 @@ ENMTML <- function(pred_dir,
           ProjTT <-
             read.table(file.path(Pfol[i], list.files(Pfol[i], pattern = '\\.txt$'), h =
                                    T))
-          gridded(ProjTT) <- ~ x + y
-          EnvF[[i]] <- brick(stack(ProjTT))
+          sp::gridded(ProjTT) <- ~ x + y
+          EnvF[[i]] <- raster::brick(raster::stack(ProjTT))
           rm(ProjTT)
         }
       }
@@ -623,7 +625,7 @@ ENMTML <- function(pred_dir,
   }
 
   #3.4.Aviso caso min_occ<NPreditores
-  if(min_occ<nlayers(envT)){
+  if(min_occ<raster::nlayers(envT)){
     warning("The minimum number of occurrences is smaller than the number of predictors.
             This may cause some issues while fitting certain algorithms!")
   }
@@ -658,6 +660,7 @@ ENMTML <- function(pred_dir,
 
   #4.2.Thining----
   if(!is.null(thin_occ)){
+    cat("Thinning occurrences...\n")
     if(thin_occ['method']%in%c('MORAN','CELLSIZE')){
       occA <- OccsThin(occ=occA, envT, as.character(thin_occ['method']), colin_var['method'], DirR, pred_dir)
     }
@@ -667,7 +670,7 @@ ENMTML <- function(pred_dir,
   }
 
   #4.3.Save Thinned & Unique Occurrences
-  ndb <- ldply(occA)[,1:3]
+  ndb <- plyr::ldply(occA)[,1:3]
   write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
 
   #4.3.Remove species with less than min_occ----
@@ -677,9 +680,9 @@ ENMTML <- function(pred_dir,
 
   #4.4.Species with few records----
   if(length(occ)!=length(occ_xy)){
-    print(paste("Species with less than ",min_occ, " Unique Occurrences were removed!"))
+    cat(paste("Species with less than ",min_occ, " Unique Occurrences were removed! \n"))
     print(names(occ_xy)[names(occ_xy)%in%spN==F])
-    ndb <- ldply(occ)[,1:3]
+    ndb <- plyr::ldply(occ)[,1:3]
     write.table(ndb,file.path(DirR,"Occurrences_Filtered.txt"),sep="\t",row.names=F)
     rm(ndb)
   }
@@ -781,16 +784,8 @@ ENMTML <- function(pred_dir,
         }
 
 
-        # print("Use Longitudinal(1) or Latitudinal Bands(2)?")
         bands <- as.integer(part['type'])
         TipoMoran <- "all"
-        # print("Select Moran Calculation Type (all/nearest):")
-        # TipoMoran <- as.character(readLines(n = 1))
-        # while(is.na(TipoMoran)||!(TipoMoran%in%c("all","nearest"))){
-        #   warning("Please choose a valid Moran Calculation Type [all/nearest]")
-        #   print("Select Moran Calculation Type (all/nearest):")
-        #   TipoMoran <- as.character(readLines(n = 1))
-        # }
 
         #Check for M-Restriction
         if(exists("DirM")){
@@ -830,7 +825,7 @@ ENMTML <- function(pred_dir,
       }
 
       if(all(paste0(spN,".tif")%in%list.files(DirB,pattern=".tif"))){
-        print("Partition Already Exist! Using pre-created partitions! ")
+        cat("Partition Already Exist! Using pre-created partitions! \n")
         occINPUT <- read.table(file.path(DirB,"OccBlocks.txt"),sep="\t",header=T)
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
@@ -846,13 +841,6 @@ ENMTML <- function(pred_dir,
         }
 
         TipoMoran <- "all"
-        # print("Select Moran Calculation Type (all/nearest):")
-        # TipoMoran <- as.character(readLines(n = 1))
-        # while(is.na(TipoMoran)||!(TipoMoran%in%c("all","nearest"))){
-        #   warning("Please choose a valid Moran Calculation Type [all/nearest]")
-        #   print("Select Moran Calculation Type (all/nearest):")
-        #   TipoMoran <- as.character(readLines(n = 1))
-        # }
 
         #Check for M-Restriction
         if(exists("DirM")){
@@ -885,7 +873,7 @@ ENMTML <- function(pred_dir,
     #6.2.1.Check if all species are valid----
     occValid <- split(occINPUT,occINPUT$sp)
     occValid1 <- lapply(occValid,function(x) table(x$Partition))
-    occValid1 <- unlist(lapply(occValid1,function(x) all(x>nlayers(envT))))
+    occValid1 <- unlist(lapply(occValid1,function(x) all(x>raster::nlayers(envT))))
     occValid2 <- lapply(occValid, function(x) length(unique(x$Partition)))==2
     if(!all(occValid2) || !all(occValid1)){
       cat("Some species could not reach a suitable geographic partition!\n")
@@ -903,7 +891,7 @@ ENMTML <- function(pred_dir,
     if(is.null(msdm)||msdm["method"]%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCP-B')){
       DirPRI <- NULL
     }else{
-      print("Creating msdm layers...")
+      cat("Creating msdm layers...\n")
 
       DirMSDM<-"msdm"
       if (file.exists(file.path(DirR,DirMSDM))){
@@ -923,23 +911,29 @@ ENMTML <- function(pred_dir,
     }
 
     #6.5.Adjust Checkerboard when using Geographical Restrictions----
-    if(!is.null(sp_accessible_area)){
-      Ms <- stack(file.path(DirM,list.files(DirM)))
+    if (!is.null(sp_accessible_area)) {
+      Ms <- raster::stack(file.path(DirM, list.files(DirM)))
       Ms <- Ms[[spN]]
-      Cs <- stack(file.path(DirB,list.files(DirB,pattern=".tif$")))
+      Cs <-
+        raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
       # nomesCs <- gsub("_"," ",names(Cs))
-      for(i in 1:nlayers(Ms)){
-        writeRaster(Ms[[i]]*Cs[[i]], file.path(DirB,names(Cs)[i]),format="GTiff",
-                    bylayer=F,overwrite=T,NAflag=-9999)
+      for (i in 1:raster::nlayers(Ms)) {
+        writeRaster(
+          Ms[[i]] * Cs[[i]],
+          file.path(DirB, names(Cs)[i]),
+          format = "GTiff",
+          bylayer = F,
+          overwrite = T,
+          NAflag = -9999
+        )
       }
     }
 
 
     #6.6.Value for Sensitivity Threshold
-    if(any(thr[grep('type', names(thr))]%in%"SENSITIVITY")){
-      # cat("Specify the desired sensitivity value (0-1):\n")
+    if (any(thr[grep('type', names(thr))] %in% "SENSITIVITY")) {
       sensV <- as.numeric(thr['sens'])
-    }else{
+    } else{
       sensV <- NULL
     }
 
@@ -985,7 +979,7 @@ ENMTML <- function(pred_dir,
     if(is.null(msdm)||msdm['method']%in%c('OBR', 'LR', 'PRES', 'MCP', 'MCP-B')){
       DirPRI <- NULL
     }else{
-      print("Creating msdm Layers...")
+      cat("Creating msdm layers...\n")
 
       DirMSDM<-"msdm"
       if (file.exists(file.path(DirR,DirMSDM))){
@@ -1006,10 +1000,10 @@ ENMTML <- function(pred_dir,
     if(part['method']=="KFOLD"){
       rep <- as.integer(part['folds'])
       per<-1
-      occFold<- lapply(occ_xy, function(x) cbind(x,kfold(x,rep)))
+      occFold<- lapply(occ_xy, function(x) cbind(x,dismo::kfold(x,rep)))
       colsK <-  c("x","y","Partition");
       occFold <- lapply(occFold, setNames, colsK)
-      write.table(ldply(occFold,data.frame,.id="sp"),file.path(DirR,"CrossValidationGroups.txt"),sep="\t",row.names=F)
+      write.table(plyr::ldply(occFold,data.frame,.id="sp"),file.path(DirR,"CrossValidationGroups.txt"),sep="\t",row.names=F)
     }
 
     #Adjusting for determined evaluation dataset
@@ -1039,7 +1033,7 @@ ENMTML <- function(pred_dir,
       }
       if(part['method']=="BOOT"){
         if(rep!=1){
-          print(paste("Replicate.....",k),sep="")
+          cat(paste("Replicate ...",k, "\n"),sep="")
         }
         tr <- lapply(occ_xy, function(x) sample(1:nrow(x),round(nrow(x)*per)))
         occTR <- list()
@@ -1064,7 +1058,7 @@ ENMTML <- function(pred_dir,
       }
 
       if(part['method']=="KFOLD"){
-        print(paste("Adjusting fold....",k,sep=""))
+        cat(paste0("Adjusting fold....", k, "\n"))
         occFoldK <- lapply(occFold, function(x) ifelse(x$Partition!=k,1,2))
         occFoldK <- Map(cbind,occ_xy,occFoldK)
         occFoldK <- lapply(occFoldK, setNames, colsK)
@@ -1080,11 +1074,11 @@ ENMTML <- function(pred_dir,
 
       #7.4. Generating Pseudo-Absences----
       # Pseudo-Absences with Random allocation-----
-      if(pseudoabs_method['method']=="RND"){
-        if(!is.null(proj_dir)&& !is.null(eval_occ)){
+      if (pseudoabs_method['method'] == "RND") {
+        if (!is.null(proj_dir) && !is.null(eval_occ)) {
           pseudo.mask <- envT[[1]]
           pseudo.maskP <- EnvF[[1]][[1]]
-        }else{
+        } else{
           pseudo.mask <- envT[[1]]
           pseudo.maskP <- envT[[1]]
         }
@@ -1094,7 +1088,7 @@ ENMTML <- function(pred_dir,
         for(s in 1:length(occTR)){
           set.seed(s)
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster(file.path(DirM,paste0(names(occTR)[s],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[s],".tif")))
             SpMask <- pseudo.mask*SpMask
             if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[s]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
@@ -1106,11 +1100,11 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR[[s]] <- randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = extent(SpMask),prob = FALSE)
-            absencesTS[[s]] <- randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = extent(SpMask),prob = FALSE)
+            absencesTR[[s]] <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTS[[s]] <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR[[s]] <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = extent(pseudo.mask),prob = FALSE)
-            absencesTS[[s]] <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = extent(pseudo.mask),prob = FALSE)
+            absencesTR[[s]] <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
+            absencesTS[[s]] <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
           }
         }
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x))))
@@ -1139,7 +1133,7 @@ ENMTML <- function(pred_dir,
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          print("Environmental constrain already exists! Using already-created masks!")
+          cat("Environmental constrain already exists! Using already-created masks!\n")
           EnvMsk <- "Y"
         }
 
@@ -1151,10 +1145,10 @@ ENMTML <- function(pred_dir,
           if(EnvMsk=="N"){
             pseudo.mask <- inv_bio(envT, occTR[[i]][,c("x","y")])
 
-            writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
+            raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
           }else{
-            pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
+            pseudo.mask <- raster::raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
           if(!is.null(proj_dir)&& !is.null(eval_occ)){
@@ -1164,7 +1158,7 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
             SpMask <- pseudo.mask*SpMask
             if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
@@ -1176,19 +1170,19 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = extent(SpMask),prob = FALSE)
-            absencesTS.0 <- randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = extent(SpMask),prob = FALSE)
+            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = extent(pseudo.mask),
+            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
+                                         ext = raster::extent(pseudo.mask),
                                          prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = extent(pseudo.mask),
+              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           ext = raster::extent(pseudo.mask),
                                            prob = FALSE)
             }else{
-              absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = extent(pseudo.mask),
+              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           ext = raster::extent(pseudo.mask),
                                            prob = FALSE)
             }
           }
@@ -1219,7 +1213,7 @@ ENMTML <- function(pred_dir,
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          print("Geographical constrain already exists! Using already-created masks!")
+          cat("Geographical constrain already exists! Using already-created masks!\n")
           EnvMsk <- "Y"
         }
 
@@ -1231,10 +1225,10 @@ ENMTML <- function(pred_dir,
           if(EnvMsk=="N"){
 
             pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-            writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
+            raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
           }else{
-            pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
+            pseudo.mask <- raster::raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
           if(!is.null(proj_dir)&& !is.null(eval_occ)){
@@ -1244,7 +1238,7 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
             SpMask <- pseudo.mask*SpMask
             if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
@@ -1256,19 +1250,19 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = extent(SpMask),prob = FALSE)
-            absencesTS.0 <- randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = extent(SpMask),prob = FALSE)
+            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = extent(pseudo.mask),
+            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
+                                         ext = raster::extent(pseudo.mask),
                                          prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = extent(pseudo.mask),
+              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           ext = raster::extent(pseudo.mask),
                                            prob = FALSE)
             }else{
-              absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = extent(pseudo.mask),
+              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           ext = raster::extent(pseudo.mask),
                                            prob = FALSE)
             }
           }
@@ -1298,7 +1292,7 @@ ENMTML <- function(pred_dir,
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          print("Geographical constrain already exists! Using already-created masks!")
+          cat("Geographical constrain already exists! Using already-created masks! \n")
           EnvMsk <- "Y"
         }
 
@@ -1312,10 +1306,10 @@ ENMTML <- function(pred_dir,
             pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
             pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
-            writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
+            raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
           }else{
-            pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
+            pseudo.mask <- raster::raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
           if(!is.null(proj_dir)&& !is.null(eval_occ)){
@@ -1325,7 +1319,7 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
             SpMask <- pseudo.mask*SpMask
             if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
@@ -1336,19 +1330,19 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = extent(SpMask),prob = FALSE)
-            absencesTS.0 <- randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = extent(SpMask),prob = FALSE)
+            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = extent(pseudo.mask),
+            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
+                                         ext = raster::extent(pseudo.mask),
                                          prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = extent(pseudo.mask),
+              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           ext = raster::extent(pseudo.mask),
                                            prob = FALSE)
             }else{
-              absencesTS.0 <- randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = extent(pseudo.mask),
+              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           ext = raster::extent(pseudo.mask),
                                            prob = FALSE)
             }
           }
@@ -1378,7 +1372,7 @@ ENMTML <- function(pred_dir,
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          print("Geographical constrain already exists! Using already-created masks!")
+          cat("Geographical constrain already exists! Using already-created masks! \n")
           EnvMsk <- "Y"
         }
 
@@ -1392,10 +1386,10 @@ ENMTML <- function(pred_dir,
             pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
             pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
-            writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
+            raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
           }else{
-            pseudo.mask <- raster(file.path(DirCons,paste0(spN[i],".tif")))
+            pseudo.mask <- raster::raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
 
           if(!is.null(proj_dir)&& !is.null(eval_occ)){
@@ -1405,7 +1399,7 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
             SpMask <- pseudo.mask*SpMask
             if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
@@ -1417,23 +1411,23 @@ ENMTML <- function(pred_dir,
               SpMaskP <- SpMask
             }
 
-            absencesTR.0 <- KM(rasterToPoints(SpMask)[,-3],
-                               mask(envT, SpMask),
+            absencesTR.0 <- KM(raster::rasterToPoints(SpMask)[,-3],
+                               raster::mask(envT, SpMask),
                                ((1 / pres_abs_ratio)*nrow(occTR[[i]])))
-            absencesTS.0 <- KM(rasterToPoints(SpMaskP)[,-3],
-                               mask(envT, SpMaskP),
+            absencesTS.0 <- KM(raster::rasterToPoints(SpMaskP)[,-3],
+                               raster::mask(envT, SpMaskP),
                                ((1 / pres_abs_ratio)*nrow(occTS[[i]])))
           }else{
-            absencesTR.0 <- KM(cell_coord = rasterToPoints(pseudo.mask)[,-3],
-                               variable = mask(envT, pseudo.mask),
+            absencesTR.0 <- KM(cell_coord = raster::rasterToPoints(pseudo.mask)[,-3],
+                               variable = raster::mask(envT, pseudo.mask),
                                NumAbsence = (1 / pres_abs_ratio)*nrow(occTR[[i]]))
             if(!is.null(eval_occ)){
-              absencesTS.0 <- KM(rasterToPoints(pseudo.maskP)[,-3],
-                                 mask(envT, pseudo.mask),
+              absencesTS.0 <- KM(raster::rasterToPoints(pseudo.maskP)[,-3],
+                                 raster::mask(envT, pseudo.mask),
                                  (1 / pres_abs_ratio)*nrow(occTS[[i]]))
             }else{
-              absencesTS.0 <- KM(rasterToPoints(pseudo.maskP)[,-3],
-                                 mask(envT, pseudo.mask),
+              absencesTS.0 <- KM(raster::rasterToPoints(pseudo.maskP)[,-3],
+                                 raster::mask(envT, pseudo.mask),
                                  (1 / pres_abs_ratio)*nrow(occTS[[i]]))
             }
           }
@@ -1452,20 +1446,25 @@ ENMTML <- function(pred_dir,
 
 
       #Model Input
-      for(i in 1:length(occTR)){
-        occTR[[i]] <- cbind(rep(names(occTR)[i],nrow(occTR[[i]])),occTR[[i]])
-        colnames(occTR[[i]]) <- c("sp","x","y","Partition","PresAbse")
-        absencesTR[[i]] <- data.frame(cbind(rep(names(occTR)[i],nrow(absencesTR[[i]])),absencesTR[[i]]))
+      for(i in 1:length(occTR)) {
+        occTR[[i]] <-
+          cbind(rep(names(occTR)[i], nrow(occTR[[i]])), occTR[[i]])
+        colnames(occTR[[i]]) <-
+          c("sp", "x", "y", "Partition", "PresAbse")
+        absencesTR[[i]] <-
+          data.frame(cbind(rep(names(occTR)[i], nrow(absencesTR[[i]])), absencesTR[[i]]))
         colnames(absencesTR[[i]]) <- colnames(occTR[[i]])
-        occTS[[i]] <- cbind(rep(names(occTR)[i],nrow(occTS[[i]])),occTS[[i]])
+        occTS[[i]] <-
+          cbind(rep(names(occTR)[i], nrow(occTS[[i]])), occTS[[i]])
         colnames(occTS[[i]]) <- colnames(occTR[[i]])
-        absencesTS[[i]] <- data.frame(cbind(rep(names(occTR)[i],nrow(absencesTS[[i]])),absencesTS[[i]]))
+        absencesTS[[i]] <-
+          data.frame(cbind(rep(names(occTR)[i], nrow(absencesTS[[i]])), absencesTS[[i]]))
         colnames(absencesTS[[i]]) <- colnames(occTR[[i]])
       }
-      occTR <- ldply(occTR,data.frame,.id=NULL)
-      absencesTR <- ldply(absencesTR,data.frame,.id=NULL)
-      occTS <- ldply(occTS,data.frame,.id=NULL)
-      absencesTS <- ldply(absencesTS,data.frame,.id=NULL)
+      occTR <- plyr::ldply(occTR,data.frame,.id=NULL)
+      absencesTR <- plyr::ldply(absencesTR,data.frame,.id=NULL)
+      occTS <- plyr::ldply(occTS,data.frame,.id=NULL)
+      absencesTS <- plyr::ldply(absencesTS,data.frame,.id=NULL)
       occINPUT <- rbind(occTR,absencesTR,occTS,absencesTS)
       cols = c("x","y","Partition","PresAbse");
       occINPUT[,cols] = apply(occINPUT[,cols], 2, function(x) as.numeric(as.character(x)))
@@ -1497,7 +1496,6 @@ ENMTML <- function(pred_dir,
 
       #7.9.Value for Sensitivity Threshold
       if(any(thr[grep('type', names(thr))]%in%"SENSITIVITY")){
-        # cat("Specify the desired sensitivity value (0-1):")
         sensV <- as.numeric(thr['sens'])
       }else{
         sensV <- NULL
@@ -1538,8 +1536,8 @@ ENMTML <- function(pred_dir,
     #7.11.Save Final Occurrence Table & Validation File----
     if(rep!=1){
       #Save Final Occurrence Table
-      occTREINO <- ldply(occTREINO,data.frame,.id=NULL)
-      occTESTE <- ldply(occTESTE,data.frame,.id=NULL)
+      occTREINO <- plyr::ldply(occTREINO,data.frame,.id=NULL)
+      occTESTE <- plyr::ldply(occTESTE,data.frame,.id=NULL)
       write.table(occTREINO,file.path(DirR,"Occurrences_Fitting.txt"),sep="\t",row.names=F)
       write.table(occTESTE,file.path(DirR,"Occurrences_Evaluation.txt"),sep="\t",row.names=F)
 
@@ -1549,7 +1547,7 @@ ENMTML <- function(pred_dir,
       for(i in 1:length(val)){
         valF[[i]] <- read.table(file.path(DirR,val[i]),sep="\t",header=T)
       }
-      valF <- ldply(valF,data.frame,.id=NULL)
+      valF <- plyr::ldply(valF,data.frame,.id=NULL)
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
       valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
@@ -1569,7 +1567,7 @@ ENMTML <- function(pred_dir,
         for(i in Boot){
           BootF[[i]] <- read.table(file.path(DirR,i),sep="\t",header=T)
         }
-        BootF <- ldply(BootF,data.frame,.id=NULL)
+        BootF <- plyr::ldply(BootF,data.frame,.id=NULL)
         BootF <- BootF[order(as.character(BootF[,1])),]
         BootF_Mean <- aggregate(.~sp, data=BootF, mean)
         BootF_SD <- aggregate(.~sp, data=BootF, sd)
@@ -1629,7 +1627,7 @@ ENMTML <- function(pred_dir,
     }
     #Perform MSDM Posterior
     for(i in 1:length(DirPost)){
-      print(paste("Folder.....",i,"/",length(DirPost),sep=""))
+      cat(paste("Folder.....",i,"/",length(DirPost),sep=""))
       MSDM_Posterior(
         RecordsData = occINPUT,
         Threshold = thr[grep('type', names(thr))],
