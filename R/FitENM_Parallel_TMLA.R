@@ -94,7 +94,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   }
 
   # Species names
-  print(paste("Total species to be modeled", length(spN)))
+  message(paste("Total species to be modeled", length(spN)))
 
   # Number of partition
   N <- as.numeric(max(RecordsData[, "Partition"]))
