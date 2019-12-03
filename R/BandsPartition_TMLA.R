@@ -67,7 +67,7 @@ BandsPartition_TMLA <- function(evnVariables,
   #Development
   #Start Cluster
   cl <- parallel::makeCluster(cores, outfile = "")
-  registerDoParallel(cl)
+  parallel::registerDoParallel(cl)
 
 
   #Separate data by groups
