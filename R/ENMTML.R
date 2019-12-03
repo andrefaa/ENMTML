@@ -391,7 +391,7 @@ ENMTML <- function(pred_dir,
       msdm_width <- NULL
     }
   }
-  
+
   if(!is.null(sp_accessible_area)){
     if(!(sp_accessible_area['method']%in%c('BUFFER','MASK','USER-DEFINED','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
       stop("'sp_accessible_area' Argument is not valid!(BUFFER/MASK/USER-DEFINED)")
@@ -1551,7 +1551,7 @@ ENMTML <- function(pred_dir,
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
       valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
-      valF_SD <- aggregate(.~Sp+Algorithm, data=valF, stats::sd())
+      valF_SD <- aggregate(.~Sp+Algorithm, data=valF, function(x) stats::sd(x))
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)
@@ -1570,7 +1570,7 @@ ENMTML <- function(pred_dir,
         BootF <- plyr::ldply(BootF,data.frame,.id=NULL)
         BootF <- BootF[order(as.character(BootF[,1])),]
         BootF_Mean <- aggregate(.~sp, data=BootF, mean)
-        BootF_SD <- aggregate(.~sp, data=BootF, stats::sd())
+        BootF_SD <- aggregate(.~sp, data=BootF, function(x) stats::sd(x))
         BootF_SD <- BootF_SD[,-c(1,4)]
         colnames(BootF_SD) <- paste0(colnames(BootF_SD),"_SD")
         BootF <- cbind(BootF_Mean,BootF_SD)
