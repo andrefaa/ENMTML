@@ -28,7 +28,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   #Start Cluster
   cl <- parallel::makeCluster(cores,outfile="")
-  registerDoParallel(cl)
+  doParallel::registerDoParallel(cl)
 
   # Directory to save----
   folders <- paste(DirSave,"Algorithm",Algorithm,sep="/")

@@ -78,7 +78,7 @@ M_delimited <- function(var,
     })
     
     cl <- parallel::makeCluster(parallel::detectCores() - 1)
-    registerDoParallel(cl)
+    doParallel::registerDoParallel(cl)
     foreach(i = 1:length(M_list),
             .packages = c("raster")) %dopar% {
               if (Buffer_Opt == 2) {
@@ -131,7 +131,7 @@ M_delimited <- function(var,
     })
     
     cl <- parallel::makeCluster(parallel::detectCores() - 1)
-    registerDoParallel(cl)
+    doParallel::registerDoParallel(cl)
     foreach(i = 1:length(sp.Ecoregions),
             .packages = c("raster")) %dopar% {
               EcoregionSp <- EcoregionsFile
