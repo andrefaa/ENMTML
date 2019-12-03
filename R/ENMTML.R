@@ -273,7 +273,7 @@ ENMTML <- function(pred_dir,
                    extrapolation=FALSE,
                    cores=1) {
 
-  #0.Check Function Arguments----
+  #1.Check Function Arguments----
   cat("Checking for function arguments ...\n")
 
   er <- NULL
