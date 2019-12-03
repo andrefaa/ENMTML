@@ -246,8 +246,77 @@
 #'list.dirs(d_rslt)
 #'
 #'
+#' @import raster
+#' @import dismo
+#' @import rgdal
+#' @import GRaF
+#' @import foreach
+#' @importFrom ade4 scatter
+#' @importFrom ade4 dudi.pca
+#' @importFrom adehabitatHS madifa
+#' @importFrom ape Moran.I
+#' @importFrom caret filterVarImp
+#' @importFrom caret varImp
+#' @importFrom data.table rbindlist
+#' @importFrom doParallel registerDoParallel
+#' @importFrom flexclust dist2
+#' @importFrom gbm predict.gbm
+#' @importFrom geoR variog
+#' @importFrom rgeos gUnaryUnion
+#' @importFrom glmnet glmnet
+#' @importFrom glmnet glmnet.control
+#' @importFrom kernlab ksvm
+#' @importFrom kernlab predict
+#' @importFrom maxnet maxnet
+#' @importFrom maxnet response.plot
+#' @importFrom maxnet maxnet.formula
+#' @importFrom maxlike maxlike
+#' @importFrom mgcv gam
+#' @importFrom plyr ldply
+#' @importFrom pracma haversine
+#' @importFrom pracma std
+#' @importFrom randomForest randomForest
+#' @importFrom randomForest tuneRF
+#' @importFrom randomForest partialPlot
+#' @importFrom randomForest importance
+#' @importFrom RStoolbox rasterPCA
+#' @importFrom sp gridded
+#' @importFrom sp over
+#' @importFrom SpatialEpi latlong2grid
+#' @importFrom spThin thin
+#' @importFrom tools file_ext
+#' @importFrom tools file_path_sans_ext
+#' @importFrom usdm vifstep
+#' @importFrom usdm exclude
+#' @importFrom visreg visreg
+#' @importFrom grDevices boxplot.stats
+#' @importFrom grDevices dev.off
+#' @importFrom grDevices png
+#' @importFrom graphics par
+#' @importFrom methods as
+#' @importFrom stats as.formula
+#' @importFrom stats binomial
+#' @importFrom stats cor
+#' @importFrom stats dist
+#' @importFrom stats formula
+#' @importFrom stats glm
+#' @importFrom stats kmeans
+#' @importFrom stats mahalanobis
+#' @importFrom stats median
+#' @importFrom stats model.matrix
+#' @importFrom stats na.omit
+#' @importFrom stats prcomp
+#' @importFrom stats sd
+#' @importFrom stats setNames
+#' @importFrom utils capture.output
+#' @importFrom utils read.table
+#' @importFrom utils write.table
+#' @importFrom parallel makeCluster
+#' @importFrom parallel detectCores
+#' @importFrom parallel stopCluster
 #'
 #' @export
+#'
 #'
 ENMTML <- function(pred_dir,
                    proj_dir=NULL,
@@ -391,7 +460,7 @@ ENMTML <- function(pred_dir,
       msdm_width <- NULL
     }
   }
-  
+
   if(!is.null(sp_accessible_area)){
     if(!(sp_accessible_area['method']%in%c('BUFFER','MASK','USER-DEFINED','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
       stop("'sp_accessible_area' Argument is not valid!(BUFFER/MASK/USER-DEFINED)")
@@ -404,23 +473,6 @@ ENMTML <- function(pred_dir,
     }
   }
 
-
-
-  #1.Load Packages ----
-
-  ipak <- function(pkg) {
-    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
-    if (length(new.pkg))
-      install.packages(new.pkg, dependencies = TRUE)
-    sapply(pkg, require, character.only = TRUE)
-  }
-
-
-  ipak(c("raster","sp","dismo","kernlab","randomForest","rgdal",
-         "maxnet","maptools","maxlike","mgcv", "plyr", "GRaF",
-         "RStoolbox","flexclust","ape","tools","SDMTools","SpatialEpi",
-         "rgeos", "foreach", "doParallel","data.table","devtools","spThin","geoR",
-         "usdm","pracma","gbm","caret","adehabitatHS", "visreg","igraph"))
 
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
@@ -1551,7 +1603,7 @@ ENMTML <- function(pred_dir,
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
       valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
-      valF_SD <- aggregate(.~Sp+Algorithm, data=valF, stats::sd())
+      valF_SD <- aggregate(.~Sp+Algorithm, data=valF, function(x) stats::sd(x))
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)
@@ -1570,7 +1622,7 @@ ENMTML <- function(pred_dir,
         BootF <- plyr::ldply(BootF,data.frame,.id=NULL)
         BootF <- BootF[order(as.character(BootF[,1])),]
         BootF_Mean <- aggregate(.~sp, data=BootF, mean)
-        BootF_SD <- aggregate(.~sp, data=BootF, stats::sd())
+        BootF_SD <- aggregate(.~sp, data=BootF, function(x) stats::sd(x))
         BootF_SD <- BootF_SD[,-c(1,4)]
         colnames(BootF_SD) <- paste0(colnames(BootF_SD),"_SD")
         BootF <- cbind(BootF_Mean,BootF_SD)

@@ -13,15 +13,15 @@ Authors@R:
            comment = c(ORCID = "0000-0002-7527-0967")))
 Description: Fit ENMs.....
 License: GPL (>= 2)
-Depends: R (>= 3.1.0)
-Imports: adehabitatHS, ape, caret, data.table, devtools, dismo, doParallel, 
-         flexclust, foreach, gbm, geoR,GRaF, kernlab, maptools, 
-         maxlike, maxnet, mgcv, plyr, pracma, randomForest, 
-         raster, rgdal, rgeos, RStoolbox, SDMTools, sp, SpatialEpi, 
+Depends: R (>= 3.5.0)
+Imports: ade4, adehabitatHS, ape, caret, data.table, dismo,  
+         flexclust, foreach, gbm, geoR, glmnet, GRaF, kernlab, 
+         maxlike, maxnet, methods, mgcv, parallel, doParallel, plyr, pracma, randomForest, 
+         raster, rgdal, rgeos, RStoolbox, sp, SpatialEpi, 
          spThin, tools, usdm, visreg
 URL: https://github.com/andrefaa/ENMTML
 BugReports: https://github.com/andrefaa/ENMTML/issues
 Encoding: UTF-8
 Language: en
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.0
