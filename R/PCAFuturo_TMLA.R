@@ -24,7 +24,7 @@ PCAFuturo <- function(Env,
   PcaR <- DF[, -c(1:2)]
   
   means <- colMeans(PcaR)
-  stds <- apply(PcaR, 2, stats::sd())
+  stds <- apply(PcaR, 2, stats::sd)
   
   #Scale transform
   DScale <- data.frame(apply(PcaR, 2, scale))
@@ -77,16 +77,15 @@ PCAFuturo <- function(Env,
   DirP <- as.list(DirP)
   ProjEX <-
     lapply(DirP, function(x)
-      unique(file_ext(list.files(x))))
+      unique(tools::file_ext(list.files(x))))
   form <- c('bil', 'asc', 'txt', 'tif')
   ProjEX <- unique(unlist(ProjEX)[unlist(ProjEX) %in% form])
   
   if (any(ProjEX %in% c('asc', 'bil', 'tif'))) {
     ProjT <-
       lapply(DirP, function(x)
-        raster::brick(stack(file.path(
-          x, list.files(x, paste0('\\.', ProjEX, '$'))
-        ))))
+        raster::brick(raster::stack(list.files(x, pattern=paste0('\\.', ProjEX, '$'),
+                                       full.names=T))))
   }
   
   if (any(ProjEX %in% 'txt')) {
