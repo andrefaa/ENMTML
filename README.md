@@ -19,8 +19,11 @@ library(ENMTML)
 
 **FOR NEW USERS**  
 ```ruby
+# install.packages("devtools")  
+library(devtools)  
 install_github("goldingn/GRaF")  
-library(GRaF)
+install_github("andrefaa/ENMTML")  
+library(ENMTML)
 ```
 
 
@@ -79,7 +82,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   + **MASK** this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage </br><b style='color:red'>`sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp')`</b>..
 * **pseudoabs_method:** character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
   + **RND:** Random allocation of pseudo-absences throughout the area used for model fitting. Usage </br><b style='color:red'>`pseudoabs_method=c(method='RND')`</b>.
-  + **ENV_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage </br><b style='color:red'>`pseudoabs_method=c(method='ENV_CONST')`</b>.
+  + **ENV_CONST:** Pseudo-absences are environmentally constrained to a region with lower suitability values predicted by a Bioclim model. Usage pseudoabs_method=c(method='ENV_CONST'). Usage </br><b style='color:red'>`pseudoabs_method=c(method='ENV_CONST')`</b>.
   + **GEO_CONST:** Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage </br><b style='color:red'>`pseudoabs_method=c(method='GEO_CONST', width='50')`</b>.
   + **GEO_ENV_CONST:** Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage </br><b style='color:red'> `pseudoabs_method=c(method='GEO_ENV_CONST', width='50')`</b>
   + **GEO_ENV_KM_CONST:** Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provide a second value which express the buffer width in km. Usage </br><b style='color:red'>`pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')`</b>.
@@ -105,7 +108,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   + **RDF:** Random Forest  
   + **MLK:** Maximum Likelihood  
   + **GAU:** Gaussian Process</br> 
-  Usage <b style='color:red'>`part=c('BIO', 'SVM', 'GLM', 'GAM', 'GAU')`.</b>
+  Usage <b style='color:red'> algorithm=c('BIO', 'SVM', 'GLM', 'GAM', 'GAU').</b>
 * **thr:** character. Threshold used for presence-absence predictions. It is possible to use more than one threshold type. It is necessary to provide a vector for this argument:
   + **LPT:** The highest threshold at which there is no omission. Usage </br><b style='color:red'>`thr=c(type='LPT')`</b>.
   + **MAX_TSS:** Threshold at which the sum of the sensitivity and specificity is the highest. Usage </br><b style='color:red'> `thr=c(type='MAX_TSS')`</b>.
@@ -150,12 +153,15 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
 
 ### Where are my results?  
 One level above the folder of your environmental variables will be created a **Result** folder, inside you will find a folder for algorithm results, ensemble results (if chosen), projections and maps of areas of extrapolation.  
-There are also four (4) txt files:     
- **N_Unique_OCC:** Number of unique occurrences of each species    
- **Info_Modelling:** Information of the modelling parameters       
- **Occ_filter:** Filtered occurrence with data used in the modelling (without the excluded species)        
- **Validation_Partition:** Information of the evaluation of partial models (e.g. while projecting the model onto the 30% left for test)       
- **Thresholds_Complete:** Information about the thresholds used to create the presence-absence maps (Presence-absence maps are created from the Threshold of complete models)    
+There are also some .txt files (note that some txt will be created under ceratin modeling settings, e.g., Thresholds_Ensemble.txt):     
+ **Evaluation_Table.txt** Contains the results for model evaluation    
+ ** InfoModeling.txt** Information of the modeling parameters       
+ **Number_Unique_Occurrences.txt** Number of unique occurrences of each species    
+ **Occurrences_Cleaned.txt** Datasets produced after occurrences were filtered by selecting a single occurrence per grid-cell       
+**Occurrences_Filtered.txt** Datasets produced after occurrences were filtered by selecting corrected sampling spatial bias (thinned occurrences)       
+ **Validation_Partition.txt** Information of the evaluation of partial models (e.g. while projecting the model onto the 30% left for test)       
+**Thresholds_Algorithm.txt** Information about the thresholds used to create the presence-absence maps for each algorithm (Presence-absence maps are created from the Threshold of complete models)    
+**Thresholds_Ensemble.txt** Information about the thresholds used to create the presence-absence maps for ensembled models    
 
 ### Last but not least  
 There are no defaults! We believe every ecological niche model should be carefully planned and that every decision matters! There are some recommended parameters and literature on which those were based, but they were not included as a default option for the modelling routine.  
