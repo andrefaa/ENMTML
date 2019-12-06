@@ -2429,10 +2429,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                        plot.main = F))
             learn.rate <- learn.rate-0.0005
             if(learn.rate<=0){
-              ListValidation[["BRT"]] <- NULL
-              ListRaster[["BRT"]] <- NULL
-              ListSummary[["BRT"]] <- NULL
-              RastPart[["BRT"]] <- NULL
               break
             }
           }
@@ -2441,6 +2437,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }else{
             Model[[i]] <- ModelT
           }
+        }
+        if(any(sapply(Model, is.null))){
+          ListValidation[["BRT"]] <- NULL
+          ListRaster[["BRT"]] <- NULL
+          ListSummary[["BRT"]] <- NULL
+          RastPart[["BRT"]] <- NULL
+          Model[sapply(Model, is.null)] <- NULL
         }
 
         #Check BRT Models

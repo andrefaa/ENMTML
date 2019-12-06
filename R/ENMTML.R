@@ -966,18 +966,11 @@ ENMTML <- function(pred_dir,
     if (!is.null(sp_accessible_area)) {
       Ms <- raster::stack(file.path(DirM, list.files(DirM)))
       Ms <- Ms[[spN]]
-      Cs <-
-        raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
       # nomesCs <- gsub("_"," ",names(Cs))
-      for (i in 1:raster::nlayers(Ms)) {
-        writeRaster(
-          Ms[[i]] * Cs[[i]],
-          file.path(DirB, names(Cs)[i]),
-          format = "GTiff",
-          bylayer = F,
-          overwrite = T,
-          NAflag = -9999
-        )
+      for(i in 1:nlayers(Ms)){
+        Cs <- raster(file.path(DirB,paste0(names(Ms)[i],".tif")))
+        writeRaster(Ms[[i]]*Cs, file.path(DirB,names(Cs)[i]),format="GTiff",
+                    bylayer=F,overwrite=T,NAflag=-9999)
       }
     }
 
@@ -1140,23 +1133,25 @@ ENMTML <- function(pred_dir,
         for(s in 1:length(occTR)){
           set.seed(s)
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[s],".tif")))
-            SpMask <- pseudo.mask*SpMask
-            if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[s]]))){
+            SpMask <- raster(file.path(DirM,paste0(names(occTR)[s],".tif")))
+            SpMask <- !is.na(pseudo.mask*SpMask)
+            SpMask[SpMask==0] <- NA
+            if(sum(!is.na(SpMask[]))<(pres_abs_ratio*nrow(occTR[[s]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
-              stop("Please try again with another restriction type or without restricting the extent")
-
+              pres_abs_ratioT <- (nrow(occTR[[s]])/sum(!is.na(SpMask[])))*0.9
+            }else{
+              pres_abs_ratioT <- pres_abs_ratio
             }
             if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR[[s]] <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS[[s]] <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTR[[s]] <- randomPoints(mask=SpMask, n=(1 / pres_abs_ratioT)*nrow(occTR[[s]]),p=occTR[[s]][,1:2],ext = extent(SpMask),prob = FALSE)
+            absencesTS[[s]] <- randomPoints(mask=SpMaskP, n=(1 / pres_abs_ratioT)*nrow(occTS[[s]]),p=occTS[[s]][,1:2],ext = extent(SpMask),prob = FALSE)
           }else{
-            absencesTR[[s]] <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
-            absencesTS[[s]] <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
+            absencesTR[[s]] <- randomPoints(mask=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[s]]),p=occTR[[s]][,1:2],ext = extent(pseudo.mask),prob = FALSE)
+            absencesTS[[s]] <- randomPoints(mask=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[s]]),p=occTS[[s]][,1:2],ext = extent(pseudo.mask),prob = FALSE)
           }
         }
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x))))
@@ -1183,10 +1178,8 @@ ENMTML <- function(pred_dir,
         }
 
         #Check for Environmental Constrain Existence
-        EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          cat("Environmental constrain already exists! Using already-created masks!\n")
-          EnvMsk <- "Y"
+          print("Environmental constrain already exists! Using already-created masks!")
         }
 
         absencesTR <- list()
@@ -1194,11 +1187,9 @@ ENMTML <- function(pred_dir,
 
         for (i in 1:length(occTR)) {
           set.seed(i)
-          if(EnvMsk=="N"){
+          if(!file.exists(file.path(DirCons,paste0(spN[i],".tif")))){
             pseudo.mask <- inv_bio(envT, occTR[[i]][,c("x","y")])
-
-            raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
-
+            writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
           }else{
             pseudo.mask <- raster::raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
@@ -1210,31 +1201,36 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
-            SpMask <- pseudo.mask*SpMask
-            if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
+            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- !is.na(pseudo.mask*SpMask)
+            SpMask[SpMask==0] <- NA
+            if(sum(!is.na(SpMask[]))<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
-              stop("Please try again with another restriction type or without restricting the extent")
-
+              pres_abs_ratioT <- (nrow(occTR[[i]])/sum(!is.na(SpMask[])))*0.9
+            }else{
+              pres_abs_ratioT <- pres_abs_ratio
             }
             if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTR.0 <- randomPoints(mask=SpMask, n=(1 / pres_abs_ratioT)*nrow(occTR[[i]]),p=occTR[[i]][,1:2],ext = extent(SpMask),prob = FALSE)
+            absencesTS.0 <- randomPoints(mask=SpMaskP, n=(1 / pres_abs_ratioT)*nrow(occTS[[i]]),p=occTS[[i]][,1:2],ext = extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = raster::extent(pseudo.mask),
+            absencesTR.0 <- randomPoints(mask=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),
+                                         p=occTR[[i]][,1:2],
+                                         ext = extent(pseudo.mask),
                                          prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
+              absencesTS.0 <- randomPoints(mask=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           p=occTS[[i]][,1:2],
+                                           ext = extent(pseudo.mask),
                                            prob = FALSE)
             }else{
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
+              absencesTS.0 <- randomPoints(mask=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           p=occTS[[i]][,1:2],
+                                           ext = extent(pseudo.mask),
                                            prob = FALSE)
             }
           }
@@ -1263,10 +1259,8 @@ ENMTML <- function(pred_dir,
         }
 
         #Check for Environmental Constrain Existence
-        EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          cat("Geographical constrain already exists! Using already-created masks!\n")
-          EnvMsk <- "Y"
+          print("Geographical constrain already exists! Using already-created masks!")
         }
 
         absencesTR <- list()
@@ -1274,11 +1268,9 @@ ENMTML <- function(pred_dir,
 
         for (i in 1:length(occTR)) {
           set.seed(i)
-          if(EnvMsk=="N"){
-
+          if(!file.exists(file.path(DirCons,paste0(spN[i],".tif")))){
             pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-            raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
-
+            writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
           }else{
             pseudo.mask <- raster::raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
@@ -1290,31 +1282,38 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
-            SpMask <- pseudo.mask*SpMask
-            if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
+            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- !is.na(pseudo.mask*SpMask)
+            SpMask[SpMask==0] <- NA
+            if(sum(!is.na(SpMask[]))<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
-              stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
-
+              pres_abs_ratioT <- (nrow(occTR[[i]])/sum(!is.na(SpMask[])))*0.9
+            }else{
+              pres_abs_ratioT <- pres_abs_ratio
             }
+            
             if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            
+            absencesTR.0 <- randomPoints(mask=SpMask, n=(1 / pres_abs_ratioT)*nrow(occTR[[i]]),p=occTR[[i]][,1:2],ext = extent(SpMask),prob = FALSE)
+            absencesTS.0 <- randomPoints(mask=SpMaskP, n=(1 / pres_abs_ratioT)*nrow(occTS[[i]]),p=occTS[[i]][,1:2],ext = extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = raster::extent(pseudo.mask),
+            absencesTR.0 <- randomPoints(mask=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),
+                                         p=occTR[[i]][,1:2],
+                                         ext = extent(pseudo.mask),
                                          prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
+              absencesTS.0 <- randomPoints(mask=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           p=occTS[[i]][,1:2],
+                                           ext = extent(pseudo.mask),
                                            prob = FALSE)
             }else{
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
+              absencesTS.0 <- randomPoints(mask=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           p=occTS[[i]][,1:2],
+                                           ext = extent(pseudo.mask),
                                            prob = FALSE)
             }
           }
@@ -1342,10 +1341,8 @@ ENMTML <- function(pred_dir,
         }
 
         #Check for Environmental Constrain Existence
-        EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          cat("Geographical constrain already exists! Using already-created masks! \n")
-          EnvMsk <- "Y"
+          print("Geographical constrain already exists! Using already-created masks!")
         }
 
         absencesTR <- list()
@@ -1353,8 +1350,7 @@ ENMTML <- function(pred_dir,
 
         for (i in 1:length(occTR)) {
           set.seed(i)
-          if(EnvMsk=="N"){
-
+          if(!file.exists(file.path(DirCons,paste0(spN[i],".tif")))){
             pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
             pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
@@ -1371,30 +1367,38 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
-            SpMask <- pseudo.mask*SpMask
-            if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
+            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- !is.na(pseudo.mask*SpMask)
+            SpMask[SpMask==0] <- NA
+            if(sum(!is.na(SpMask[]))<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
-              stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
+              pres_abs_ratioT <- (nrow(occTR[[i]])/sum(!is.na(SpMask[])))*0.9
+            }else{
+              pres_abs_ratioT <- pres_abs_ratio
             }
+            
             if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            
+            absencesTR.0 <- randomPoints(mask=SpMask, n=(1 / pres_abs_ratioT)*nrow(occTR[[i]]),p=occTR[[i]][,1:2],ext = extent(SpMask),prob = FALSE)
+            absencesTS.0 <- randomPoints(mask=SpMaskP, n=(1 / pres_abs_ratioT)*nrow(occTS[[i]]),p=occTS[[i]][,1:2],ext = extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = raster::extent(pseudo.mask),
+            absencesTR.0 <- randomPoints(mask=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),
+                                         p=occTR[[i]][,1:2],
+                                         ext = extent(pseudo.mask),
                                          prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
+              absencesTS.0 <- randomPoints(mask=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           p=occTS[[i]][,1:2],
+                                           ext = extent(pseudo.mask),
                                            prob = FALSE)
             }else{
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
+              absencesTS.0 <- randomPoints(mask=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),
+                                           p=occTS[[i]][,1:2],
+                                           ext = extent(pseudo.mask),
                                            prob = FALSE)
             }
           }
@@ -1422,10 +1426,8 @@ ENMTML <- function(pred_dir,
         }
 
         #Check for Environmental Constrain Existence
-        EnvMsk <- "N"
         if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
-          cat("Geographical constrain already exists! Using already-created masks! \n")
-          EnvMsk <- "Y"
+          print("Geographical constrain already exists! Using already-created masks!")
         }
 
         absencesTR <- list()
@@ -1433,13 +1435,11 @@ ENMTML <- function(pred_dir,
 
         for (i in 1:length(occTR)) {
           set.seed(i)
-          if(EnvMsk=="N"){
-
+          if(!file.exists(file.path(DirCons,paste0(spN[i],".tif")))){
             pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
             pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
-            raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
-
+            writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
           }else{
             pseudo.mask <- raster::raster(file.path(DirCons,paste0(spN[i],".tif")))
           }
@@ -1451,24 +1451,28 @@ ENMTML <- function(pred_dir,
           }
 
           if(!is.null(sp_accessible_area)){
-            SpMask <- raster::raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
-            SpMask <- pseudo.mask*SpMask
-            if(sum(is.na(SpMask[])==F)<(pres_abs_ratio*nrow(occTR[[i]]))){
+            SpMask <- raster(file.path(DirM,paste0(names(occTR)[i],".tif")))
+            SpMask <- !is.na(pseudo.mask*SpMask)
+            SpMask[SpMask==0] <- NA
+            if(sum(!is.na(SpMask[]))<(pres_abs_ratio*nrow(occTR[[i]]))){
               warning("The ammount of cells in the M restriction is insuficient to generate a 1:1 number of pseudo-absences")
-              stop("Please try again with a smaller geographical buffer or without restricting the accessible area")
+              pres_abs_ratioT <- (nrow(occTR[[i]])/sum(!is.na(SpMask[])))*0.9
+            }else{
+              pres_abs_ratioT <- pres_abs_ratio
             }
+            
             if(!is.null(eval_occ)){
               SpMaskP <- pseudo.maskP
             }else{
               SpMaskP <- SpMask
             }
 
-            absencesTR.0 <- KM(raster::rasterToPoints(SpMask)[,-3],
-                               raster::mask(envT, SpMask),
-                               ((1 / pres_abs_ratio)*nrow(occTR[[i]])))
-            absencesTS.0 <- KM(raster::rasterToPoints(SpMaskP)[,-3],
-                               raster::mask(envT, SpMaskP),
-                               ((1 / pres_abs_ratio)*nrow(occTS[[i]])))
+            absencesTR.0 <- KM(rasterToPoints(SpMask)[,-3],
+                               mask(envT, SpMask),
+                               ((1 / pres_abs_ratioT)*nrow(occTR[[i]])))
+            absencesTS.0 <- KM(rasterToPoints(SpMaskP)[,-3],
+                               mask(envT, SpMaskP),
+                               ((1 / pres_abs_ratioT)*nrow(occTS[[i]])))
           }else{
             absencesTR.0 <- KM(cell_coord = raster::rasterToPoints(pseudo.mask)[,-3],
                                variable = raster::mask(envT, pseudo.mask),
