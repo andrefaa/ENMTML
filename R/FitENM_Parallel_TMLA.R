@@ -373,7 +373,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS <- list()
         Boyce <- list()
         for (i in 1:N) {
-          RastPart[["BIO"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
+          RastPart[["BIO"]][[i]] <- raster::predict(Model[[i]], PAtest[[i]][, VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BIO"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
@@ -398,7 +398,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         for(i in 1:N){
           #Partial Thresholds
           Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-          PartRas <- (predict(Model[[i]], VariablesT))
+          PartRas <- dismo::predict(Model[[i]], VariablesT)
           if(N!=1){
             raster::writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                         format='GTiff',
@@ -444,13 +444,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       if(repl==1 || is.null(repl)){
         if(is.null(repl) && N==1){
           Model <- dismo::bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences
-          FinalModelT <- predict(Model, VariablesT)
+          FinalModelT <- dismo::predict(Model, VariablesT)
           FinalModel <- STANDAR(FinalModelT)
           PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
         }else{
           Model <- dismo::bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-          FinalModelT <- predict(Model, VariablesT)
+          FinalModelT <- dismo::predict(Model, VariablesT)
           FinalModel <- STANDAR(FinalModelT)
           PredPoint <- raster::extract(FinalModel,SpDataT[,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -478,7 +478,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Future Projections
         if(is.null(Fut)==F){
           for(k in 1:length(VariablesP)){
-            ListFut[[ProjN[k]]][["BIO"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+            ListFut[[ProjN[k]]][["BIO"]] <- STANDAR_FUT(dismo::predict(VariablesP[[k]], Model),FinalModelT)
           }
         }
       }
@@ -486,7 +486,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+          ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(dismo::predict(VariablesP[[k]],Model[[i]]))
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["BIO"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -525,7 +525,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         Eval_JS <- list()
         for (i in 1:N) {
-          RastPart[["DOM"]][[i]] <- predict(Model[[i]], PAtest[[i]][VarColT])
+          RastPart[["DOM"]][[i]] <- raster::predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["DOM"]][[i]])
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2])
@@ -876,9 +876,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           for(i in 1:N){
             #Partial Thresholds
             Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PredRas <- values(VariablesT)
+            PredRas <- raster::values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(scale(stats::na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
+            Zli <- as.matrix(scale(stats::na.omit(raster::values(VariablesT))) %*% as.matrix(Model[[i]]$co))
             POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -940,9 +940,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(repl)){
             dudi <- ade4::dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
-            PredRas <- values(VariablesT)
+            PredRas <- raster::values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(stats::na.omit(values(VariablesT)) %*% as.matrix(Model$co))
+            Zli <- as.matrix(stats::na.omit(raster::values(VariablesT)) %*% as.matrix(Model$co))
             POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -963,9 +963,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }else{
             dudi <- ade4::dudi.pca(SpDataT[, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
-            PredRas <- values(VariablesT)
+            PredRas <- raster::values(VariablesT)
             POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(stats::na.omit(values(VariablesT)) %*% as.matrix(Model$co))
+            Zli <- as.matrix(stats::na.omit(raster::values(VariablesT)) %*% as.matrix(Model$co))
             POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
             ZER <- rep(0,nrow(PredRas))
             ZER[POSPRE] <- 1
@@ -1009,9 +1009,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Future Projections
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              PredRas <- values(VariablesP[[k]])
+              PredRas <- raster::values(VariablesP[[k]])
               POS <- which(is.na(PredRas[,1]))
-              Zli <- as.matrix(stats::na.omit(values(VariablesP[[k]])) %*% as.matrix(Model$co))
+              Zli <- as.matrix(stats::na.omit(raster::values(VariablesP[[k]])) %*% as.matrix(Model$co))
               POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
               ZER <- rep(0,nrow(PredRas))
               ZER[POSPRE] <- 1
@@ -1039,9 +1039,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          PredRas <- values(VariablesP[[k]])
+          PredRas <- raster::values(VariablesP[[k]])
           POS <- which(is.na(PredRas[,1]))
-          Zli <- as.matrix(stats::na.omit(values(VariablesP[[k]])) %*% as.matrix(Model[[i]]$co))
+          Zli <- as.matrix(stats::na.omit(raster::values(VariablesP[[k]])) %*% as.matrix(Model[[i]]$co))
           POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
           ZER <- rep(0,nrow(PredRas))
           ZER[POSPRE] <- 1
@@ -2442,6 +2442,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model[[i]] <- ModelT
           }
         }
+        
+        Model <- Model[sapply(Model, function(x) !is.null(x))]
 
         #Check BRT Models
         if (length(Model)==N){
