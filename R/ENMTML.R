@@ -970,7 +970,7 @@ ENMTML <- function(pred_dir,
         raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
       # nomesCs <- gsub("_"," ",names(Cs))
       for (i in 1:raster::nlayers(Ms)) {
-        writeRaster(
+        raster::writeRaster(
           Ms[[i]] * Cs[[i]],
           file.path(DirB, names(Cs)[i]),
           format = "GTiff",
