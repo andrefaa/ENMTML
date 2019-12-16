@@ -971,7 +971,7 @@ ENMTML <- function(pred_dir,
         raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
       # nomesCs <- gsub("_"," ",names(Cs))
       for (i in 1:raster::nlayers(Ms)) {
-        writeRaster(
+        raster::writeRaster(
           Ms[[i]] * Cs[[i]],
           file.path(DirB, names(Cs)[i]),
           format = "GTiff",
@@ -1603,8 +1603,8 @@ ENMTML <- function(pred_dir,
       valF <- plyr::ldply(valF,data.frame,.id=NULL)
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
-      valF_Mean <- aggregate(.~Sp+Algorithm, data=valF, mean)
-      valF_SD <- aggregate(.~Sp+Algorithm, data=valF, function(x) stats::sd(x))
+      valF_Mean <- aggregate(.~Sp+Algorithm+Threshold, data=valF, mean)
+      valF_SD <- aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x))
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)

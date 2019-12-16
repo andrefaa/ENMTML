@@ -273,12 +273,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     "predict.graf.raster", "PCA_ENS_TMLA", "predict.maxnet", "boycei",
       "STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA", "Validation_Table_TMLA",
       "Thresholds_TMLA", "VarImp_RspCurv", "hingeval", "ecospat.boyce",
-    "PREDICT_DomainMahal","rem_out")) %dopar% {
+    "PREDICT_DomainMahal","rem_out","PREDICT_ENFA")) %dopar% {
 
     #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
-
+    
+    #Partial Models List
+    RasT <- as.list(Algorithm)
+    names(RasT) <- Algorithm
+    
     #Validation List
     ListValidation <- as.list(Algorithm)
     names(ListValidation) <- Algorithm
@@ -372,85 +376,116 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Eval_JS <- list()
         Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
-          RastPart[["BIO"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
+          RastPart[["BIO"]][[i]] <- raster::predict(Model[[i]], PAtest[[i]][, VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BIO"]][[i]])
-          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                 PredPoint[PredPoint$PresAbse == 0, 2])
-          Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
+          Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
+          
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["BIO"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+          #Percentage of Predicted Area
+          RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
+
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["BIO"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["BIO"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          
+          #Save Partition Predictions
+          if(Save=="Y"){
+            #Partial Thresholds
+            if(N!=1){
+              raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
+              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
+              for(t in 1:length(Thr_Alg)){
+                raster::writeRaster(RasT[["BIO"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
+              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
+              for(t in 1:length(Thr_Alg)){
+                raster::writeRaster(RasT[["BIO"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
+              }
+            }else{
+              raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", 
+                                                sep=""),format='GTiff',overwrite=TRUE)
+              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
+              for(t in 1:length(Thr_Alg)){
+                raster::writeRaster(RasT[["BIO"]]>=Thr_Alg[t],
+                                    paste(grep("BIO",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
+              }
+            }
+          }
         }
 
         #BIO Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
         BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
         if(is.null(repl)){
-          ListValidation[["BIO"]] <- data.frame(Sp=spN[s], Algorithm="BIO",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+          ListValidation[["BIO"]] <- data.frame(Sp=spN[s], Algorithm="BIO",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BIO",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+          ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="BIO",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
 
-      #Save Partition Predictions
-      if(Save=="Y"){
-        for(i in 1:N){
-          #Partial Thresholds
-          Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-          PartRas <- (predict(Model[[i]], VariablesT))
-          if(N!=1){
-            raster::writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-            Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
-            for(t in 1:length(Thr_Alg)){
-              raster::writeRaster(PartRas>=Thr_Alg[t],
-                          paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-            }
-          }
-          if(is.null(repl)==F){
-            raster::writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-            Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
-            for(t in 1:length(Thr_Alg)){
-              raster::writeRaster(PartRas>=Thr_Alg[t],
-                          paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-            }
-          }else{
-            raster::writeRaster(PartRas,paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
-            Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
-            for(t in 1:length(Thr_Alg)){
-              raster::writeRaster(PartRas>=Thr_Alg[t],
-                          paste(grep("BIO",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
-            }
-          }
-        }
-      }
 
       # Save final model
       if(repl==1 || is.null(repl)){
         if(is.null(repl) && N==1){
           Model <- dismo::bioclim(SpDataT[SpDataT[,"PresAbse"]==1 & SpDataT[,"Partition"]==1, VarColT]) # only presences
-          FinalModelT <- predict(Model, VariablesT)
+          FinalModelT <- dismo::predict(Model, VariablesT)
           FinalModel <- STANDAR(FinalModelT)
           PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT[,"Partition"]==1,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
         }else{
           Model <- dismo::bioclim(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
-          FinalModelT <- predict(Model, VariablesT)
+          FinalModelT <- dismo::predict(Model, VariablesT)
           FinalModel <- STANDAR(FinalModelT)
           PredPoint <- raster::extract(FinalModel,SpDataT[,2:3])
           PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -478,33 +513,66 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Future Projections
         if(is.null(Fut)==F){
           for(k in 1:length(VariablesP)){
-            ListFut[[ProjN[k]]][["BIO"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+            ListFut[[ProjN[k]]][["BIO"]] <- STANDAR_FUT(dismo::predict(VariablesP[[k]], Model),FinalModelT)
           }
         }
       }
       }else{
         Eval <- list()
         Boyce <- list()
+        Eval_JS <- list()
+        pROC <- list()
+        Area <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+          ListFut[[ProjN[k]]][["BIO"]] <- STANDAR(dismo::predict(VariablesP[[k]],Model[[i]]))
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["BIO"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BIO"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          #Percentae of Predicted Area
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- ListFut[[ProjN[k]]][["BIO"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["BIO"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,
+                                              percentage=50)$pROC_summary
 
 
           #BIO Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["BIO"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BIO", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -524,75 +592,102 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
-          RastPart[["DOM"]][[i]] <- predict(Model[[i]], PAtest[[i]][VarColT])
+          RastPart[["DOM"]][[i]] <- raster::predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["DOM"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["DOM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        }
-
-        #DOM Validation
-        BoyceSD <- stats::sd(unlist(Boyce))
-        Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-        if(is.null(repl)){
-          ListValidation[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }else{
-          ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="DOM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }
-
-        #Save Partition Predictions
-        if(Save=="Y"){
-          for(i in 1:N){
-            #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
+          #Percentage of Predicted Area
+          RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["DOM"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["DOM"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          #Save Partition Predictions
+          if(Save=="Y"){
             if(N!=1){
               raster::writeRaster(
-                PartRas,
+                RasT[["DOM"]],
                 paste(grep("DOM", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
                 format = 'GTiff',
                 overwrite = TRUE )
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["DOM"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              raster::writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["DOM"]],paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["DOM"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }else{
-              raster::writeRaster(PartRas,paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["DOM"]],paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("DOM",foldCatAlg[t],value=T), '/',spN[s],sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["DOM"]]>=Thr_Alg[t],
+                                    paste(grep("DOM",foldCatAlg[t],value=T), '/',spN[s],sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
           }
         }
+
+        #DOM Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["DOM"]] <- data.frame(Sp=spN[s], Algorithm="DOM",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="DOM",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }
+
 
         # Save final model
         if(repl==1 || is.null(repl)){
@@ -642,25 +737,59 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }else{
         Eval <- list()
         Boyce <- list()
+        Eval_JS <- list()
+        pROC <- list()
+        Area <- list()
         for(k in 1:length(VariablesP)){
-          PredPoint <- predict(Model[[i]], PAtest[[i]][VarColT])
+          ListFut[[ProjN[k]]][["DOM"]] <- raster::predict(Model[[i]], PAtest[[i]][VarColT])
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["DOM"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["DOM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-
+          
+          #Percentae of Predicted Area
+          RasT[["DOM"]] <- STANDAR(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesP[[k]]))
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["DOM"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["DOM"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
 
           #DOM Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["DOM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="DOM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -678,78 +807,105 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MAH evaluation
       if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
-        Boyce <- list()
         Eval_JS <- list()
+        Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
-          RastPart[["MAH"]][[i]] <- predict(Model[[i]], PAtest[[i]][VarColT])
+          RastPart[["MAH"]][[i]] <- raster::predict(Model[[i]], PAtest[[i]][VarColT])
           RastPart[["MAH"]][[i]][RastPart[["MAH"]][[i]][] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MAH"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MAH"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        }
-
-        #MAH Validation
-        BoyceSD <- stats::sd(unlist(Boyce))
-        Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-        if(is.null(repl)){
-          ListValidation[["MAH"]] <- data.frame(Sp=spN[s], Algorithm="MAH",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }else{
-          ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MAH",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }
-
-        #Save Partition Predictions
-        if(Save=="Y"){
-          for(i in 1:N){
-            #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
-            PartRas[PartRas[] < -10] <- -10
+          #Percentage of Predicted Area
+          RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
+          RasT[["MAH"]][RasT[["MAH"]][] < -10] <- -10
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["MAH"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MAH"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          
+          #Save Partition Predictions
+          if(Save=="Y"){
             if(N!=1){
               raster::writeRaster(
-                PartRas,
+                RasT[["MAH"]],
                 paste(grep("MAH", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
                 format = 'GTiff',
                 overwrite = TRUE )
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MAH"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              raster::writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MAH"]],paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MAH"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",repl,sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }else{
-              raster::writeRaster(PartRas,paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MAH"]],paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("MAH",foldCatAlg[t],value=T), '/',spN[s],sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MAH"]]>=Thr_Alg[t],
+                                    paste(grep("MAH",foldCatAlg[t],value=T), '/',spN[s],sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
           }
+        }
+        
+        #MAH Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["MAH"]] <- data.frame(Sp=spN[s], Algorithm="MAH",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="MAH",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
 
         # Save final model
@@ -804,26 +960,62 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }else{
         Eval <- list()
         Boyce <- list()
+        Eval_JS <- list()
+        pROC <- list()
+        Area <- list()
         for(k in 1:length(VariablesP)){
-          PredPoint <- predict(Model[[i]], PAtest[[i]][VarColT])
+          PredPoint <- raster::predict(Model[[i]], PAtest[[i]][VarColT])
           PredPoint[PredPoint[] < -10] <- -10
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MAH"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-
-
+          
+          #Percentae of Predicted Area
+          RasT[["MAH"]] <- RasT[["MAH"]] <- STANDAR(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesP[[k]]))
+          RasT[["MAH"]][RasT[["MAH"]][] < -10] <- -10
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["MAH"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MAH"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,
+                                              percentage=50)$pROC_summary
+          
+          
           #MAH Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["MAH"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MAH", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -844,95 +1036,94 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         Eval_JS <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
-          Zli <- as.matrix(PAtestM[[i]][,VarColT]) %*% as.matrix(Model[[i]]$co)
-          ZER <- 1:nrow(PAtestM[[i]])
-          f1 <- function(x) rep(x, ZER)
-          Sli <- apply(Zli, 2, f1)
-          m <- apply(Sli, 2, mean)
-          cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-          RastPart[["ENF"]][[i]] <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+          RastPart[["ENF"]][[i]] <- PREDICT_ENFA(Model[[i]],PAtestM[[i]])
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["ENF"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["ENF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        }
-
-        #ENF Validation
-        BoyceSD <- stats::sd(unlist(Boyce))
-        Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-        if(is.null(repl)){
-          ListValidation[["ENF"]] <- data.frame(Sp=spN[s], Algorithm="ENF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }else{
-          ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="ENF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }
-
-        #Save Partition Predictions
-        if(Save=="Y"){
-          for(i in 1:N){
-            #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PredRas <- values(VariablesT)
-            POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(scale(stats::na.omit(values(VariablesT))) %*% as.matrix(Model[[i]]$co))
-            POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[i]][PAtrainM[[i]]$PresAbse==1,c("x","y")])
-            ZER <- rep(0,nrow(PredRas))
-            ZER[POSPRE] <- 1
-            ZER <- ZER[-POS]
-            f1 <- function(x) rep(x, ZER)
-            Sli <- apply(Zli, 2, f1)
-            m <- apply(Sli, 2, mean)
-            cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-            PredRas <- data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov))
-            XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
-            PredRAS <- data.frame(cbind(XY,ENF=NA))
-            PredRAS[-POS,"ENF"] <- PredRas
-            sp::gridded(PredRAS) <- ~x+y
-            PartRas <- (raster(PredRAS))
-            rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRAS"))
+          #Percentae of Predicted Area
+          RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["ENF"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["ENF"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          #Save Partition Predictions
+          if(Save=="Y"){
             if(N!=1){
-              raster::writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["ENF"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              raster::writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["ENF"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",repl,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }else{
-              raster::writeRaster(PartRas,paste(grep("ENF",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("ENF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["ENF"]]>=Thr_Alg[t],
+                                    paste(grep("ENF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
           }
+        }
+        
+        #ENF Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["ENF"]] <- data.frame(Sp=spN[s], Algorithm="ENF",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="ENF",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
 
         # Save final model
@@ -940,46 +1131,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(repl)){
             dudi <- ade4::dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
-            PredRas <- values(VariablesT)
-            POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(stats::na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-            POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
-            ZER <- rep(0,nrow(PredRas))
-            ZER[POSPRE] <- 1
-            ZER <- ZER[-POS]
-            f1 <- function(x) rep(x, ZER)
-            Sli <- apply(Zli, 2, f1)
-            m <- apply(Sli, 2, mean)
-            cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-            PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-            XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
-            PredRAS <- data.frame(cbind(XY,ENF=NA))
-            PredRAS[-POS,"ENF"] <- PredRas
-            sp::gridded(PredRAS) <- ~x+y
-            FinalModelT <- rem_out(raster(PredRAS))
+            FinalModelT <- PREDICT_ENFA(Model,VariablesT,PAtrainM[[1]])
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataTM[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }else{
             dudi <- ade4::dudi.pca(SpDataT[, VarColT],scannf = FALSE)
             Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
-            PredRas <- values(VariablesT)
-            POS <- which(is.na(PredRas[,1]))
-            Zli <- as.matrix(stats::na.omit(values(VariablesT)) %*% as.matrix(Model$co))
-            POSPRE <- raster::cellFromXY(VariablesT[[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
-            ZER <- rep(0,nrow(PredRas))
-            ZER[POSPRE] <- 1
-            ZER <- ZER[-POS]
-            f1 <- function(x) rep(x, ZER)
-            Sli <- apply(Zli, 2, f1)
-            m <- apply(Sli, 2, mean)
-            cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-            PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-            XY <- raster::xyFromCell(VariablesT[[1]],1:ncell(VariablesT[[1]]))
-            PredRAS <- data.frame(cbind(XY,ENF=NA))
-            PredRAS[-POS,"ENF"] <- PredRas
-            sp::gridded(PredRAS) <- ~x+y
-            FinalModelT <- rem_out(raster(PredRAS))
+            FinalModelT <- PREDICT_ENFA(Model,VariablesT,PAtrainM[[1]])
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataTM[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
@@ -1009,71 +1168,72 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Future Projections
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              PredRas <- values(VariablesP[[k]])
-              POS <- which(is.na(PredRas[,1]))
-              Zli <- as.matrix(stats::na.omit(values(VariablesP[[k]])) %*% as.matrix(Model$co))
-              POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
-              ZER <- rep(0,nrow(PredRas))
-              ZER[POSPRE] <- 1
-              ZER <- ZER[-POS]
-              f1 <- function(x) rep(x, ZER)
-              Sli <- apply(Zli, 2, f1)
-              m <- apply(Sli, 2, mean)
-              cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-              PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-              XY <- raster::xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
-              PredRAS <- data.frame(cbind(XY,ENF=NA))
-              PredRAS[-POS,"ENF"] <- PredRas
-              sp::gridded(PredRAS) <- ~x+y
-              PredRas <- STANDAR_FUT(rem_out(raster(PredRAS)),FinalModelT)
+              PredRas <- Predict_ENFA(Model,VariablesP[[k]],PAtrainM[[1]])
+              PredRas <- STANDAR_FUT(PredRas,FinalModelT)
               if(minValue(PredRas)<0){
                 PredRas <- PredRas-minValue(PredRas)
               }
               ListFut[[ProjN[k]]][["ENF"]] <- PredRas
-              rm(list=c("PredRas","POS",'Zli',"POSPRE","ZER","f1","Sli","m","cov","PredRas",
-                        "PredRAS"))
             }
           }
         }
       }else{
         Eval <- list()
         Boyce <- list()
+        Eval_JS <- list()
+        pROC <- list()
+        Area <- list()
         for(k in 1:length(VariablesP)){
-          PredRas <- values(VariablesP[[k]])
-          POS <- which(is.na(PredRas[,1]))
-          Zli <- as.matrix(stats::na.omit(values(VariablesP[[k]])) %*% as.matrix(Model[[i]]$co))
-          POSPRE <- raster::cellFromXY(VariablesP[[k]][[1]],PAtrainM[[1]][PAtrainM[[1]]$PresAbse==1,c("x","y")])
-          ZER <- rep(0,nrow(PredRas))
-          ZER[POSPRE] <- 1
-          ZER <- ZER[-POS]
-          f1 <- function(x) rep(x, ZER)
-          Sli <- apply(Zli, 2, f1)
-          m <- apply(Sli, 2, mean)
-          cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
-          PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
-          XY <- raster::xyFromCell(VariablesP[[k]][[1]],1:ncell(VariablesP[[k]][[1]]))
-          PredRAS <- data.frame(cbind(XY,ENF=NA))
-          PredRAS[-POS,"ENF"] <- PredRas
-          sp::gridded(PredRAS) <- ~x+y
-          ListFut[[ProjN[k]]][["ENF"]] <- rem_out(raster(PredRas))
+          ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(Predict_ENFA(Model[[i]],VariablesP[[k]],PAtrainM[[1]]))
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["ENF"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["ENF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-
-
+          
+          #Percentae of Predicted Area
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- ListFut[[ProjN[k]]][["ENF"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["ENF"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,
+                                              percentage=50)$pROC_summary
+          
+          
           #ENF Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["ENF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="ENF", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1092,74 +1252,99 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MXD evaluation
       if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
-        Boyce <- list()
         Eval_JS <- list()
+        Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
           RastPart[["MXD"]][[i]] <- c(predict(Model[[i]], PAtestM[[i]][, VarColT], clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["MXD"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXD"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        }
-
-        #MXD Validation
-        BoyceSD <- stats::sd(unlist(Boyce))
-        Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-        if(is.null(repl)){
-          ListValidation[["MXD"]] <- data.frame(Sp=spN[s], Algorithm="MXD",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }else{
-          ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXD",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }
-
-        #Save Partition Predictions
-        if(Save=="Y"){
-          for(i in 1:N){
-            #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
+          #Percentae of Predicted Area
+          RasT[["MXD"]] <- predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["MXD"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MXD"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          
+          #Save Partition Predictions
+          if(Save=="Y"){
             if(N!=1){
-              raster::writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MXD"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              raster::writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MXD"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }else{
-              raster::writeRaster(PartRas,paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("MXD",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MXD"]]>=Thr_Alg[t],
+                                    paste(grep("MXD",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
           }
+        }
+        
+        #MXD Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["MXD"]] <- data.frame(Sp=spN[s], Algorithm="MXD",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="MXD",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
 
         #Save final model
@@ -1208,28 +1393,61 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
       }else{
         Eval <- list()
+        Eval_JS <- list()
         Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["MXD"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
-
+          ListFut[[ProjN[k]]][["MXD"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]],clamp=F, type="cloglog"))
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MXD"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXD"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-
-
+          
+          #Percentae of Predicted Area
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- ListFut[[ProjN[k]]][["MXD"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["MXD"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,
+                                              percentage=50)$pROC_summary
+          
+          
           #MXD Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["MXD"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXD", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1247,74 +1465,102 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MXS evaluation
       if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
-        Boyce <- list()
         Eval_JS <- list()
+        Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
           RastPart[["MXS"]][[i]] <- c(predict(Model[[i]],PAtestM[[i]][, VarColT],clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["MXS"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXS"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        }
-
-        #MXS Validation
-        BoyceSD <- stats::sd(unlist(Boyce))
-        Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-        if(is.null(repl)){
-          ListValidation[["MXS"]] <- data.frame(Sp=spN[s], Algorithm="MXS",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }else{
-          ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MXS",Partition=Part, Validation,Boyce=Boyce)
-        }
-
-        #Save Partition Predictions
-        if(Save=="Y"){
-          for(i in 1:N){
-            #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- (predict(VariablesT,Model[[i]], clamp=F, type="cloglog"))
+          
+          #Percentage of Predicted Area
+          RasT[["MXS"]] <- predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
+          
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["MXS"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MXS"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          
+          
+          #Save Partition Predictions
+          if(Save=="Y"){
             if(N!=1){
-              raster::writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MXS"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              raster::writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MXS"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }else{
-              raster::writeRaster(PartRas,paste(grep("MXS",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("MXS",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MXS"]]>=Thr_Alg[t],
+                                    paste(grep("MXS",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
           }
+        }
+        
+        #MXS Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["MXS"]] <- data.frame(Sp=spN[s], Algorithm="MXS",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="MXS",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
 
         #Save final model
@@ -1366,26 +1612,57 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["MXS"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+          ListFut[[ProjN[k]]][["MXS"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]],clamp=F, type="cloglog"))
 
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MXS"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXS"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-
-
+          
+          #Percentae of Predicted Area
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- ListFut[[ProjN[k]]][["MXS"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["MXS"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,
+                                              percentage=50)$pROC_summary
+          
+          
           #MXS Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["MXS"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MXS", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1408,9 +1685,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
           # x <- PAtrain[[i]][PAtrainM[[i]][,"PresAbse"]==1, VarColT]
           # z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
-          Model[[i]] <- maxlike::maxlike(Fmula, raster::stack(VariablesT), dataPr,
-                                link=c("cloglog"),method="BFGS",
-                                hessian = FALSE, removeDuplicates=FALSE)
+          Model[[i]] <- maxlike::maxlike(Fmula, 
+                                         raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),dataPr,link=c("cloglog"),method="BFGS",
+                                hessian = FALSE, removeDuplicates=FALSE,savedata=T)
           # Model[[i]] <- maxlike::maxlike(Fmula,x=x,z=z,
           #                      link=c("cloglog"),method="Nelder-Mead",
           #                      hessian = FALSE, removeDuplicates=FALSE)
@@ -1419,80 +1696,105 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Evaluate Model
         if((is.null(Fut)==F && !is.null(Tst))==F){
           Eval <- list()
-          Boyce <- list()
           Eval_JS <- list()
+          Boyce <- list()
+          pROC <- list()
+          Area <- list()
           for (i in 1:N) {
             RastPart[["MLK"]][[i]] <- c(predict(Model[[i]], PAtest[[i]][, VarColT]))
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["MLK"]][[i]])
+            Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                      PredPoint[PredPoint$PresAbse == 0, 2])
+            Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
+            
+            #Thresholds and Final Evaluation
+            Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+            Threshold <- Threshold[order(Thr)]
+            Thr <- sort(Thr)
+            Thr <- ifelse(Thr<0,0,Thr)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                  PredPoint[PredPoint$PresAbse == 0, 2])
+                                         PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                              a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["MLK"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          }
-
-          #MXS Validation
-          BoyceSD <- stats::sd(unlist(Boyce))
-          Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-          if(is.null(repl)){
-            ListValidation[["MLK"]] <- data.frame(Sp=spN[s], Algorithm="MLK",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-          }else{
-            ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MLK",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-          }
-
-          #Save Partition Predictions
-          if(Save=="Y"){
-            for(i in 1:N){
-              #Partial Thresholds
-              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-              PartRas <- (predict(VariablesT,Model[[i]]))
+            #Percentae of Predicted Area
+            RasT[["MLK"]] <- predict(Model[[i]])
+            ArT <- NULL
+            for (j in Thr){
+              RasL <- RasT[["MLK"]]>=j
+              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            }
+            Area[[i]] <- round(ArT*100,3)
+            
+            #PartialROC
+            pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MLK"]],
+                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                error=5,iterations=500,percentage=50)$pROC_summary
+            
+            #Save Partition Predictions
+            if(Save=="Y"){
               if(N!=1){
-                raster::writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["MLK"]]>=Thr_Alg[t],
+                                      paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }
               if(is.null(repl)==F){
-                raster::writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["MLK"]]>=Thr_Alg[t],
+                                      paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }else{
-                raster::writeRaster(PartRas,paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(grep("MLK",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["MLK"]]>=Thr_Alg[t],
+                                      paste(grep("MLK",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }
             }
+          }
+          
+          #BIO Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+          BoyceSD <- stats::sd(unlist(Boyce))
+          Boyce <- mean(unlist(Boyce))
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+          if(is.null(repl)){
+            ListValidation[["MLK"]] <- data.frame(Sp=spN[s], Algorithm="MLK",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+          }else{
+            ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="MLK",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
 
           #Save final model
           if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
-              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=raster::stack(VariablesT),
+              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
                                method="BFGS",removeDuplicates=FALSE)
               FinalModelT <- predict(Model)
@@ -1500,7 +1802,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
             }else{
-              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=raster::stack(VariablesT),
+              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
                                link=c("cloglog"),hessian = FALSE,savedata=TRUE,
                                method="BFGS",removeDuplicates=FALSE)
               FinalModelT <- predict(Model)
@@ -1533,33 +1835,68 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(Fut)==F){
               for(k in 1:length(VariablesP)){
-                ListFut[[ProjN[k]]][["MLK"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+                ListFut[[ProjN[k]]][["MLK"]] <- STANDAR_FUT(predict(raster::stack((VariablesP[[k]]-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)), Model),FinalModelT)
               }
             }
           }
         }else{
           Eval <- list()
           Boyce <- list()
+          Eval_JS <- list()
+          pROC <- list()
+          Area <- list()
           for(k in 1:length(VariablesP)){
-            ListFut[[ProjN[k]]][["MLK"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+            ListFut[[ProjN[k]]][["MLK"]] <- STANDAR(predict(raster::stack((VariablesP[[k]]-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),Model[[i]]))
 
             PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MLK"]], PAtest[[i]][, c("x", "y")])
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+            Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                      PredPoint[PredPoint$PresAbse == 0, 2])
+            Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
+            
+            #Thresholds and Final Evaluation
+            Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+            Threshold <- Threshold[order(Thr)]
+            Thr <- sort(Thr)
+            Thr <- ifelse(Thr<0,0,Thr)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                         PredPoint[PredPoint$PresAbse == 0, 2])
+                                         PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                              a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MLK"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-
+            
+            #Percentae of Predicted Area
+            ArT <- NULL
+            for (j in Thr){
+              RasL <- ListFut[[ProjN[k]]][["MLK"]]>=j
+              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            }
+            Area[[i]] <- round(ArT*100,3)
+            
+            #PartialROC
+            pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["MLK"]],
+                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                error=5,iterations=500,
+                                                percentage=50)$pROC_summary
+            
+            
             #MLK Validation
+            pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+            pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+            pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+            pROC <- mean(unlist(lapply(pROC, `[`, 1)))
             BoyceSD <- stats::sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
-            Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+            AreaSD <- apply(do.call("rbind",Area),2,sd)
+            Area <- colMeans(do.call("rbind",Area))
+            Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
             if(is.null(repl)){
-              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
             }else{
-              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+              ListValidation[["MLK"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="MLK", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
           }
         }
@@ -1581,74 +1918,101 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #SVM evaluation
       if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
-        Boyce <- list()
         Eval_JS <- list()
+        Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
           RastPart[["SVM"]][[i]] <- as.numeric(kernlab::predict(object=Model[[i]], newdata=PAtest[[i]][, VarColT],type="probabilities")[,2])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["SVM"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["SVM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        }
-
-        #SVM Validation
-        BoyceSD <- stats::sd(unlist(Boyce))
-        Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-        if(is.null(repl)){
-          ListValidation[["SVM"]] <- data.frame(Sp=spN[s], Algorithm="SVM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }else{
-          ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SVM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }
-
-        #Save Partition Predictions
-        if(Save=="Y"){
-          for(i in 1:N){
-            #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- (predict(VariablesT,Model[[i]]))
+          #Percentae of Predicted Area
+          FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+          RasT[["SVM"]] <- VariablesT[[1]]
+          RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["SVM"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["SVM"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          
+          #Save Partition Predictions
+          if(Save=="Y"){
             if(N!=1){
-              raster::writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["SVM"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              raster::writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["SVM"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }else{
-              raster::writeRaster(PartRas,paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("SVM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["SVM"]]>=Thr_Alg[t],
+                                    paste(grep("SVM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
           }
+        }
+        
+        #BIO Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["SVM"]] <- data.frame(Sp=spN[s], Algorithm="SVM",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="SVM",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
 
         # Save final model
@@ -1701,7 +2065,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["SVM"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+              FutureModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
+              RasF <- VariablesT[[1]]
+              RasF[!is.na(RasF[])] <- FutureModel
+              ListFut[[ProjN[k]]][["SVM"]] <- STANDAR_FUT(RasF,FinalModelT)
             }
           }
         }
@@ -1709,26 +2076,59 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["SVM"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+          ProjectedModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
+          RasF <- VariablesT[[1]]
+          RasF[!is.na(RasF[])] <- ProjectedModel
+          ListFut[[ProjN[k]]][["SVM"]] <- RasF
 
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["SVM"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["SVM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          #Percentae of Predicted Area
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- ListFut[[ProjN[k]]][["SVM"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["SVM"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,
+                                              percentage=50)$pROC_summary
 
 
           #SVM Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["SVM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="SVM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1749,74 +2149,100 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #RDF evaluation
       if((is.null(Fut)==F && !is.null(Tst))==F){
         Eval <- list()
-        Boyce <- list()
         Eval_JS <- list()
+        Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for (i in 1:N) {
           RastPart[["RDF"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT]))
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["RDF"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["RDF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        }
-
-        #RDF Validation
-        BoyceSD <- stats::sd(unlist(Boyce))
-        Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-        if(is.null(repl)){
-          ListValidation[["RDF"]] <- data.frame(Sp=spN[s], Algorithm="RDF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }else{
-          ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="RDF",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-        }
-
-        #Save Partition Predictions
-        if(Save=="Y"){
-          for(i in 1:N){
-            #Partial Thresholds
-            Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-            PartRas <- (predict(VariablesT,Model[[i]]))
+          
+          #Percentage of Predicted Area
+          RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- RasT[["RDF"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["RDF"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,percentage=50)$pROC_summary
+          
+          #Save Partition Predictions
+          if(Save=="Y"){
             if(N!=1){
-              raster::writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["RDF"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
             if(is.null(repl)==F){
-              raster::writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["RDF"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }else{
-              raster::writeRaster(PartRas,paste(grep("RDF",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
               Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
-                raster::writeRaster(PartRas>=Thr_Alg[t],
-                            paste(grep("RDF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["RDF"]]>=Thr_Alg[t],
+                                    paste(grep("RDF",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
               }
             }
           }
+        }
+
+        #RDF Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["RDF"]] <- data.frame(Sp=spN[s], Algorithm="RDF",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="RDF",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
 
         # Save final model
@@ -1828,7 +2254,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             # FinalModelT <- 1-predict(VariablesT,Model,type="prob")
             Model <- randomForest::tuneRF(SpDataT[SpDataT$Partition==1,VarColT], (SpDataT[SpDataT$Partition==1,"PresAbse"]), trace=F,
                             stepFactor=2, ntreeTry=500, doBest=T, plot = F)
-            FinalModelT <- predict(VariablesT,Model)
+            FinalModelT <- raster::predict(VariablesT,Model)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -1838,7 +2264,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             # FinalModelT <- 1-predict(VariablesT,Model,type="prob")
             Model <- randomForest::tuneRF(SpDataT[,VarColT], (SpDataT[,"PresAbse"]), trace=F,
                             stepFactor=2, ntreeTry=500, doBest=T, plot = F)
-            FinalModelT <- predict(VariablesT,Model)
+            FinalModelT <- raster::predict(VariablesT,Model)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -1866,7 +2292,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["RDF"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+              ListFut[[ProjN[k]]][["RDF"]] <- STANDAR_FUT(raster::predict(VariablesP[[k]], Model),FinalModelT)
               if(maxValue(ListFut[[ProjN[k]]][["RDF"]])==0){
                 ListFut[[ProjN[k]]][["RDF"]] <- ListFut[[ProjN[k]]][["RDF"]]
               }else{
@@ -1877,9 +2303,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
       }else{
         Eval <- list()
+        Eval_JS <- list()
         Boyce <- list()
+        pROC <- list()
+        Area <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["RDF"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+          ListFut[[ProjN[k]]][["RDF"]] <- STANDAR(raster::predict(VariablesP[[k]],Model[[i]]))
           if(maxValue(ListFut[[ProjN[k]]][["RDF"]])==0){
             ListFut[[ProjN[k]]][["RDF"]] <- ListFut[[ProjN[k]]][["RDF"]]
           }else{
@@ -1888,22 +2317,53 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["RDF"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                       PredPoint[PredPoint$PresAbse == 0, 2])
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["RDF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          
+          #Percentae of Predicted Area
+          ArT <- NULL
+          for (j in Thr){
+            RasL <- ListFut[[ProjN[k]]][["RDF"]]>=j
+            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          }
+          Area[[i]] <- round(ArT*100,3)
+          
+          #PartialROC
+          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["RDF"]],
+                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                              error=5,iterations=500,
+                                              percentage=50)$pROC_summary
 
 
           #RDF Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
           BoyceSD <- stats::sd(unlist(Boyce))
           Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
           if(is.null(repl)){
-            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }else{
-            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+            ListValidation[["RDF"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="RDF", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
         }
       }
@@ -1931,89 +2391,116 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #GAM evaluation
         if((is.null(Fut)==F && !is.null(Tst))==F){
           Eval <- list()
-          Boyce <- list()
           Eval_JS <- list()
+          Boyce <- list()
+          pROC <- list()
+          Area <- list()
           for (i in 1:N) {
             RastPart[["GAM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT],type="response"))
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GAM"]][[i]])
+            Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                      PredPoint[PredPoint$PresAbse == 0, 2])
+            Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
+            
+            #Thresholds and Final Evaluation
+            Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+            Threshold <- Threshold[order(Thr)]
+            Thr <- sort(Thr)
+            Thr <- ifelse(Thr<0,0,Thr)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                  PredPoint[PredPoint$PresAbse == 0, 2])
+                                         PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                              a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["GAM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          }
-
-          #GAM Validation
-          BoyceSD <- stats::sd(unlist(Boyce))
-          Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-          if(is.null(repl)){
-            ListValidation[["GAM"]] <- data.frame(Sp=spN[s], Algorithm="GAM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-          }else{
-            ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-          }
-
-          #Save Partition Predictions
-          if(Save=="Y"){
-            for(i in 1:N){
-              #Partial Thresholds
-              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-              PartRas <- (predict(VariablesT,Model[[i]],type="response"))
+            
+            #Percentage of Predicted Area
+            RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
+            ArT <- NULL
+            for (j in Thr){
+              RasL <- RasT[["GAM"]]>=j
+              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            }
+            Area[[i]] <- round(ArT*100,3)
+            
+            #PartialROC
+            pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["GAM"]],
+                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                error=5,iterations=500,percentage=50)$pROC_summary
+            
+            #Save Partition Predictions
+            if(Save=="Y"){
               if(N!=1){
-                raster::writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["GAM"]]>=Thr_Alg[t],
+                                      paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }
               if(is.null(repl)==F){
-                raster::writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["GAM"]]>=Thr_Alg[t],
+                                      paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }else{
-                raster::writeRaster(PartRas,paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(grep("GAM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["GAM"]]>=Thr_Alg[t],
+                                      paste(grep("GAM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }
             }
           }
+
+          #GAM Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+          BoyceSD <- stats::sd(unlist(Boyce))
+          Boyce <- mean(unlist(Boyce))
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+          if(is.null(repl)){
+            ListValidation[["GAM"]] <- data.frame(Sp=spN[s], Algorithm="GAM",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+          }else{
+            ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAM",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+          }
+
 
           # Save final model
           if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
               Model <- mgcv::gam(formula=Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], optimizer = c("outer", "newton"),
                                  select = T, family = binomial)
-              FinalModelT <- predict(VariablesT,Model,type="response")
+              FinalModelT <- raster::predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
             }else{
               Model <- mgcv::gam(formula=Fmula, data = SpDataT[, c("PresAbse",VarColT)], optimizer = c("outer", "newton"),
                                  select = T, family = binomial)
-              FinalModelT <- predict(VariablesT,Model,type="response")
+              FinalModelT <- raster::predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -2040,15 +2527,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(Fut)==F){
               for(k in 1:length(VariablesP)){
-                ListFut[[ProjN[k]]][["GAM"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+                ListFut[[ProjN[k]]][["GAM"]] <- STANDAR_FUT(raster::predict(VariablesP[[k]], Model,type="response"),FinalModelT)
               }
             }
           }
         }else{
           Eval <- list()
+          Eval_JS <- list()
           Boyce <- list()
+          pROC <- list()
+          Area <- list()
           for(k in 1:length(VariablesP)){
-            ListFut[[ProjN[k]]][["GAM"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+            ListFut[[ProjN[k]]][["GAM"]] <- STANDAR(raster::predict(VariablesP[[k]],Model[[i]],type="response"))
             if(maxValue(ListFut[[ProjN[k]]][["GAM"]])==0){
               ListFut[[ProjN[k]]][["GAM"]] <- ListFut[[ProjN[k]]][["GAM"]]
             }else{
@@ -2057,22 +2547,53 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
             PredPoint <- raster::extract(ListFut[[ProjN[k]]][["GAM"]], PAtest[[i]][, c("x", "y")])
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+            Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                      PredPoint[PredPoint$PresAbse == 0, 2])
+            Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
+            
+            #Thresholds and Final Evaluation
+            Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+            Threshold <- Threshold[order(Thr)]
+            Thr <- sort(Thr)
+            Thr <- ifelse(Thr<0,0,Thr)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                         PredPoint[PredPoint$PresAbse == 0, 2])
+                                         PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                              a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+            
+            #Percentae of Predicted Area
+            ArT <- NULL
+            for (j in Thr){
+              RasL <- ListFut[[ProjN[k]]][["GAM"]]>=j
+              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            }
+            Area[[i]] <- round(ArT*100,3)
+            
+            #PartialROC
+            pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["GAM"]],
+                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                error=5,iterations=500,
+                                                percentage=50)$pROC_summary
 
 
             #GAM Validation
+            pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+            pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+            pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+            pROC <- mean(unlist(lapply(pROC, `[`, 1)))
             BoyceSD <- stats::sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
-            Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+            AreaSD <- apply(do.call("rbind",Area),2,sd)
+            Area <- colMeans(do.call("rbind",Area))
+            Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
             if(is.null(repl)){
-              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
             }else{
-              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+              ListValidation[["GAM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
           }
         }
@@ -2100,74 +2621,100 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #GLM evaluation
         if((is.null(Fut)==F && !is.null(Tst))==F){
           Eval <- list()
-          Boyce <- list()
           Eval_JS <- list()
+          Boyce <- list()
+          pROC <- list()
+          Area <- list()
           for (i in 1:N) {
             RastPart[["GLM"]][[i]] <- as.vector(predict(Model[[i]], PAtest[[i]][, VarColT],type="response"))
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GLM"]][[i]])
+            Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                      PredPoint[PredPoint$PresAbse == 0, 2])
+            Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
+            
+            #Thresholds and Final Evaluation
+            Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+            Threshold <- Threshold[order(Thr)]
+            Thr <- sort(Thr)
+            Thr <- ifelse(Thr<0,0,Thr)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                  PredPoint[PredPoint$PresAbse == 0, 2])
+                                         PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                              a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["GLM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          }
-
-          #GLM Validation
-          BoyceSD <- stats::sd(unlist(Boyce))
-          Boyce <- mean(unlist(Boyce))
-          Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-          if(is.null(repl)){
-            ListValidation[["GLM"]] <- data.frame(Sp=spN[s], Algorithm="GLM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-          }else{
-            ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GLM",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-          }
-
-          #Save Partition Predictions
-          if(Save=="Y"){
-            for(i in 1:N){
-              #Partial Thresholds
-              Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-              PartRas <- (predict(VariablesT,Model[[i]],type="response"))
+            
+            #Percentage of Predicted Area
+            RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
+            ArT <- NULL
+            for (j in Thr){
+              RasL <- RasT[["GLM"]]>=j
+              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            }
+            Area[[i]] <- round(ArT*100,3)
+            
+            #PartialROC
+            pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["GLM"]],
+                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                error=5,iterations=500,percentage=50)$pROC_summary
+            
+            #Save Partition Predictions
+            if(Save=="Y"){
               if(N!=1){
-                raster::writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["GLM"]]>=Thr_Alg[t],
+                                      paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }
               if(is.null(repl)==F){
-                raster::writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["GLM"]]>=Thr_Alg[t],
+                                      paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }else{
-                raster::writeRaster(PartRas,paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                            format='GTiff',
-                            overwrite=TRUE)
+                raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
                 Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
-                  raster::writeRaster(PartRas>=Thr_Alg[t],
-                              paste(grep("GLM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["GLM"]]>=Thr_Alg[t],
+                                      paste(grep("GLM",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                 }
               }
             }
+          }
+
+          #GLM Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+          BoyceSD <- stats::sd(unlist(Boyce))
+          Boyce <- mean(unlist(Boyce))
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+          if(is.null(repl)){
+            ListValidation[["GLM"]] <- data.frame(Sp=spN[s], Algorithm="GLM",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+          }else{
+            ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GLM",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
           }
 
           # Save final model
@@ -2175,13 +2722,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(is.null(repl) && N==1){
               # Model <- stats::glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family = binomial(link = "logit"))
               Model <- stats::glm(Fmula, data = SpDataT[SpDataT$Partition==1, c("PresAbse",VarColT)], family =  binomial)
-              FinalModelT <- predict(VariablesT,Model,type="response")
+              FinalModelT <- raster::predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
             }else{
               Model <- stats::glm(Fmula, data = SpDataT[, c("PresAbse",VarColT)], family =  binomial)
-              FinalModelT <- predict(VariablesT,Model,type="response")
+              FinalModelT <- raster::predict(VariablesT,Model,type="response")
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
@@ -2207,15 +2754,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(Fut)==F){
               for(k in 1:length(VariablesP)){
-                ListFut[[ProjN[k]]][["GLM"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model),FinalModelT)
+                ListFut[[ProjN[k]]][["GLM"]] <- STANDAR_FUT(raster::predict(VariablesP[[k]], Model,type="response"),FinalModelT)
               }
             }
           }
         }else{
           Eval <- list()
+          Eval_JS <- list()
           Boyce <- list()
+          pROC <- list()
+          Area <- list()
           for(k in 1:length(VariablesP)){
-            ListFut[[ProjN[k]]][["GLM"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+            ListFut[[ProjN[k]]][["GLM"]] <- STANDAR(raster::predict(VariablesP[[k]],Model[[i]],type="response"))
             if(maxValue(ListFut[[ProjN[k]]][["GLM"]])==0){
               ListFut[[ProjN[k]]][["GLM"]] <- ListFut[[ProjN[k]]][["GLM"]]
             }else{
@@ -2224,22 +2774,53 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
             PredPoint <- raster::extract(ListFut[[ProjN[k]]][["GLM"]], PAtest[[i]][, c("x", "y")])
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+            Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                      PredPoint[PredPoint$PresAbse == 0, 2])
+            Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                           a=PredPoint[PredPoint$PresAbse == 0, 2])
+            
+            #Thresholds and Final Evaluation
+            Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+            Threshold <- Threshold[order(Thr)]
+            Thr <- sort(Thr)
+            Thr <- ifelse(Thr<0,0,Thr)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                         PredPoint[PredPoint$PresAbse == 0, 2])
+                                         PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                              a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GLM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+            
+            #Percentae of Predicted Area
+            ArT <- NULL
+            for (j in Thr){
+              RasL <- ListFut[[ProjN[k]]][["GLM"]]>=j
+              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            }
+            Area[[i]] <- round(ArT*100,3)
+            
+            #PartialROC
+            pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["GLM"]],
+                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                error=5,iterations=500,
+                                                percentage=50)$pROC_summary
 
 
             #GLM Validation
+            pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+            pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+            pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+            pROC <- mean(unlist(lapply(pROC, `[`, 1)))
             BoyceSD <- stats::sd(unlist(Boyce))
             Boyce <- mean(unlist(Boyce))
-            Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+            AreaSD <- apply(do.call("rbind",Area),2,sd)
+            Area <- colMeans(do.call("rbind",Area))
+            Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
             if(is.null(repl)){
-              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
             }else{
-              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+              ListValidation[["GLM"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GLM", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
           }
         }
@@ -2258,75 +2839,105 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #GAU evaluation
     if((is.null(Fut)==F && !is.null(Tst))==F){
       Eval <- list()
-      Boyce <- list()
       Eval_JS <- list()
+      Boyce <- list()
+      pROC <- list()
+      Area <- list()
       for (i in 1:N) {
         RastPart[["GAU"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
         RastPart[["GAU"]][[i]] <- as.vector(RastPart[["GAU"]][[i]][,"posterior mode"])
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GAU"]][[i]])
-        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
-                              PredPoint[PredPoint$PresAbse == 0,2])
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
+        Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         #Boyce Index
         Boyce[[i]] <- ecospat.boyce(RastPart[["GAU"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-      }
+        
+        #Percentage of Predicted Area
+        RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
+                                    CI = NULL, maxn = NULL)$posterior.mode
 
-      #GAU Validation
-      BoyceSD <- stats::sd(unlist(Boyce))
-      Boyce <- mean(unlist(Boyce))
-      Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-      if(is.null(repl)){
-        ListValidation[["GAU"]] <- data.frame(Sp=spN[s], Algorithm="GAU",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-      }else{
-        ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAU",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-      }
-
-      #Save Partition Predictions
-      if(Save=="Y"){
-        for(i in 1:N){
-          #Partial Thresholds
-          Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-          PartRas <- (predict(VariablesT,Model[[i]]))
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- RasT[["GAU"]]>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["GAU"]],
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,percentage=50)$pROC_summary
+        
+        #Save Partition Predictions
+        if(Save=="Y"){
           if(N!=1){
-            raster::writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
+            raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                format='GTiff',
+                                overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              raster::writeRaster(PartRas>=Thr_Alg[t],
-                          paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["GAU"]]>=Thr_Alg[t],
+                                  paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
             }
           }
           if(is.null(repl)==F){
-            raster::writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
+            raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
+                                format='GTiff',
+                                overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              raster::writeRaster(PartRas>=Thr_Alg[t],
-                          paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["GAU"]]>=Thr_Alg[t],
+                                  paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
             }
           }else{
-            raster::writeRaster(PartRas,paste(grep("GAU",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                        format='GTiff',
-                        overwrite=TRUE)
+            raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                format='GTiff',
+                                overwrite=TRUE)
             Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
-              raster::writeRaster(PartRas>=Thr_Alg[t],
-                          paste(grep("GAU",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                          format='GTiff',
-                          overwrite=TRUE)
+              raster::writeRaster(RasT[["GAU"]]>=Thr_Alg[t],
+                                  paste(grep("GAU",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
             }
           }
         }
+      }
+
+      #GAU Validation
+      pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+      pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+      pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+      pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+      BoyceSD <- stats::sd(unlist(Boyce))
+      Boyce <- mean(unlist(Boyce))
+      AreaSD <- apply(do.call("rbind",Area),2,sd)
+      Area <- colMeans(do.call("rbind",Area))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+      if(is.null(repl)){
+        ListValidation[["GAU"]] <- data.frame(Sp=spN[s], Algorithm="GAU",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+      }else{
+        ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="GAU",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
 
       #Save final model
@@ -2376,9 +2987,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
     }else{
       Eval <- list()
+      Eval_JS <- list()
       Boyce <- list()
+      pROC <- list()
+      Area <- list()
       for(k in 1:length(VariablesP)){
-        ListFut[[ProjN[k]]][["GAU"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]]))
+        ListFut[[ProjN[k]]][["GAU"]] <- STANDAR(predict.graf.raster(Model[[i]], VariablesP[[k]], 
+                                                                    type = "response",
+                                                                    CI = NULL, maxn = NULL)$posterior.mode)
         if(maxValue(ListFut[[ProjN[k]]][["GAU"]])==0){
           ListFut[[ProjN[k]]][["GAU"]] <- ListFut[[ProjN[k]]][["GAU"]]
         }else{
@@ -2387,22 +3003,53 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
         PredPoint <- raster::extract(ListFut[[ProjN[k]]][["GAU"]], PAtest[[i]][, c("x", "y")])
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2])
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         #Boyce Index
         Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAU"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        
+        #Percentae of Predicted Area
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- ListFut[[ProjN[k]]][["GAU"]]>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["GAU"]],
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,
+                                            percentage=50)$pROC_summary
 
 
         #GAU Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
         BoyceSD <- stats::sd(unlist(Boyce))
         Boyce <- mean(unlist(Boyce))
-        Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
         if(is.null(repl)){
-          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }else{
-          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+          ListValidation[["GAU"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="GAU", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
         }
       }
     }
@@ -2442,6 +3089,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model[[i]] <- ModelT
           }
         }
+        
+        Model <- Model[sapply(Model, function(x) !is.null(x))]
 
         #Check BRT Models
         if (length(Model)==N){
@@ -2449,76 +3098,102 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #BRT evaluation
           if((is.null(Fut)==F && !is.null(Tst))==F){
             Eval <- list()
-            Boyce <- list()
             Eval_JS <- list()
+            Boyce <- list()
+            pROC <- list()
+            Area <- list()
             for (i in 1:N) {
               RastPart[["BRT"]][[i]] <- gbm::predict.gbm(Model[[i]], PAtest[[i]][, VarColT],
                                                     n.trees=Model[[i]]$gbm.call$best.trees,type="response")
               PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["BRT"]][[i]])
-              Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1,2],
-                                           PredPoint[PredPoint$PresAbse == 0,2])
+              Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                        PredPoint[PredPoint$PresAbse == 0, 2])
+              Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                             a=PredPoint[PredPoint$PresAbse == 0, 2])
+              
+              #Thresholds and Final Evaluation
+              Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+              Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+              Threshold <- Threshold[order(Thr)]
+              Thr <- sort(Thr)
+              Thr <- ifelse(Thr<0,0,Thr)
+              Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                           PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
               Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                                a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                                a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
               #Boyce Index
               Boyce[[i]] <- ecospat.boyce(RastPart[["BRT"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            }
-
-            #BRT Validation
-            BoyceSD <- stats::sd(unlist(Boyce))
-            Boyce <- mean(unlist(Boyce))
-            Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
-            if(is.null(repl)){
-              ListValidation[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-            }else{
-              ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BRT",Partition=Part, Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
-            }
-
-            #Save Partition Predictions
-            if(Save=="Y"){
-              for(i in 1:N){
-                #Partial Thresholds
-                Thr <- Thresholds_TMLA(Eval[[i]],Eval_JS[[i]],sensV)
-                PartRas <- (predict(VariablesT,Model[[i]],
-                                               n.trees=Model[[i]]$gbm.call$best.trees,type="response"))
+              
+              #Percentage of Predicted Area
+              RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
+                              n.trees=Model[[i]]$gbm.call$best.trees,type="response")
+              ArT <- NULL
+              for (j in Thr){
+                RasL <- RasT[["BRT"]]>=j
+                ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              }
+              Area[[i]] <- round(ArT*100,3)
+              
+              #PartialROC
+              pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["BRT"]],
+                                                  test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                  error=5,iterations=500,percentage=50)$pROC_summary
+              
+              #Save Partition Predictions
+              if(Save=="Y"){
                 if(N!=1){
-                  raster::writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
-                    raster::writeRaster(PartRas>=Thr_Alg[t],
-                                paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                                format='GTiff',
-                                overwrite=TRUE)
+                    raster::writeRaster(RasT[["BRT"]]>=Thr_Alg[t],
+                                        paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                        format='GTiff',
+                                        overwrite=TRUE)
                   }
                 }
                 if(is.null(repl)==F){
-                  raster::writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
-                    raster::writeRaster(PartRas>=Thr_Alg[t],
-                                paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
-                                format='GTiff',
-                                overwrite=TRUE)
+                    raster::writeRaster(RasT[["BRT"]]>=Thr_Alg[t],
+                                        paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                        format='GTiff',
+                                        overwrite=TRUE)
                   }
                 }else{
-                  raster::writeRaster(PartRas,paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
-                              format='GTiff',
-                              overwrite=TRUE)
+                  raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                      format='GTiff',
+                                      overwrite=TRUE)
                   Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
-                    raster::writeRaster(PartRas>=Thr_Alg[t],
-                                paste(grep("BRT",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
-                                format='GTiff',
-                                overwrite=TRUE)
+                    raster::writeRaster(RasT[["BRT"]]>=Thr_Alg[t],
+                                        paste(grep("BRT",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                        format='GTiff',
+                                        overwrite=TRUE)
                   }
                 }
               }
+            }
+
+            #BRT Validation
+            pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+            pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+            pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+            pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+            BoyceSD <- stats::sd(unlist(Boyce))
+            Boyce <- mean(unlist(Boyce))
+            AreaSD <- apply(do.call("rbind",Area),2,sd)
+            Area <- colMeans(do.call("rbind",Area))
+            Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+            if(is.null(repl)){
+              ListValidation[["BRT"]] <- data.frame(Sp=spN[s], Algorithm="BRT",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+            }else{
+              ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="BRT",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
             }
 
             #Save final model
@@ -2539,7 +3214,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                     break
                   }
                 }
-                FinalModelT <- predict(VariablesT,Model,
+                FinalModelT <- raster::predict(VariablesT,Model,
                                        n.trees=Model$gbm.call$best.trees,type="response")
                 FinalModel <- STANDAR(FinalModelT)
                 PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
@@ -2558,7 +3233,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                     break
                   }
                 }
-                FinalModelT <- predict(VariablesT,Model,
+                FinalModelT <- raster::predict(VariablesT,Model,
                                        n.trees=Model$gbm.call$best.trees,type="response")
                 FinalModel <- STANDAR(FinalModelT)
                 PredPoint <- raster::extract(FinalModel,SpDataT[, 2:3])
@@ -2586,16 +3261,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
               if(is.null(Fut)==F){
                 for(k in 1:length(VariablesP)){
-                  ListFut[[ProjN[k]]][["BRT"]] <- STANDAR_FUT(predict(VariablesP[[k]],Model,
+                  ListFut[[ProjN[k]]][["BRT"]] <- STANDAR_FUT(rater::predict(VariablesP[[k]],Model,
                                                               n.trees=Model$gbm.call$best.trees,type="response"),FinalModelT)
                 }
               }
             }
           }else{
             Eval <- list()
+            Eval_JS <- list()
             Boyce <- list()
+            pROC <- list()
+            Area <- list()
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(predict(Model,VariablesP[[k]],
+              ListFut[[ProjN[k]]][["BRT"]] <- STANDAR(raster::predict(Model,VariablesP[[k]],
                                                           n.trees=Model$gbm.call$best.trees,type="response"))
               if(maxValue(ListFut[[ProjN[k]]][["BRT"]])==0){
                 ListFut[[ProjN[k]]][["BRT"]] <- ListFut[[ProjN[k]]][["BRT"]]
@@ -2605,22 +3283,53 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
               PredPoint <- raster::extract(ListFut[[ProjN[k]]][["BRT"]], PAtest[[i]][, c("x", "y")])
               PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+              Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                        PredPoint[PredPoint$PresAbse == 0, 2])
+              Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                             a=PredPoint[PredPoint$PresAbse == 0, 2])
+              
+              #Thresholds and Final Evaluation
+              Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+              Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+              Threshold <- Threshold[order(Thr)]
+              Thr <- sort(Thr)
+              Thr <- ifelse(Thr<0,0,Thr)
               Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                           PredPoint[PredPoint$PresAbse == 0, 2])
+                                           PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
               Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                                a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                                a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
               #Boyce Index
               Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BRT"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+              
+              #Percentage of Predicted Area
+              ArT <- NULL
+              for (j in Thr){
+                RasL <- ListFut[[ProjN[k]]][["BRT"]]>=j
+                ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              }
+              Area[[i]] <- round(ArT*100,3)
+              
+              #PartialROC
+              pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["BRT"]],
+                                                  test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                                  error=5,iterations=500,
+                                                  percentage=50)$pROC_summary
 
 
               #BRT Validation
+              pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+              pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+              pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+              pROC <- mean(unlist(lapply(pROC, `[`, 1)))
               BoyceSD <- stats::sd(unlist(Boyce))
               Boyce <- mean(unlist(Boyce))
-              Validation<-Validation_Table_TMLA(Eval,Eval_JS,N)
+              AreaSD <- apply(do.call("rbind",Area),2,sd)
+              Area <- colMeans(do.call("rbind",Area))
+              Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
               if(is.null(repl)){
-                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
               }else{
-                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,Boyce=Boyce,Boyce_SD=BoyceSD)
+                ListValidation[["BRT"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="BRT", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
               }
             }
           }
@@ -2681,25 +3390,60 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
       # Threshold
       Eval <- list()
-      Boyce <- list()
       Eval_JS <- list()
+      Boyce <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2])
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        
+        #Percentage of Predicted Area
+        RasT <- RasT[lapply(RasT,length)>1]
+        ENST <- mean(stack(RasT))
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- ENST>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,percentage=50)$pROC_summary
       }
 
       #MEAN Validation
+      pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+      pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+      pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+      pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+      BoyceSD <- stats::sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
-      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      AreaSD <- apply(do.call("rbind",Area),2,sd)
+      Area <- colMeans(do.call("rbind",Area))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
 
       if(is.null(repl)){
-        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s], Algorithm="MEA", Partition=Part,Validation,Boyce=Boyce)
+        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s], Algorithm="MEA", Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }else{
-        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MEA", Partition=Part,Validation,Boyce=Boyce)
+        ListValidation[["MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="MEA", Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
     }
 
@@ -2720,20 +3464,54 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval_JS <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2])
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
-                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        
+        #Percentage of Predicted Area
+        RasT <- RasT[lapply(RasT,length)>1]
+        ENST <- mean(stack(RasT)*ThResW)
+        
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- RasT>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,percentage=50)$pROC_summary
       }
 
       #W_MEAN Validation
+      pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+      pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+      pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+      pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+      BoyceSD <- stats::sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
-      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      AreaSD <- apply(do.call("rbind",Area),2,sd)
+      Area <- colMeans(do.call("rbind",Area))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
       if(is.null(repl)){
-        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s], Algorithm="WMEA",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s], Algorithm="WMEA",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }else{
-        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="WMEA",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["W_MEAN"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="WMEA",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
     }
 
@@ -2755,20 +3533,54 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval_JS <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2])
-        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
-                                          PredPoint[PredPoint$PresAbse == 0, 2])
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        
+        #Percentage of Predicted Area
+        RasT <- RasT[lapply(RasT,length)>1]
+        ENST <- mean(stack(RasT[Best]))
+        
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- RasT>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,percentage=50)$pROC_summary
       }
 
       #SUP Validation
+      pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+      pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+      pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+      pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+      BoyceSD <- stats::sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
-      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      AreaSD <- apply(do.call("rbind",Area),2,sd)
+      Area <- colMeans(do.call("rbind",Area))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
       if(is.null(repl)){
-        ListValidation[["SUP"]] <- data.frame(Sp=spN[s], Algorithm="SUP", Partition=Part,Validation,Boyce=Boyce)
+        ListValidation[["SUP"]] <- data.frame(Sp=spN[s], Algorithm="SUP", Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }else{
-        ListValidation[["SUP"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SUP",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["SUP"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="SUP",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
     }
 
@@ -2792,20 +3604,54 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval_JS <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2])
-        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
-                                          PredPoint[PredPoint$PresAbse == 0, 2])
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        
+        #Percentage of Predicted Area
+        RasT <- RasT[lapply(RasT,length)>1]
+        ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
+        
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- ENST>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,percentage=50)$pROC_summary
       }
 
       #PCA Validation
+      pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+      pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+      pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+      pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+      BoyceSD <- stats::sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
-      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      AreaSD <- apply(do.call("rbind",Area),2,sd)
+      Area <- colMeans(do.call("rbind",Area))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
       if(is.null(repl)){
-        ListValidation[["PCA"]] <- data.frame(Sp=spN[s], Algorithm="PCA",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["PCA"]] <- data.frame(Sp=spN[s], Algorithm="PCA",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }else{
-        ListValidation[["PCA"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCA", Partition=Part,Validation,Boyce=Boyce)
+        ListValidation[["PCA"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCA", Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
     }
 
@@ -2833,20 +3679,54 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval_JS <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2])
-        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
-                                          PredPoint[PredPoint$PresAbse == 0, 2])
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        
+        #Percentage of Predicted Area
+        RasT <- RasT[lapply(RasT,length)>1]
+        ENST <- PCA_ENS_TMLA(brick(stack(RasT[Best])))
+        
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- RasT>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,percentage=50)$pROC_summary
       }
 
       #PCA_SUP Validation
+      pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+      pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+      pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+      pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+      BoyceSD <- stats::sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
-      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      AreaSD <- apply(do.call("rbind",Area),2,sd)
+      Area <- colMeans(do.call("rbind",Area))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
       if(is.null(repl)){
-        ListValidation[["PCS"]] <- data.frame(Sp=spN[s], Algorithm="PCS",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["PCS"]] <- data.frame(Sp=spN[s], Algorithm="PCS",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }else{
-        ListValidation[["PCS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCS",Partition=Part, Validation,Boyce=Boyce)
+        ListValidation[["PCS"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCS",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
     }
 
@@ -2870,21 +3750,56 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval_JS <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
+        Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+        Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                       a=PredPoint[PredPoint$PresAbse == 0, 2])
+        
+        #Thresholds and Final Evaluation
+        Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+        Threshold <- Threshold[order(Thr)]
+        Thr <- sort(Thr)
+        Thr <- ifelse(Thr<0,0,Thr)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
-                                     PredPoint[PredPoint$PresAbse == 0, 2])
-        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
-                                          PredPoint[PredPoint$PresAbse == 0, 2])
+                                     PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
+        Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                          a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+        
+        #Percentage of Predicted Area
+        RasT <- RasT[lapply(RasT,length)>1]
+        RasT <- sapply(seq(1:length(ValidTHR)),function(x){RasT[[x]]*(RasT[[x]]>=ValidTHR[x])})
+        ENST <- PCA_ENS_TMLA(brick(stack(RasT2)))
+        
+        ArT <- NULL
+        for (j in Thr){
+          RasL <- RasT>=j
+          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+        }
+        Area[[i]] <- round(ArT*100,3)
+        
+        #PartialROC
+        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                            error=5,iterations=500,percentage=50)$pROC_summary
       }
 
       #PCA_SUP Validation
+      pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+      pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+      pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+      pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+      BoyceSD <- stats::sd(unlist(Boyce))
       Boyce <- mean(unlist(Boyce))
-      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N)
+      AreaSD <- apply(do.call("rbind",Area),2,sd)
+      Area <- colMeans(do.call("rbind",Area))
+      Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
 
       if(is.null(repl)){
-        ListValidation[["PCT"]] <- data.frame(Sp=spN[s], Algorithm="PCT", Partition=Part,Validation,Boyce=Boyce)
+        ListValidation[["PCT"]] <- data.frame(Sp=spN[s], Algorithm="PCT", Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }else{
-        ListValidation[["PCT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCT", Partition=Part,Validation,Boyce=Boyce)
+        ListValidation[["PCT"]] <- data.frame(Sp=spN[s],Replicate=repl, Algorithm="PCT", Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
       }
     }
 
