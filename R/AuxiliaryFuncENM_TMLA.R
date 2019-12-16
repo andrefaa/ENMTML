@@ -31,6 +31,40 @@ PREDICT_DomainMahal <- function(mod, variables) {
   return(result)
 }
 
+#Prediction for ENFA----
+PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
+  if (class(prediction_dataset)=="data.frame"){
+    Zli <- as.matrix(prediction_dataset[,VarColT]) %*% as.matrix(mod$co)
+    ZER <- 1:nrow(prediction_dataset)
+    f1 <- function(x) rep(x, ZER)
+    Sli <- apply(Zli, 2, f1)
+    m <- apply(Sli, 2, mean)
+    cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+    res <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+    return(res)
+  }else if(class(prediction_dataset)=="RasterBrick"){
+    PredRas <- raster::values(prediction_dataset)
+    POS <- which(is.na(PredRas[,1]))
+    Zli <- as.matrix(stats::na.omit(raster::values(prediction_dataset)) %*% as.matrix(mod$co))
+    POSPRE <- raster::cellFromXY(prediction_dataset[[1]],train_dataset[train_dataset$PresAbse==1,c("x","y")])
+    ZER <- rep(0,nrow(PredRas))
+    ZER[POSPRE] <- 1
+    ZER <- ZER[-POS]
+    f1 <- function(x) rep(x, ZER)
+    Sli <- apply(Zli, 2, f1)
+    m <- apply(Sli, 2, mean)
+    cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
+    PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
+    XY <- raster::xyFromCell(prediction_dataset[[1]],1:raster::ncell(prediction_dataset[[1]]))
+    PredRAS <- data.frame(cbind(XY,ENF=NA))
+    PredRAS[-POS,"ENF"] <- PredRas
+    sp::gridded(PredRAS) <- ~x+y
+    FinalModelT <- rem_out(raster(PredRAS))
+    FinalModel <- FinalModelT
+    return(FinalModel)
+  }
+}
+
 
 # Prediction of different algorithm------
 PREDICT <- function(Variables, Models_List) {
