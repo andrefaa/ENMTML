@@ -251,6 +251,7 @@
 #' @import rgdal
 #' @import GRaF
 #' @import foreach
+#' @import igraph
 #' @importFrom ade4 scatter
 #' @importFrom ade4 dudi.pca
 #' @importFrom adehabitatHS madifa
