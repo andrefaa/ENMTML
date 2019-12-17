@@ -14,8 +14,8 @@ Authors@R:
 Description: Fit ENMs.....
 License: GPL (>= 2)
 Depends: R (>= 3.5.0)
-Imports: ade4, adehabitatHS, ape, caret, data.table, dismo,  
-         flexclust, foreach, gbm, geoR, glmnet, GRaF, kernlab, 
+Imports: ade4, adehabitatHS, ape, caret, data.table, dismo, ellipsenm,  
+         flexclust, foreach, igraph, gbm, geoR, glmnet, GRaF, kernlab, 
          maxlike, maxnet, methods, mgcv, parallel, doParallel, plyr, pracma, randomForest, 
          raster, rgdal, rgeos, RStoolbox, sp, SpatialEpi, 
          spThin, tools, usdm, visreg
@@ -24,4 +24,4 @@ BugReports: https://github.com/andrefaa/ENMTML/issues
 Encoding: UTF-8
 Language: en
 LazyData: true
-RoxygenNote: 7.0.0
+RoxygenNote: 7.0.2

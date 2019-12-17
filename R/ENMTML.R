@@ -251,6 +251,8 @@
 #' @import rgdal
 #' @import GRaF
 #' @import foreach
+#' @import igraph
+#' @importFrom ellipsenm partial_roc
 #' @importFrom ade4 scatter
 #' @importFrom ade4 dudi.pca
 #' @importFrom adehabitatHS madifa

@@ -19,10 +19,16 @@ library(ENMTML)
 
 **FOR NEW USERS**  
 ```ruby
-# install.packages("devtools")  
-library(devtools)  
-install_github("goldingn/GRaF")  
-install_github("andrefaa/ENMTML")  
+if(!require(devtools)){
+    install.packages("devtools")
+}
+if(!require(GRaF)){
+    devtools::install_github("goldingn/GRaF")
+}
+if(!require(ellipsenm)){
+    devtools::install_github("marlonecobos/ellipsenm")
+}
+devtools::install_github("andrefaa/ENMTML")
 library(ENMTML)
 ```
 
