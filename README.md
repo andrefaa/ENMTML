@@ -1,6 +1,6 @@
 # __ENMTML__ <img src="https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true" align="right" width="170" />
 [![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
-
+[![DOI](https://zenodo.org/badge/DOI/10.1016/j.envsoft.2019.104615.svg)](https://doi.org/10.1016/j.envsoft.2019.104615)
 
 ## An R package for an integrated construction of Ecological Niche Models
 
@@ -49,7 +49,9 @@ There are a couple of pre and post-processing available in the package, here is 
 
 For more information see 
 https://www.sciencedirect.com/science/article/pii/S1364815219310424?via%3Dihub
-### Please cite this pacakge as:
+
+
+### CITATION:
 **Andrade AFA, Velazco SJE, De Marco Jr P. 2020. ENMTML: An R package for a straightforward construction of complex ecological niche models. Environmental Modelling & Software:104615.(https://doi.org/10.1016/j.envsoft.2019.104615)**
 
 
