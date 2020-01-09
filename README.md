@@ -1,6 +1,6 @@
 # __ENMTML__ <img src="https://github.com/andrefaa/ENMTML/blob/master/ENMTML1.png?raw=true" align="right" width="170" />
-[![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
 [![DOI](https://zenodo.org/badge/DOI/10.1016/j.envsoft.2019.104615.svg)](https://doi.org/10.1016/j.envsoft.2019.104615)
+[![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
 
 ## An R package for an integrated construction of Ecological Niche Models
 
