@@ -216,15 +216,15 @@ VarImp_RspCurv <- function(Model,
     graphics::par(mfrow = c(ceiling(nrow(
       Model$importance
     ) / 3), 3))
-    for (o in 1:nrow(Model$importance)) {
-      randomForest::partialPlot(
-        Model,
-        x.var = row.names(Model$importance)[o],
-        pred.data = SpDataT[, VarColT],
-        xlab = row.names(Model$importance)[o],
-        main = NULL
-      )
-    }
+    # for (o in 1:nrow(Model$importance)) {
+    #   randomForest::partialPlot(
+    #     Model,
+    #     x.var = row.names(Model$importance)[o],
+    #     pred.data = SpDataT[, VarColT],
+    #     xlab = row.names(Model$importance)[o],
+    #     main = NULL
+    #   )
+    # }
     grDevices::dev.off()
   }
   
