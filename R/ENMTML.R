@@ -272,6 +272,7 @@
 #' @importFrom maxnet maxnet
 #' @importFrom maxnet response.plot
 #' @importFrom maxnet maxnet.formula
+#' @importFrom maxnet maxnet.default.regularization
 #' @importFrom maxlike maxlike
 #' @importFrom mgcv gam
 #' @importFrom plyr ldply
