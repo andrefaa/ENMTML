@@ -133,7 +133,7 @@ VarImp_RspCurv <- function(Model,
   
   #Boosted Regression Tree----
   if (Algorithm %in% "BRT") {
-    V_IMP <- caret::varImp(Model, numTrees = Model$n.trees, scale = T)
+    V_IMP <- gbm::relative.influence(Model, n.trees = Model$n.trees, scale = T)
     V_IMP <- V_IMP / sum(V_IMP)
     V_IMP <-
       cbind(
