@@ -83,7 +83,7 @@ VarImp_RspCurv <- function(Model,
   }
   
   #Maxent----
-  if (Algorithm %in% c("MXD", "MXS")) {
+  if (Algorithm %in% c("MXD", "MXS", "MLK")) {
     warning("Variable importance Evaluated using a filter approach")
     V_IMP <- caret::filterVarImp(SpDataT[, VarColT], Outcome, nonpara = FALSE)
     V_IMP <- V_IMP / sum(V_IMP)
@@ -114,19 +114,19 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    if (!Algorithm %in% "MLK") {
-      grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-        width = 3200,
-        height = 3200,
-        units = "px",
-        res = 800
-      )
-      plot(Model, type = "cloglog")
-      grDevices::dev.off()
-    } else{
-      plot(Model)
-    }
+    # if (!Algorithm %in% "MLK") {
+    #   grDevices::png(
+    #     file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+    #     width = 3200,
+    #     height = 3200,
+    #     units = "px",
+    #     res = 800
+    #   )
+    #   plot(Model, type = "cloglog")
+    #   grDevices::dev.off()
+    # } else{
+    #   plot(Model)
+    # }
   }
   
   
@@ -170,8 +170,8 @@ VarImp_RspCurv <- function(Model,
       res = 800
     )
     dismo::gbm.plot(Model,
-             plot.layout = c(length(Model$var.names) / 3, 3),
-             write.title = F)
+                    plot.layout = c(length(Model$var.names) / 3, 3),
+                    write.title = F)
     grDevices::dev.off()
   }
   
@@ -265,7 +265,7 @@ VarImp_RspCurv <- function(Model,
   }
   
   #GLM,GAM----
-  if (Algorithm %in% "GLM") {
+  if (any(Algorithm %in% c("GLM", "GAM"))) {
     V_IMP <- caret::varImp(Model)
     V_IMP <- round(V_IMP / sum(V_IMP), 3)
     V_IMP <-
