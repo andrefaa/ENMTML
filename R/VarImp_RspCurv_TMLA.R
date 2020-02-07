@@ -61,7 +61,7 @@ VarImp_RspCurv <- function(Model,
     #Response Curves
     if (Algorithm != 'ENF') {
       grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -71,7 +71,7 @@ VarImp_RspCurv <- function(Model,
       grDevices::dev.off()
     } else{
       grDevices::png(
-        file.path(DirV, paste0("ENFAAxis_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ENFAAxis_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -116,7 +116,7 @@ VarImp_RspCurv <- function(Model,
     #Response Curves
     if (!Algorithm %in% "MLK") {
       grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -163,7 +163,7 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
       width = 3200,
       height = 3200,
       units = "px",
@@ -207,7 +207,7 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
       width = 3200,
       height = 3200,
       units = "px",
@@ -259,7 +259,7 @@ VarImp_RspCurv <- function(Model,
       )
     }
     # #Response Curves
-    # grDevices::png(file.path(DirV,paste0("Response_Curves_",VarColT[k],".grDevices::png")),width = 3200, height = 3200, units = "px", res = 800)
+    # grDevices::png(file.path(DirV,paste0("Response_Curves_",VarColT[k],".png")),width = 3200, height = 3200, units = "px", res = 800)
     # partialPlot(Model,pred.data=SpDataT[,VarColT],main=NULL)
     # grDevices::dev.off()
   }
@@ -298,7 +298,7 @@ VarImp_RspCurv <- function(Model,
     if (Algorithm %in% "GLM") {
       CCC <- sum(!grepl('[(]', names(Model$coefficients)))
       grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -315,7 +315,7 @@ VarImp_RspCurv <- function(Model,
       grDevices::dev.off()
     } else{
       grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -367,7 +367,7 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
       width = 3200,
       height = 3200,
       units = "px",
