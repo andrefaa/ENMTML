@@ -263,6 +263,7 @@
 #' @importFrom doParallel registerDoParallel
 #' @importFrom flexclust dist2
 #' @importFrom gbm predict.gbm
+#' @importFrom gbm relative.influence
 #' @importFrom geoR variog
 #' @importFrom rgeos gUnaryUnion
 #' @importFrom glmnet glmnet

@@ -61,7 +61,7 @@ VarImp_RspCurv <- function(Model,
     #Response Curves
     if (Algorithm != 'ENF') {
       grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -71,7 +71,7 @@ VarImp_RspCurv <- function(Model,
       grDevices::dev.off()
     } else{
       grDevices::png(
-        file.path(DirV, paste0("ENFAAxis_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ENFAAxis_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -83,7 +83,7 @@ VarImp_RspCurv <- function(Model,
   }
   
   #Maxent----
-  if (Algorithm %in% c("MXD", "MXS")) {
+  if (Algorithm %in% c("MXD", "MXS", "MLK")) {
     warning("Variable importance Evaluated using a filter approach")
     V_IMP <- caret::filterVarImp(SpDataT[, VarColT], Outcome, nonpara = FALSE)
     V_IMP <- V_IMP / sum(V_IMP)
@@ -114,26 +114,26 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    if (!Algorithm %in% "MLK") {
-      grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
-        width = 3200,
-        height = 3200,
-        units = "px",
-        res = 800
-      )
-      plot(Model, type = "cloglog")
-      grDevices::dev.off()
-    } else{
-      plot(Model)
-    }
+    # if (!Algorithm %in% "MLK") {
+    #   grDevices::png(
+    #     file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
+    #     width = 3200,
+    #     height = 3200,
+    #     units = "px",
+    #     res = 800
+    #   )
+    #   plot(Model, type = "cloglog")
+    #   grDevices::dev.off()
+    # } else{
+    #   plot(Model)
+    # }
   }
   
   
   
   #Boosted Regression Tree----
   if (Algorithm %in% "BRT") {
-    V_IMP <- caret::varImp(Model, numTrees = Model$n.trees, scale = T)
+    V_IMP <- gbm::relative.influence(Model, n.trees = Model$n.trees, scale = T)
     V_IMP <- V_IMP / sum(V_IMP)
     V_IMP <-
       cbind(
@@ -163,15 +163,15 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
       width = 3200,
       height = 3200,
       units = "px",
       res = 800
     )
     dismo::gbm.plot(Model,
-             plot.layout = c(length(Model$var.names) / 3, 3),
-             write.title = F)
+                    plot.layout = c(length(Model$var.names) / 3, 3),
+                    write.title = F)
     grDevices::dev.off()
   }
   
@@ -207,7 +207,7 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
       width = 3200,
       height = 3200,
       units = "px",
@@ -216,15 +216,15 @@ VarImp_RspCurv <- function(Model,
     graphics::par(mfrow = c(ceiling(nrow(
       Model$importance
     ) / 3), 3))
-    for (o in 1:nrow(Model$importance)) {
-      randomForest::partialPlot(
-        Model,
-        x.var = row.names(Model$importance)[o],
-        pred.data = SpDataT[, VarColT],
-        xlab = row.names(Model$importance)[o],
-        main = NULL
-      )
-    }
+    # for (o in 1:nrow(Model$importance)) {
+    #   randomForest::partialPlot(
+    #     Model,
+    #     x.var = row.names(Model$importance)[o],
+    #     pred.data = SpDataT[, VarColT],
+    #     xlab = row.names(Model$importance)[o],
+    #     main = NULL
+    #   )
+    # }
     grDevices::dev.off()
   }
   
@@ -259,13 +259,13 @@ VarImp_RspCurv <- function(Model,
       )
     }
     # #Response Curves
-    # grDevices::png(file.path(DirV,paste0("Response_Curves_",VarColT[k],".grDevices::png")),width = 3200, height = 3200, units = "px", res = 800)
+    # grDevices::png(file.path(DirV,paste0("Response_Curves_",VarColT[k],".png")),width = 3200, height = 3200, units = "px", res = 800)
     # partialPlot(Model,pred.data=SpDataT[,VarColT],main=NULL)
     # grDevices::dev.off()
   }
   
   #GLM,GAM----
-  if (Algorithm %in% "GLM") {
+  if (any(Algorithm %in% c("GLM", "GAM"))) {
     V_IMP <- caret::varImp(Model)
     V_IMP <- round(V_IMP / sum(V_IMP), 3)
     V_IMP <-
@@ -298,7 +298,7 @@ VarImp_RspCurv <- function(Model,
     if (Algorithm %in% "GLM") {
       CCC <- sum(!grepl('[(]', names(Model$coefficients)))
       grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -315,7 +315,7 @@ VarImp_RspCurv <- function(Model,
       grDevices::dev.off()
     } else{
       grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
         width = 3200,
         height = 3200,
         units = "px",
@@ -367,7 +367,7 @@ VarImp_RspCurv <- function(Model,
     }
     #Response Curves
     grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".grDevices::png")),
+      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
       width = 3200,
       height = 3200,
       units = "px",
