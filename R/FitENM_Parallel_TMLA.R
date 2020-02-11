@@ -3462,6 +3462,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3531,6 +3533,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3602,6 +3606,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3677,6 +3683,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3748,6 +3756,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
