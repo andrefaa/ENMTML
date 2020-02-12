@@ -265,15 +265,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   # Construction of models LOOP-----
   results <- foreach(s = 1:length(spN),
-                     .packages = c("raster", "dismo",
-    "kernlab", "randomForest", "maxnet", "maxlike",
-    "GRaF", "plyr", "mgcv", "RStoolbox", "adehabitatHS",
-    "caret", "visreg", "glmnet", "gbm" ),
+                   .packages = c("raster", "dismo",
+                                 "kernlab", "randomForest", "maxnet", "maxlike",
+                                 "plyr", "mgcv", "RStoolbox", "adehabitatHS",
+                                 "caret", "visreg", "glmnet", "gbm" ),
                      .export = c( "Validation2_0", "maxnet2",
-    "predict.graf.raster", "PCA_ENS_TMLA", "predict.maxnet", "boycei",
-      "STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA", "Validation_Table_TMLA",
-      "Thresholds_TMLA", "VarImp_RspCurv", "hingeval", "ecospat.boyce",
-    "PREDICT_DomainMahal","rem_out","PREDICT_ENFA")) %dopar% {
+                                  "PCA_ENS_TMLA", "predict.maxnet", "boycei"
+                                  ,"partial_roc","trap_roc",
+                                  "STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA",
+                                  "Validation_Table_TMLA",
+                                  "Thresholds_TMLA", "VarImp_RspCurv",
+                                  "hingeval", "ecospat.boyce",
+                                  "PREDICT_DomainMahal","rem_out","PREDICT_ENFA",
+                                  "graf","capture.all","graf.fit.laplace","graf.fit.ep",
+                                  "cov.SE","d0","d1","d2","d3","psiline","psi",
+                                  "cov.SE.d1","predict.graf.raster")) %dopar% {
 
     #Results Lists
     ListRaster <- as.list(Algorithm)
@@ -1675,22 +1681,42 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListRaster[["MLK"]] <- NULL
         ListSummary[["MLK"]] <- NULL
         RastPart[["MLK"]] <- NULL
+        RasT[["MLK"]] <- NULL
       }else{
         Model <- list()
         Fmula <- paste( " ~ ", paste(c(VarColT, paste("I(",VarColT, "^2)", sep = "")),
                                      collapse = " + "), sep = "")
         Fmula <- stats::as.formula(Fmula)
+        EnvMLK <- raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd))
         #MLK model
         for (i in 1:N) {
           dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
           # x <- PAtrain[[i]][PAtrainM[[i]][,"PresAbse"]==1, VarColT]
           # z <- PAtrainM[[i]][PAtrainM[[i]][,"PresAbse"]==0, VarColT]
-          Model[[i]] <- maxlike::maxlike(Fmula, 
-                                         raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),dataPr,link=c("cloglog"),method="BFGS",
-                                hessian = FALSE, removeDuplicates=FALSE,savedata=T)
-          # Model[[i]] <- maxlike::maxlike(Fmula,x=x,z=z,
-          #                      link=c("cloglog"),method="Nelder-Mead",
-          #                      hessian = FALSE, removeDuplicates=FALSE)
+          # Model[[i]] <- maxlike::maxlike(formula=Fmula,rasters=EnvMLK
+          #                                                ,points=dataPr,
+          #                                                link=("cloglog"),
+          #                                                method="BFGS",
+          #                                                hessian = FALSE, 
+          #                                                removeDuplicates=FALSE
+          #                                                ,savedata=T)
+          Model[[i]] <- tryCatch (expr={maxlike::maxlike(formula=Fmula,rasters=EnvMLK
+                                                              ,points=dataPr,
+                                                              link=("cloglog"),
+                                                              method="BFGS",
+                                                              hessian = FALSE,
+                                                              removeDuplicates=FALSE
+                                                              ,savedata=T)},
+                         error=function(e) {
+                           message("Trying Nelder-Mead Optimization")
+                           maxlike::maxlike(formula=Fmula,
+                                                          rasters=EnvMLK
+                                                          ,points=dataPr,
+                                                          link=c("cloglog"),
+                                                          method="Nelder-Mead",
+                                                          hessian = FALSE,
+                                                          removeDuplicates=FALSE
+                                                          ,savedata=T)})
         }
 
         #Evaluate Model
@@ -1775,7 +1801,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           }
           
-          #BIO Validation
+          #MLK Validation
           pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
           pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
           pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
@@ -1794,17 +1820,48 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save final model
           if(repl==1 || is.null(repl)){
             if(is.null(repl) && N==1){
-              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
-                               link=c("cloglog"),hessian = FALSE,savedata=TRUE,
-                               method="BFGS",removeDuplicates=FALSE)
+              Model <- tryCatch (expr={maxlike::maxlike(Fmula,
+                                                        points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],
+                                                        rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                        link=c("cloglog"),
+                                                        hessian = FALSE,savedata=TRUE,
+                                                        method="BFGS",
+                                                        removeDuplicates=FALSE)},
+                                error=function(e) {
+                                  message("Trying Nelder-Mead Optimization")
+                                  maxlike::maxlike(Fmula,
+                                                   points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],
+                                                   rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                   link=c("cloglog"),
+                                                   hessian = FALSE,savedata=TRUE,
+                                                   method="Nelder-Mead",
+                                                   removeDuplicates=FALSE)})
+
               FinalModelT <- predict(Model)
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
               PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
             }else{
-              Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
-                               link=c("cloglog"),hessian = FALSE,savedata=TRUE,
-                               method="BFGS",removeDuplicates=FALSE)
+              Model <- tryCatch (expr={maxlike::maxlike(Fmula,
+                                                        points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],
+                                                        rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                        link=c("cloglog"),
+                                                        hessian = FALSE,savedata=TRUE,
+                                                        method="BFGS",
+                                                        removeDuplicates=FALSE)},
+                                 error=function(e) {
+                                   message("Trying Nelder-Mead Optimization")
+                                   maxlike::maxlike(Fmula,
+                                                    points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],
+                                                    rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                    link=c("cloglog"),
+                                                    hessian = FALSE,savedata=TRUE,
+                                                    method="Nelder-Mead",
+                                                    removeDuplicates=FALSE)})
+              
+              # Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+              #                  link=c("cloglog"),hessian = FALSE,savedata=TRUE,
+              #                  method="BFGS",removeDuplicates=FALSE)
               FinalModelT <- predict(Model)
               FinalModel <- STANDAR(FinalModelT)
               PredPoint <- raster::extract(FinalModel,SpDataTM[, 2:3])
@@ -2376,6 +2433,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListRaster[["GAM"]] <- NULL
         ListSummary[["GAM"]] <- NULL
         RastPart[["GAM"]] <- NULL
+        RasT[["GAM"]] <- NULL
       }else{
         Model <- list()
         Fmula <- paste("s(", VarColT,",k=3)", sep="")
@@ -2607,6 +2665,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListRaster[["GLM"]] <- NULL
         ListSummary[["GLM"]] <- NULL
         RastPart[["GLM"]] <- NULL
+        RasT[["GLM"]] <- NULL
       }else{
         Model <- list()
         Fmula <- paste( "PresAbse ~ ", paste(c(VarColT, paste("I(",VarColT, "^2)", sep = "")),
@@ -2833,7 +2892,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #GAU model
     for (i in 1:N) {
       dataPr <- PAtrain[[i]]
-      Model[[i]] <- graf(dataPr[,"PresAbse"], dataPr[,VarColT],opt.l=F,method="Laplace")
+      Model[[i]] <- graf(y=dataPr[,"PresAbse"], x=dataPr[,VarColT],opt.l=F,method="Laplace")
     }
 
     #GAU evaluation
@@ -3062,6 +3121,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ListRaster[["BRT"]] <- NULL
         ListSummary[["BRT"]] <- NULL
         RastPart[["BRT"]] <- NULL
+        RasT[["BRT"]] <- NULL
       }else{
         Model <- list()
         #BRT model
@@ -3080,6 +3140,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               ListRaster[["BRT"]] <- NULL
               ListSummary[["BRT"]] <- NULL
               RastPart[["BRT"]] <- NULL
+              RasT[["BRT"]] <- NULL
               break
             }
           }
@@ -3230,6 +3291,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                     ListRaster[["BRT"]] <- NULL
                     ListSummary[["BRT"]] <- NULL
                     RastPart[["BRT"]] <- NULL
+                    RasT[["BRT"]] <- NULL
                     break
                   }
                 }
@@ -3460,6 +3522,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
       # Threshold
       Eval <- list()
+      Eval_JS <- list()
       Boyce <- list()
       Eval_JS <- list()
       pROC <- list()
@@ -3484,7 +3547,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
         #Percentage of Predicted Area
-        RasT <- RasT[lapply(RasT,length)>1]
         ENST <- mean(stack(RasT)*ThResW)
         
         ArT <- NULL
@@ -3528,9 +3590,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Partial Models
       Final <- do.call(Map, c(rbind,RastPart[W]))
       Final <- lapply(Final, function (x) colMeans(x))
+      
 
       # Threshold
       Eval <- list()
+      Eval_JS <- list()
       Boyce <- list()
       Eval_JS <- list()
       pROC <- list()
@@ -3604,6 +3668,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
       # Threshold
       Eval <- list()
+      Eval_JS <- list()
       Boyce <- list()
       Eval_JS <- list()
       pROC <- list()
@@ -3681,6 +3746,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
       # Threshold
       Eval <- list()
+      Eval_JS <- list()
       Boyce <- list()
       Eval_JS <- list()
       pROC <- list()
@@ -3754,6 +3820,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
       # Evaluation
       Eval <- list()
+      Eval_JS <- list()
       Boyce <- list()
       Eval_JS <- list()
       pROC <- list()
@@ -3814,13 +3881,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
 
     #Final Data Frame Results
+
     result <- plyr::ldply(ListValidation,data.frame,.id=NULL)
     resultII <- plyr::ldply(ListSummary,data.frame,.id=NULL)
 
     out <- list(Validation = result,
                 Summary = resultII)
     return(out)
-  }#Fecha loop Especie
+  }#Close Species Loop
+
 
 # Save .txt with the models performance----
 FinalValidation <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Validation"))))
