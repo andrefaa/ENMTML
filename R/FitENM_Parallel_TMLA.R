@@ -3489,7 +3489,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
@@ -3560,7 +3560,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
@@ -3710,7 +3710,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
