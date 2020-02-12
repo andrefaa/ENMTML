@@ -3780,11 +3780,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Percentage of Predicted Area
         RasT <- RasT[lapply(RasT,length)>1]
         RasT <- sapply(seq(1:length(ValidTHR)),function(x){RasT[[x]]*(RasT[[x]]>=ValidTHR[x])})
-        ENST <- PCA_ENS_TMLA(brick(stack(RasT2)))
+        ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
