@@ -937,7 +937,9 @@ ENMTML <- function(pred_dir,
       occINPUT <- subset(occINPUT,!occINPUT$sp%in%spINV)
       spN <- spN[!spN%in%spINV]
       utils::write.table(spINV,file.path(DirB,"DroppedSpecies.txt"),sep="\t",row.names=F)
-      unlink(grep(paste(spINV,collapse="|"),list.files(DirM,full.names=T),value=T))
+      if(!is.null(sp_accessible_area)){
+        unlink(grep(paste(spINV,collapse="|"),list.files(DirM,full.names=T),value=T))
+      }
       unlink(grep(paste(spINV,collapse="|"),list.files(DirB,full.names=T),value=T))
     }
 
