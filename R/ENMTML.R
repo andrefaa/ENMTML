@@ -249,10 +249,8 @@
 #' @import raster
 #' @import dismo
 #' @import rgdal
-#' @import GRaF
 #' @import foreach
 #' @import igraph
-#' @importFrom ellipsenm partial_roc
 #' @importFrom ade4 scatter
 #' @importFrom ade4 dudi.pca
 #' @importFrom adehabitatHS madifa
@@ -1606,8 +1604,9 @@ ENMTML <- function(pred_dir,
       valF <- plyr::ldply(valF,data.frame,.id=NULL)
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
-      valF_Mean <- aggregate(.~Sp+Algorithm+Threshold, data=valF, mean)
-      valF_SD <- aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x))
+      valF <- valF[,c('Sp', 'Algorithm', 'Partition', 'Threshold', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'pROC', 'OR',  'Percentage_predicted_area', 'Boyce')]
+      valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
+      valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)

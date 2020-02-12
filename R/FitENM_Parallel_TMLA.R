@@ -3462,6 +3462,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3487,7 +3489,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
@@ -3531,6 +3533,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3556,7 +3560,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
@@ -3602,6 +3606,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3677,6 +3683,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3702,13 +3710,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+        pROC[[i]] <- ellipsenm::partial_roc(prediction = ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3748,6 +3756,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       Eval <- list()
       Boyce <- list()
       Eval_JS <- list()
+      pROC <- list()
+      Area <- list()
       for(i in 1:N){
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], Final[[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3770,11 +3780,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Percentage of Predicted Area
         RasT <- RasT[lapply(RasT,length)>1]
         RasT <- sapply(seq(1:length(ValidTHR)),function(x){RasT[[x]]*(RasT[[x]]>=ValidTHR[x])})
-        ENST <- PCA_ENS_TMLA(brick(stack(RasT2)))
+        ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
         
         ArT <- NULL
         for (j in Thr){
-          RasL <- RasT>=j
+          RasL <- ENST>=j
           ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
