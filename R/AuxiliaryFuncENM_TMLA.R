@@ -59,7 +59,7 @@ PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
     PredRAS <- data.frame(cbind(XY,ENF=NA))
     PredRAS[-POS,"ENF"] <- PredRas
     sp::gridded(PredRAS) <- ~x+y
-    FinalModelT <- rem_out(raster(PredRAS))
+    FinalModelT <- rem_out(raster::raster(PredRAS))
     FinalModel <- FinalModelT
     return(FinalModel)
   }
