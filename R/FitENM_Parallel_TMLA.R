@@ -412,12 +412,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- RasT[["BIO"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["BIO"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["BIO"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -559,7 +559,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["BIO"]],
+          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["BIO"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -630,7 +630,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["DOM"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["DOM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           #Save Partition Predictions
@@ -778,7 +778,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["DOM"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["DOM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
 
@@ -849,7 +849,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MAH"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -1002,7 +1002,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MAH"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -1069,12 +1069,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- RasT[["ENF"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["ENF"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["ENF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           #Save Partition Predictions
@@ -1215,12 +1215,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- ListFut[[ProjN[k]]][["ENF"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["ENF"]],
+          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["ENF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -1283,16 +1283,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXD"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           #Percentae of Predicted Area
-          RasT[["MXD"]] <- predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
+          RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
           ArT <- NULL
           for (j in Thr){
             RasL <- RasT[["MXD"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MXD"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["MXD"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -1429,12 +1429,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- ListFut[[ProjN[k]]][["MXD"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["MXD"]],
+          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MXD"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -1476,7 +1476,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         pROC <- list()
         Area <- list()
         for (i in 1:N) {
-          RastPart[["MXS"]][[i]] <- c(predict(Model[[i]],PAtestM[[i]][, VarColT],clamp=F, type="cloglog"))
+          RastPart[["MXS"]][[i]] <- c(raster::predict(Model[[i]],PAtestM[[i]][, VarColT],clamp=F, type="cloglog"))
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["MXS"]][[i]])
           Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                     PredPoint[PredPoint$PresAbse == 0, 2])
@@ -1497,19 +1497,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXS"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
           #Percentage of Predicted Area
-          RasT[["MXS"]] <- predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
+          RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
           
           ArT <- NULL
           for (j in Thr){
             RasL <- RasT[["MXS"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MXS"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          pROC[[i]] <- partial_roc(predict=RasT[["MXS"]],
+                                   test_data=PredPoint[PredPoint$PresAbse==1,2],
+                                   error=5,iterations=500,percentage=50)$pROC_summary
           
           
           #Save Partition Predictions
@@ -1575,14 +1575,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model <- maxnet2(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT], f =
                                maxnet::maxnet.formula(SpDataTM[SpDataTM$Partition==1,"PresAbse"], SpDataTM[SpDataTM$Partition==1,VarColT],
                                               classes="lq"))
-            FinalModelT <- predict(VariablesT,Model, clamp=F, type="cloglog")
+            FinalModelT <- raster::predict(VariablesT,Model, clamp=F, type="cloglog")
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
           }else{
             Model <- maxnet2(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], f =
                                maxnet::maxnet.formula(SpDataTM[,"PresAbse"], SpDataTM[,VarColT], classes="lq"))
-            FinalModelT <- predict(VariablesT,Model, clamp=F, type="cloglog")
+            FinalModelT <- raster::predict(VariablesT,Model, clamp=F, type="cloglog")
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataTM[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
@@ -1610,7 +1610,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              ListFut[[ProjN[k]]][["MXS"]] <- STANDAR_FUT(predict(VariablesP[[k]], Model,clamp=F, type="cloglog"),FinalModelT)
+              ListFut[[ProjN[k]]][["MXS"]] <- STANDAR_FUT(raster::predict(VariablesP[[k]], Model,clamp=F, type="cloglog"),FinalModelT)
             }
           }
         }
@@ -1618,7 +1618,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["MXS"]] <- STANDAR(predict(VariablesP[[k]],Model[[i]],clamp=F, type="cloglog"))
+          ListFut[[ProjN[k]]][["MXS"]] <- STANDAR(raster::predict(VariablesP[[k]],Model[[i]],clamp=F, type="cloglog"))
 
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MXS"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
@@ -1644,12 +1644,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- ListFut[[ProjN[k]]][["MXS"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["MXS"]],
+          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MXS"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -1687,7 +1687,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Fmula <- paste( " ~ ", paste(c(VarColT, paste("I(",VarColT, "^2)", sep = "")),
                                      collapse = " + "), sep = "")
         Fmula <- stats::as.formula(Fmula)
-        EnvMLK <- raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd))
+        EnvMLK <- raster::stack((VariablesT-colMeans(na.omit(raster::values(VariablesT))))/apply(na.omit(raster::values(VariablesT)),2,stats::sd))
         #MLK model
         for (i in 1:N) {
           dataPr <- PAtrain[[i]][PAtrain[[i]]$PresAbse==1, c("x", "y")]
@@ -1751,12 +1751,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ArT <- NULL
             for (j in Thr){
               RasL <- RasT[["MLK"]]>=j
-              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             }
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["MLK"]],
+            pROC[[i]] <- partial_roc(predict=RasT[["MLK"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,percentage=50)$pROC_summary
             
@@ -1822,7 +1822,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             if(is.null(repl) && N==1){
               Model <- tryCatch (expr={maxlike::maxlike(Fmula,
                                                         points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],
-                                                        rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                        rasters=raster::stack((VariablesT-colMeans(na.omit(raster::values(VariablesT))))/apply(na.omit(raster::values(VariablesT)),2,stats::sd)),
                                                         link=c("cloglog"),
                                                         hessian = FALSE,savedata=TRUE,
                                                         method="BFGS",
@@ -1831,7 +1831,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   message("Trying Nelder-Mead Optimization")
                                   maxlike::maxlike(Fmula,
                                                    points=SpDataTM[SpDataTM$Partition==1 & SpDataTM$PresAbse==1,2:3],
-                                                   rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                   rasters=raster::stack((VariablesT-colMeans(na.omit(raster::values(VariablesT))))/apply(na.omit(raster::values(VariablesT)),2,stats::sd)),
                                                    link=c("cloglog"),
                                                    hessian = FALSE,savedata=TRUE,
                                                    method="Nelder-Mead",
@@ -1844,7 +1844,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }else{
               Model <- tryCatch (expr={maxlike::maxlike(Fmula,
                                                         points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],
-                                                        rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                        rasters=raster::stack((VariablesT-colMeans(na.omit(raster::values(VariablesT))))/apply(na.omit(raster::values(VariablesT)),2,stats::sd)),
                                                         link=c("cloglog"),
                                                         hessian = FALSE,savedata=TRUE,
                                                         method="BFGS",
@@ -1853,7 +1853,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                    message("Trying Nelder-Mead Optimization")
                                    maxlike::maxlike(Fmula,
                                                     points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],
-                                                    rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
+                                                    rasters=raster::stack((VariablesT-colMeans(na.omit(raster::values(VariablesT))))/apply(na.omit(raster::values(VariablesT)),2,stats::sd)),
                                                     link=c("cloglog"),
                                                     hessian = FALSE,savedata=TRUE,
                                                     method="Nelder-Mead",
@@ -1892,7 +1892,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(Fut)==F){
               for(k in 1:length(VariablesP)){
-                ListFut[[ProjN[k]]][["MLK"]] <- STANDAR_FUT(predict(raster::stack((VariablesP[[k]]-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)), Model),FinalModelT)
+                ListFut[[ProjN[k]]][["MLK"]] <- STANDAR_FUT(predict(raster::stack((VariablesP[[k]]-colMeans(na.omit(raster::values(VariablesT))))/apply(na.omit(raster::values(VariablesT)),2,stats::sd)), Model),FinalModelT)
               }
             }
           }
@@ -1903,7 +1903,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           pROC <- list()
           Area <- list()
           for(k in 1:length(VariablesP)){
-            ListFut[[ProjN[k]]][["MLK"]] <- STANDAR(predict(raster::stack((VariablesP[[k]]-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),Model[[i]]))
+            ListFut[[ProjN[k]]][["MLK"]] <- STANDAR(predict(raster::stack((VariablesP[[k]]-colMeans(na.omit(raster::values(VariablesT))))/apply(na.omit(raster::values(VariablesT)),2,stats::sd)),Model[[i]]))
 
             PredPoint <- raster::extract(ListFut[[ProjN[k]]][["MLK"]], PAtest[[i]][, c("x", "y")])
             PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
@@ -1929,12 +1929,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ArT <- NULL
             for (j in Thr){
               RasL <- ListFut[[ProjN[k]]][["MLK"]]>=j
-              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             }
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["MLK"]],
+            pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MLK"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,
                                                 percentage=50)$pROC_summary
@@ -2000,18 +2000,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["SVM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           #Percentae of Predicted Area
-          FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+          FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
           RasT[["SVM"]] <- VariablesT[[1]]
           RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
           ArT <- NULL
           for (j in Thr){
             RasL <- RasT[["SVM"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["SVM"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["SVM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -2077,7 +2077,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(repl) && N==1){
             Model <- kernlab::ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
-            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
             FinalGrid <- Variables[[1]]
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
@@ -2090,7 +2090,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }else{
             Model <- kernlab::ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
-            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
             FinalGrid <- Variables[[1]]
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
@@ -2122,7 +2122,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              FutureModel <- data.frame(kernlab::predict(object=Model,newdata=rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
+              FutureModel <- data.frame(kernlab::predict(object=Model,newdata=raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
               RasF <- VariablesT[[1]]
               RasF[!is.na(RasF[])] <- FutureModel
               ListFut[[ProjN[k]]][["SVM"]] <- STANDAR_FUT(RasF,FinalModelT)
@@ -2133,7 +2133,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ProjectedModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
+          ProjectedModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
           RasF <- VariablesT[[1]]
           RasF[!is.na(RasF[])] <- ProjectedModel
           ListFut[[ProjN[k]]][["SVM"]] <- RasF
@@ -2161,12 +2161,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- ListFut[[ProjN[k]]][["SVM"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["SVM"]],
+          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["SVM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -2236,12 +2236,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- RasT[["RDF"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["RDF"]],
+          pROC[[i]] <- partial_roc(predict=RasT[["RDF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -2396,12 +2396,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           ArT <- NULL
           for (j in Thr){
             RasL <- ListFut[[ProjN[k]]][["RDF"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           }
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["RDF"]],
+          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["RDF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -2479,12 +2479,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ArT <- NULL
             for (j in Thr){
               RasL <- RasT[["GAM"]]>=j
-              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             }
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["GAM"]],
+            pROC[[i]] <- partial_roc(predict=RasT[["GAM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,percentage=50)$pROC_summary
             
@@ -2627,12 +2627,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ArT <- NULL
             for (j in Thr){
               RasL <- ListFut[[ProjN[k]]][["GAM"]]>=j
-              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             }
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["GAM"]],
+            pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["GAM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,
                                                 percentage=50)$pROC_summary
@@ -2710,12 +2710,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ArT <- NULL
             for (j in Thr){
               RasL <- RasT[["GLM"]]>=j
-              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             }
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["GLM"]],
+            pROC[[i]] <- partial_roc(predict=RasT[["GLM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,percentage=50)$pROC_summary
             
@@ -2855,12 +2855,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             ArT <- NULL
             for (j in Thr){
               RasL <- ListFut[[ProjN[k]]][["GLM"]]>=j
-              ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             }
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["GLM"]],
+            pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["GLM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,
                                                 percentage=50)$pROC_summary
@@ -2903,7 +2903,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       pROC <- list()
       Area <- list()
       for (i in 1:N) {
-        RastPart[["GAU"]][[i]] <- predict(Model[[i]], PAtest[[i]][, VarColT])
+        RastPart[["GAU"]][[i]] <- predict.graf(Model[[i]], PAtest[[i]][, VarColT],type="response",CI = NULL, maxn = NULL)
         RastPart[["GAU"]][[i]] <- as.vector(RastPart[["GAU"]][[i]][,"posterior mode"])
         PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], RastPart[["GAU"]][[i]])
         Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2931,12 +2931,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- RasT[["GAU"]]>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["GAU"]],
+        pROC[[i]] <- partial_roc(predict=RasT[["GAU"]],
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
         
@@ -3084,12 +3084,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- ListFut[[ProjN[k]]][["GAU"]]>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["GAU"]],
+        pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["GAU"]],
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,
                                             percentage=50)$pROC_summary
@@ -3191,12 +3191,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               ArT <- NULL
               for (j in Thr){
                 RasL <- RasT[["BRT"]]>=j
-                ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+                ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
               }
               Area[[i]] <- round(ArT*100,3)
               
               #PartialROC
-              pROC[[i]] <- ellipsenm::partial_roc(predict=RasT[["BRT"]],
+              pROC[[i]] <- partial_roc(predict=RasT[["BRT"]],
                                                   test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                   error=5,iterations=500,percentage=50)$pROC_summary
               
@@ -3323,7 +3323,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
               if(is.null(Fut)==F){
                 for(k in 1:length(VariablesP)){
-                  ListFut[[ProjN[k]]][["BRT"]] <- STANDAR_FUT(rater::predict(VariablesP[[k]],Model,
+                  ListFut[[ProjN[k]]][["BRT"]] <- STANDAR_FUT(raster::predict(VariablesP[[k]],Model,
                                                               n.trees=Model$gbm.call$best.trees,type="response"),FinalModelT)
                 }
               }
@@ -3367,12 +3367,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               ArT <- NULL
               for (j in Thr){
                 RasL <- ListFut[[ProjN[k]]][["BRT"]]>=j
-                ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+                ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
               }
               Area[[i]] <- round(ArT*100,3)
               
               #PartialROC
-              pROC[[i]] <- ellipsenm::partial_roc(predict=ListFut[[ProjN[k]]][["BRT"]],
+              pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["BRT"]],
                                                   test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                   error=5,iterations=500,
                                                   percentage=50)$pROC_summary
@@ -3481,12 +3481,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(predict=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3552,12 +3552,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(predict=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3625,12 +3625,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(predict=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3699,12 +3699,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(predict=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3777,12 +3777,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(prediction = ENST,
+        pROC[[i]] <- partial_roc(prediction = ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3852,12 +3852,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         ArT <- NULL
         for (j in Thr){
           RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         }
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(predict=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
