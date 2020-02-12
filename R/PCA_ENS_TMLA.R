@@ -2,7 +2,7 @@
 
 PCA_ENS_TMLA<-function(BRICK){
   if(raster::nlayers(BRICK)==1){
-    ens <- BRICK
+    ens <- BRICK[[1]]
   }else{
     ens <- rasterPCA(BRICK,spca=T,nComp=1,maskCheck=T)
     ens <- ens$map

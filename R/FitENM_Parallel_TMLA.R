@@ -3716,7 +3716,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- ellipsenm::partial_roc(predict=ENST,
+        pROC[[i]] <- ellipsenm::partial_roc(prediction = ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
