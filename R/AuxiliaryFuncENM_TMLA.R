@@ -34,7 +34,7 @@ PREDICT_DomainMahal <- function(mod, variables) {
 #Prediction for ENFA----
 PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
   if (class(prediction_dataset)=="data.frame"){
-    Zli <- as.matrix(prediction_dataset[,VarColT]) %*% as.matrix(mod$co)
+    Zli <- as.matrix(prediction_dataset) %*% as.matrix(mod$co)
     ZER <- 1:nrow(prediction_dataset)
     f1 <- function(x) rep(x, ZER)
     Sli <- apply(Zli, 2, f1)

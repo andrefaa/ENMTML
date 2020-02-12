@@ -1045,7 +1045,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         pROC <- list()
         Area <- list()
         for (i in 1:N) {
-          RastPart[["ENF"]][[i]] <- PREDICT_ENFA(Model[[i]],PAtestM[[i]])
+          RastPart[["ENF"]][[i]] <- PREDICT_ENFA(Model[[i]],PAtestM[[i]][, VarColT])
           PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["ENF"]][[i]])
           Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                     PredPoint[PredPoint$PresAbse == 0, 2])
