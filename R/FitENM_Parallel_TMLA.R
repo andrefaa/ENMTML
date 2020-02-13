@@ -3116,7 +3116,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     #BOOSTED REGRESSION TREE (BRT) ----
     if(any(Algorithm == 'BRT')){
-      if(any(lapply(PAtrain, function(x) nrow(x[x$PresAbse==1,])*0.75)<=5)){
+      if(any(lapply(PAtrain, function(x) nrow(x[x$PresAbse==1,])*0.75)<=10)){
         ListValidation[["BRT"]] <- NULL
         ListRaster[["BRT"]] <- NULL
         ListSummary[["BRT"]] <- NULL
