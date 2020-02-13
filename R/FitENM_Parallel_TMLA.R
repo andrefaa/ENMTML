@@ -417,7 +417,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["BIO"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["BIO"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -1507,7 +1507,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["MXS"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["MXS"]],
                                    test_data=PredPoint[PredPoint$PresAbse==1,2],
                                    error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -1649,7 +1649,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MXS"]],
+          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MXS"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -1756,7 +1756,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- partial_roc(predict=RasT[["MLK"]],
+            pROC[[i]] <- partial_roc(prediction=RasT[["MLK"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,percentage=50)$pROC_summary
             
@@ -1934,7 +1934,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MLK"]],
+            pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MLK"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,
                                                 percentage=50)$pROC_summary
@@ -2011,7 +2011,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["SVM"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["SVM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -2166,7 +2166,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["SVM"]],
+          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["SVM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -2241,7 +2241,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["RDF"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["RDF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -2401,7 +2401,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["RDF"]],
+          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["RDF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -2484,7 +2484,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- partial_roc(predict=RasT[["GAM"]],
+            pROC[[i]] <- partial_roc(prediction=RasT[["GAM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,percentage=50)$pROC_summary
             
@@ -2632,7 +2632,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["GAM"]],
+            pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,
                                                 percentage=50)$pROC_summary
@@ -2715,7 +2715,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- partial_roc(predict=RasT[["GLM"]],
+            pROC[[i]] <- partial_roc(prediction=RasT[["GLM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,percentage=50)$pROC_summary
             
@@ -2860,7 +2860,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Area[[i]] <- round(ArT*100,3)
             
             #PartialROC
-            pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["GLM"]],
+            pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GLM"]],
                                                 test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                 error=5,iterations=500,
                                                 percentage=50)$pROC_summary
@@ -2936,7 +2936,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- partial_roc(predict=RasT[["GAU"]],
+        pROC[[i]] <- partial_roc(prediction=RasT[["GAU"]],
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
         
@@ -3089,7 +3089,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["GAU"]],
+        pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAU"]],
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,
                                             percentage=50)$pROC_summary
@@ -3116,7 +3116,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
     #BOOSTED REGRESSION TREE (BRT) ----
     if(any(Algorithm == 'BRT')){
-      if(any(lapply(PAtrain, function(x) nrow(x[x$PresAbse==1,])*0.75)<=5)){
+      if(any(lapply(PAtrain, function(x) nrow(x[x$PresAbse==1,])*0.75)<=10)){
         ListValidation[["BRT"]] <- NULL
         ListRaster[["BRT"]] <- NULL
         ListSummary[["BRT"]] <- NULL
@@ -3196,7 +3196,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Area[[i]] <- round(ArT*100,3)
               
               #PartialROC
-              pROC[[i]] <- partial_roc(predict=RasT[["BRT"]],
+              pROC[[i]] <- partial_roc(prediction=RasT[["BRT"]],
                                                   test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                   error=5,iterations=500,percentage=50)$pROC_summary
               
@@ -3372,7 +3372,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Area[[i]] <- round(ArT*100,3)
               
               #PartialROC
-              pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["BRT"]],
+              pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["BRT"]],
                                                   test_data=PredPoint[PredPoint$PresAbse==1,2],
                                                   error=5,iterations=500,
                                                   percentage=50)$pROC_summary
@@ -3486,7 +3486,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(prediction=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3557,7 +3557,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(prediction=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3630,7 +3630,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(prediction=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3704,7 +3704,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(prediction=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
@@ -3857,7 +3857,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Area[[i]] <- round(ArT*100,3)
         
         #PartialROC
-        pROC[[i]] <- partial_roc(predict=ENST,
+        pROC[[i]] <- partial_roc(prediction=ENST,
                                             test_data=PredPoint[PredPoint$PresAbse==1,2],
                                             error=5,iterations=500,percentage=50)$pROC_summary
       }
