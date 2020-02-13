@@ -324,7 +324,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       }
       SpDataT <- cbind(SpData,raster::extract(MSDM,SpData[c("x","y")]))
       colnames(SpDataT) <- c(colnames(SpData),names(MSDM))
-      VariablesT <- raster::stack(Variables,MSDM)
+      VariablesT <- raster::brick(raster::stack(Variables,MSDM))
       if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
         SpDataTM <- cbind(SpDataM,raster::extract(MSDM,SpDataM[c("x","y")]))
         colnames(SpDataTM) <- c(colnames(SpDataM),names(MSDM))

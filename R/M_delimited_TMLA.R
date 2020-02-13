@@ -104,7 +104,7 @@ M_delimited <- function(var,
   
   if (method == 'MASK') {
     Dir <- EcoregionsFile
-    EcoregionsFileExt <- unique(file_ext(Dir))
+    EcoregionsFileExt <- unique(tools::file_ext(Dir))
     if (any(EcoregionsFileExt %in% c('bil', 'asc', 'tif'))) {
       EcoregionsFile <- raster::brick(stack(Dir))
       EcoregionsFile <- raster::crop(EcoregionsFile, var)
