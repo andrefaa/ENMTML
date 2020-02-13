@@ -33,9 +33,9 @@ partial_roc <- function(prediction, test_data, longitude, latitude, error = 5,
     
     xyTable <- xyTable[order(xyTable$fractional_area, decreasing = F), ]
     
-    auc_pmodel <- trap_roc(xyTable$fractional_area, xyTable$sensibility)
+    auc_pmodel <- trap_roc(x=xyTable$fractional_area, y=xyTable$sensibility)
     
-    auc_prand <- trap_roc(xyTable$fractional_area, xyTable$fractional_area)
+    auc_prand <- trap_roc(x=xyTable$fractional_area, y=xyTable$fractional_area)
     
     auc_ratio <- auc_pmodel / auc_prand
     
@@ -218,11 +218,11 @@ trap_roc <- function(x, y) {
     
     stop("x  and y must have the same length!")}
   
-  auc = 0;
+  auc = 0
   
-  for(i in 1:x_s) {
+  for(i in 2:x_s) {
     
-    auc <- (auc+0.5*(y[i-1] + y[i])*(x[i]-x[i-1]));
+    auc <- auc+0.5*(y[i-1] + y[i])*(x[i]-x[i-1])
     
   }
   
