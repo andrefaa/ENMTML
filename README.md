@@ -17,22 +17,6 @@ install_github("andrefaa/ENMTML")
 library(ENMTML)  
 ```
 
-**FOR NEW USERS**  
-```ruby
-if(!require(devtools)){
-    install.packages("devtools")
-}
-if(!require(GRaF)){
-    devtools::install_github("goldingn/GRaF")
-}
-if(!require(ellipsenm)){
-    devtools::install_github("marlonecobos/ellipsenm")
-}
-devtools::install_github("andrefaa/ENMTML")
-library(ENMTML)
-```
-
-
 ### What I can do with __ENMTML__ package?  
 There are a couple of pre and post-processing available in the package, here is a list of what is currently available:  
 **1.** Control colinearity on environmental variables  
