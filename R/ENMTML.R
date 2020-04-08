@@ -1607,6 +1607,13 @@ ENMTML <- function(pred_dir,
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
       valF <- valF[,c('Sp', 'Algorithm', 'Partition', 'Threshold', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'pROC', 'OR',  'Percentage_predicted_area', 'Boyce')]
+      
+      #Substituir Colune de NAs por -9999 (problema ao calcular médias se toda a coluna é NA)
+      if (any(apply(is.na(valF),2,all))){
+        cols <- which(apply(is.na(valF),2,all))
+        valF[cols][is.na(valF[cols])] <- -9999
+      }
+      
       valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
       valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
       valF_SD <- valF_SD[,-c(1:4)]
