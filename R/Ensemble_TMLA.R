@@ -3,6 +3,7 @@ Ensemble_TMLA <- function(DirR,
                           ThrTable,
                           PredictType,
                           RecordsData,
+                          spN = spN,
                           Threshold,
                           sensV,
                           Proj,
@@ -53,10 +54,10 @@ Ensemble_TMLA <- function(DirR,
 
   #Load Rasters----
   Folders <- list.files(file.path(DirR, "Algorithm"), full.names = T)
-  spN <-
-    substr(list.files(Folders[1], pattern = "\\.tif$"),
-           1,
-           nchar(list.files(Folders[1], pattern = "\\.tif$")) - 4)
+  # spN <-
+  #   substr(list.files(Folders[1], pattern = "\\.tif$"),
+  #          1,
+  #          nchar(list.files(Folders[1], pattern = "\\.tif$")) - 4)
   if (!is.null(Proj)) {
     ProjN <- as.list(ProjN)
     names(ProjN) <- list.files(file.path(DirR, "Projection"))
