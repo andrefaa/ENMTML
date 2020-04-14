@@ -968,10 +968,17 @@ ENMTML <- function(pred_dir,
 
     #6.5.Adjust Checkerboard when using Geographical Restrictions----
     if (!is.null(sp_accessible_area)) {
-      Ms <- raster::stack(file.path(DirM, list.files(DirM)))
-      Ms <- Ms[[spN]]
-      Cs <-
-        raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
+      if(length(file.path(DirM, list.files(DirM)))>1){
+        Ms <- raster::stack(file.path(DirM, list.files(DirM)))
+        Ms <- Ms[[spN]]
+        Cs <-
+          raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
+      }else{
+        Ms <- raster::raster(file.path(DirM, list.files(DirM)))
+        Cs <-
+          raster::raster(file.path(DirB, list.files(DirB, pattern = ".tif$")))
+      }
+      
       # nomesCs <- gsub("_"," ",names(Cs))
       for (i in 1:raster::nlayers(Ms)) {
         raster::writeRaster(
