@@ -268,7 +268,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    .packages = c("raster", "dismo",
                                  "kernlab", "randomForest", "maxnet", "maxlike",
                                  "plyr", "mgcv", "RStoolbox", "adehabitatHS",
-                                 "caret", "visreg", "glmnet", "gbm" ),
+                                 "caret", "visreg", "glmnet", "gbm","dplyr"),
                      .export = c( "Validation2_0", "maxnet2",
                                   "PCA_ENS_TMLA", "predict.maxnet", "boycei"
                                   ,"partial_roc","trap_roc",
@@ -279,7 +279,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   "PREDICT_DomainMahal","rem_out","PREDICT_ENFA",
                                   "graf","capture.all","graf.fit.laplace","graf.fit.ep",
                                   "cov.SE","d0","d1","d2","d3","psiline","psi",
-                                  "cov.SE.d1","predict.graf.raster")) %dopar% {
+                                  "cov.SE.d1","predict.graf.raster","predict.graf","pred")) %dopar% {
 
     #Results Lists
     ListRaster <- as.list(Algorithm)

@@ -968,10 +968,17 @@ ENMTML <- function(pred_dir,
 
     #6.5.Adjust Checkerboard when using Geographical Restrictions----
     if (!is.null(sp_accessible_area)) {
-      Ms <- raster::stack(file.path(DirM, list.files(DirM)))
-      Ms <- Ms[[spN]]
-      Cs <-
-        raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
+      if(length(file.path(DirM, list.files(DirM)))>1){
+        Ms <- raster::stack(file.path(DirM, list.files(DirM)))
+        Ms <- Ms[[spN]]
+        Cs <-
+          raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
+      }else{
+        Ms <- raster::raster(file.path(DirM, list.files(DirM)))
+        Cs <-
+          raster::raster(file.path(DirB, list.files(DirB, pattern = ".tif$")))
+      }
+      
       # nomesCs <- gsub("_"," ",names(Cs))
       for (i in 1:raster::nlayers(Ms)) {
         raster::writeRaster(
@@ -1607,6 +1614,13 @@ ENMTML <- function(pred_dir,
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
       valF <- valF[,c('Sp', 'Algorithm', 'Partition', 'Threshold', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'pROC', 'OR',  'Percentage_predicted_area', 'Boyce')]
+      
+      #Substituir Colune de NAs por -9999 (problema ao calcular médias se toda a coluna é NA)
+      if (any(apply(is.na(valF),2,all))){
+        cols <- which(apply(is.na(valF),2,all))
+        valF[cols][is.na(valF[cols])] <- -9999
+      }
+      
       valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
       valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
       valF_SD <- valF_SD[,-c(1:4)]
@@ -1654,6 +1668,7 @@ ENMTML <- function(pred_dir,
                   ThrTable = ThrTable,
                   PredictType = ensemble2,
                   RecordsData = occINPUT,
+                  spN = spN,
                   Threshold = thr[grep('type', names(thr))],
                   sensV = sensV,
                   Proj = proj_dir,

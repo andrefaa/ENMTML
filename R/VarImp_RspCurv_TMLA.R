@@ -376,7 +376,7 @@ VarImp_RspCurv <- function(Model,
     graphics::par(mfrow = c(ceiling(length(
       ncol(Model$x)
     ) / 3), 3))
-    GRaF::plot.graf(Model)
+    plot.graf(Model)
     grDevices::dev.off()
   }
 }
