@@ -103,6 +103,7 @@ PCAFuturo <- function(Env,
     raster::rasterToPoints(x))
   ProjE <- lapply(ProjE, function(x)
     stats::na.omit(x))
+  ProjXY <- lapply(ProjE, "[", , c("x","y"))
   ProjER <-
     lapply(ProjE, function(z)
       z[, !(colnames(z) %in% c("x", "y"))])
@@ -113,9 +114,11 @@ PCAFuturo <- function(Env,
     x %*% diag(1 / stds))
   PCAFut <- lapply(scale, function(x)
     x %*% Coef)
-  PCAFut <-
-    lapply(PCAFut, function(x)
-      data.frame(cbind(ProjE[[1]][, (1:2)], x)))
+  PCAFut <- Map(cbind,ProjXY, PCAFut)
+  PCAFut <- lapply(PCAFut, function(x) as.data.frame(x))
+  # PCAFut <-
+  #   lapply(PCAFut, function(x)
+  #     data.frame(cbind(ProjE[[1]][, (1:2)], x)))
   PCAFut.95 <- list()
   for (j in 1:length(PCAFut)) {
     sp::gridded(PCAFut[[j]]) <- ~ x + y
