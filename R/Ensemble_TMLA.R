@@ -399,7 +399,8 @@ Ensemble_TMLA <- function(DirR,
       #Future Projection
       if (!is.null(Proj)) {
         for (p in 1:length(ListFut)) {
-          Final <- raster::brick(ListFut[[p]])
+          Final <- raster::brick(raster::stack(ListFut[[p]]))
+          # Final <- ListFut[[p]]
           Final <- PCA_ENS_TMLA(Final)
 
           raster::writeRaster(
