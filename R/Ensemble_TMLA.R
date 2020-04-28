@@ -138,7 +138,7 @@ Ensemble_TMLA <- function(DirR,
 
     # Mean Ensemble----
     if (any(PredictType == "MEAN")) {
-      Final <- raster::brick(ListRaster)
+      Final <- raster::brick(raster::stack(ListRaster))
       FinalT <- raster::calc(Final, mean)
       Final <- STANDAR(FinalT)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
@@ -175,7 +175,7 @@ Ensemble_TMLA <- function(DirR,
         #Future Projection
         if (!is.null(Proj)) {
           for (p in 1:length(ListFut)) {
-            Final <- raster::brick(ListFut[[p]])
+            Final <- raster::brick(raster::stack(ListFut[[p]]))
             Final <- raster::calc(Final, mean)
             Final <- STANDAR_FUT(Final, FinalT)
 
@@ -207,7 +207,7 @@ Ensemble_TMLA <- function(DirR,
     # Weighted Mean Ensemble----
     if (any(PredictType == "W_MEAN")) {
       ThResW <- unlist(SpVal[ensemble_metric])
-      Final <- raster::brick(ListRaster)
+      Final <- raster::brick(raster::stack(ListRaster))
       Final <- raster::calc(Final, function(x)
         x * ThResW)
       FinalT <- raster::calc(Final, mean)
@@ -361,7 +361,7 @@ Ensemble_TMLA <- function(DirR,
 
     # With PCA ------
     if (any(PredictType == 'PCA')) {
-      Final <- raster::brick(ListRaster)
+      Final <- raster::brick(raster::stack(ListRaster))
       Final <- PCA_ENS_TMLA(Final)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
       PredPoint <-
@@ -506,7 +506,7 @@ Ensemble_TMLA <- function(DirR,
 
     #With PCA over the threshold Ensemble----
     if (any(PredictType == 'PCA_THR')) {
-      Final <- raster::brick(ListRaster)
+      Final <- raster::brick(raster::stack(ListRaster))
       ValidTHR <-
         SpThr[grepl(Threshold, SpThr[, "THR"], ignore.case = T), "THR_VALUE"]
       for (k in 1:raster::nlayers(Final)) {
@@ -554,7 +554,7 @@ Ensemble_TMLA <- function(DirR,
       #Future Projection
       if (!is.null(Proj)) {
         for (p in 1:length(ListFut)) {
-          Final <- raster::brick(ListFut[[p]])
+          Final <- raster::brick(raster::stack(ListFut[[p]]))
 
           #Select only values above the Threshold
           for (k in 1:raster::nlayers(ListRaster)) {
