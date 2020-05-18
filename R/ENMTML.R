@@ -551,7 +551,7 @@ ENMTML <- function(pred_dir,
   #3.1. Variable Colinearity----
   if(!is.null(colin_var)){
     #3.1.1.VIF----
-    if(colin_var%in%"VIF") {
+    if(colin_var["method"]%in%"VIF") {
       cat("Performing a reduction of variables collinearity ...\n")
       VF <- usdm::vifstep(envT, th = 10)
       envT <- usdm::exclude(envT, VF)
@@ -588,7 +588,7 @@ ENMTML <- function(pred_dir,
     }
 
     #3.1.2.PCA----
-    if (colin_var=="PCA") {
+    if (colin_var["method"]=="PCA") {
       cat("Performing a reduction of variables collinearity ...\n")
       #Projection PCA
       if(!is.null(proj_dir)){
@@ -644,7 +644,7 @@ ENMTML <- function(pred_dir,
       }
     }
   }else{
-  #3.3.4.colin_var='N'----
+  #3.3.4.colin_var = NULL ----
     if (!is.null(proj_dir)) {
       EnvF <- list()
       for (i in 1:length(Pfol)) {
@@ -978,7 +978,7 @@ ENMTML <- function(pred_dir,
         Cs <-
           raster::raster(file.path(DirB, list.files(DirB, pattern = ".tif$")))
       }
-      
+
       # nomesCs <- gsub("_"," ",names(Cs))
       for (i in 1:raster::nlayers(Ms)) {
         raster::writeRaster(
@@ -1614,13 +1614,13 @@ ENMTML <- function(pred_dir,
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
       valF <- valF[,c('Sp', 'Algorithm', 'Partition', 'Threshold', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'pROC', 'OR',  'Percentage_predicted_area', 'Boyce')]
-      
+
       #Substituir Colune de NAs por -9999 (problema ao calcular médias se toda a coluna é NA)
       if (any(apply(is.na(valF),2,all))){
         cols <- which(apply(is.na(valF),2,all))
         valF[cols][is.na(valF[cols])] <- -9999
       }
-      
+
       valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
       valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
       valF_SD <- valF_SD[,-c(1:4)]
