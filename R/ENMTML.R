@@ -484,9 +484,9 @@ ENMTML <- function(pred_dir,
   cat("Loading environmental variables ...\n")
 
   options(warn = 1)
-  setwd(pred_dir)
+  # setwd(pred_dir)
 
-  env <- unique(tools::file_ext(list.files()))
+  env <- unique(tools::file_ext(list.files(pred_dir)))
   form <- c('bil', 'asc', 'txt', 'tif')
   env <- env[env %in% form]
   if (length(env) > 1) {
@@ -494,7 +494,7 @@ ENMTML <- function(pred_dir,
   }
 
   if(any(env == c('asc', 'bil', 'tif'))){
-    envT<-raster::stack(list.files(pattern=paste0('\\.',env,'$')))
+    envT<-raster::stack(list.files(pred_dir,pattern=paste0('\\.',env,'$'),full.names = T))
     try(envT <- raster::brick(envT))
     if(class(envT)=="RasterBrick"){
       cat("RasterBrick successfully created!\n")
@@ -503,7 +503,7 @@ ENMTML <- function(pred_dir,
     }
   }
   if(env == 'txt'){
-    envT<-utils::read.table(list.files(pattern='\\.txt$'),h=T)
+    envT<-utils::read.table(list.files(pred_dir,pattern='\\.txt$',full.names = T),h=T)
     sp::gridded(envT)<- ~x+y
     envT<-raster::stack(envT)
     try(envT <- raster::brick(envT))
@@ -520,10 +520,11 @@ ENMTML <- function(pred_dir,
   }
 
   #3.0.Check predictors consistency
-  if(length(unique(colSums(!is.na(envT[]))))>1){
-    envT <- raster::mask(envT,raster::calc(envT,fun = sum))
-    cat("Variables had differences, setting any empty cells to NA in all variables\n")
-  }
+  # if(length(unique(colSums(!is.na(envT[]))))>1){
+  #   envT <- raster::mask(envT,raster::calc(envT,fun = sum))
+  #   cat("Variables had differences, setting any empty cells to NA in all variables\n")
+  # }
+  envT <- synchroniseNA(envT)
 
   #3.1.Projection----
   if(!is.null(proj_dir)){

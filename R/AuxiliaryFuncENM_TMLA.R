@@ -284,4 +284,23 @@ MESS <- function (V, P, id.col = NULL)
   }
   return(results)
 }
-
+##%######################################################%##
+#                                                          #
+####        RasterLayer NA CHECK By Boris Leroy         ####
+#                                                          #
+##%######################################################%##
+synchroniseNA <- function(x)
+{
+  if(canProcessInMemory(x, n = 2))
+  {
+    val <- getValues(x)
+    NA.pos <- unique(which(is.na(val), arr.ind = T)[, 1])
+    val[NA.pos, ] <- NA
+    x <- setValues(x, val)
+    return(x)
+  } else
+  {
+    x <- mask(x, calc(x, fun = sum))
+    return(x)
+  }
+}
