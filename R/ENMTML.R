@@ -484,7 +484,7 @@ ENMTML <- function(pred_dir,
   cat("Loading environmental variables ...\n")
 
   options(warn = 1)
-  # setwd(pred_dir)
+  setwd(pred_dir)
 
   env <- unique(tools::file_ext(list.files(pred_dir)))
   form <- c('bil', 'asc', 'txt', 'tif')
