@@ -16,7 +16,8 @@ License: GPL (>= 2)
 Depends: R (>= 3.5.0)
 Imports: ade4, adehabitatHS, ape, caret, data.table, dismo,  
          flexclust, foreach, igraph, gbm, geoR, glmnet, kernlab, 
-         maxlike, maxnet, methods, mgcv, parallel, doParallel, plyr, pracma, randomForest, 
+         maxlike, maxnet, methods, mgcv, parallel, doParallel, dplyr, plyr, 
+         pracma, purrr, randomForest, 
          raster, rgdal, rgeos, RStoolbox, sp, SpatialEpi, 
          spThin, tools, usdm, visreg
 URL: https://github.com/andrefaa/ENMTML
