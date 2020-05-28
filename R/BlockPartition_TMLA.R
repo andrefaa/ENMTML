@@ -1,16 +1,16 @@
 ## Written by Santiago Velazco
 
-BlockPartition_TMLA <- function(evnVariables = NA,
-                                RecordsData,
-                                N,
-                                pseudoabsencesMethod = PabM,
-                                PrAbRatio = PabR,
-                                DirSave = DirB,
-                                DirM = DirM,
-                                MRst = sp_accessible_area,
-                                type = TipoMoran,
-                                Geo_Buf = Geo_Buf,
-                                cores = cores) {
+BlockPartition_TMLA <- function(evnVariables = NULL,
+                                RecordsData = NULL,
+                                N = NULL,
+                                pseudoabsencesMethod = NULL,
+                                PrAbRatio = NULL,
+                                DirSave = NULL,
+                                DirM = NULL,
+                                MRst = NULL,
+                                type = NULL,
+                                Geo_Buf = NULL,
+                                cores = NULL) {
   # RecordsData: matrix or data frame with presences records
   # N: 2 (dafault). interger  Number of group for data  paritioning
   # pseudoabsences: logical, TRUE (dafault).

@@ -1,9 +1,9 @@
 #written by Santiago Velazco
 
-MSDM_Posterior <- function(RecordsData,
-                           Threshold = thr,
+MSDM_Posterior <- function(RecordsData = NULL,
+                           Threshold = NULL,
                            cutoff = c('OBR', 'PRES', 'LR', 'MCP', 'MCP-B'),
-                           CUT_Buf = CUT_Buf,
+                           CUT_Buf = NULL,
                            DirSave = NULL,
                            DirRaster = NULL) {
   # Arguments-----
