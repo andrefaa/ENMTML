@@ -1,15 +1,15 @@
 #Written by Andre Andrade
-BandsPartition_TMLA <- function(evnVariables,
-                                RecordsData,
-                                N,
-                                pseudoabsencesMethod = PabM,
-                                PrAbRatio = PabR,
-                                DirSave = DirB,
-                                DirM = DirM,
+BandsPartition_TMLA <- function(evnVariables = NULL,
+                                RecordsData = NULL,
+                                N = NULL,
+                                pseudoabsencesMethod = NULL,
+                                PrAbRatio = NULL,
+                                DirSave = NULL,
+                                DirM = NULL,
                                 MRst = NULL,
-                                type = TipoMoran,
-                                Geo_Buf = Geo_Buf,
-                                cores = cores) {
+                                type = NULL,
+                                Geo_Buf = NULL,
+                                cores = NULL) {
   #Parameters
   #evnVariables: Predictors
   #RecordsData: Occurrence List
