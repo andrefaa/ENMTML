@@ -68,7 +68,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   results <-
     foreach(
       s = 1:length(RecordsData),
-      .packages = c("raster", "ape", "dismo","modEvA"),
+      .packages = c("raster", "ape", "dismo"),
       .export = c("inv_bio")
     ) %dopar% {
       # for(s in 1:length(RecordsData)){
@@ -171,7 +171,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       for (i in 1:ncol(part)) {
         Env.P1 <- cbind(part[i], Env.P)
         Env.P2 <- split(Env.P1[, -1], Env.P1[, 1])
-        mess1 <- modEvA::MESS(Env.P2[[1]], Env.P2[[2]])
+        mess1 <- MESS(Env.P2[[1]], Env.P2[[2]])
         Mess.Grid.P[i] <- mean(mess1$TOTAL, na.rm = TRUE)
         rm(Env.P1)
       }
