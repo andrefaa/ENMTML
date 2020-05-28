@@ -561,7 +561,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["BIO"]],
+          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["BIO"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -634,7 +634,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["DOM"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           #Save Partition Predictions
@@ -782,7 +782,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["DOM"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
 
@@ -855,7 +855,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["MAH"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -1008,7 +1008,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["MAH"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -1082,7 +1082,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["ENF"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["ENF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           #Save Partition Predictions
@@ -1228,7 +1228,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["ENF"]],
+          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["ENF"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
@@ -1302,7 +1302,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=RasT[["MXD"]],
+          pROC[[i]] <- partial_roc(prediction=RasT[["MXD"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,percentage=50)$pROC_summary
           
@@ -1444,7 +1444,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Area[[i]] <- round(ArT*100,3)
           
           #PartialROC
-          pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MXD"]],
+          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MXD"]],
                                               test_data=PredPoint[PredPoint$PresAbse==1,2],
                                               error=5,iterations=500,
                                               percentage=50)$pROC_summary
