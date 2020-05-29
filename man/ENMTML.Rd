@@ -4,17 +4,44 @@
 \alias{ENMTML}
 \title{Create and process Ecological Niche Models}
 \usage{
-ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
-  thin_occ = NULL, eval_occ = NULL, colin_var = NULL,
-  imp_var = FALSE, sp_accessible_area = NULL, pseudoabs_method,
-  pres_abs_ratio = 1, part, save_part = FALSE, save_final = TRUE,
-  algorithm, thr, msdm = NULL, ensemble = NULL,
-  extrapolation = FALSE, cores = 1)
+ENMTML(
+  pred_dir,
+  proj_dir = NULL,
+  result_dir = NULL,
+  occ_file,
+  sp,
+  x,
+  y,
+  min_occ = 10,
+  thin_occ = NULL,
+  eval_occ = NULL,
+  colin_var = NULL,
+  imp_var = FALSE,
+  sp_accessible_area = NULL,
+  pseudoabs_method,
+  pres_abs_ratio = 1,
+  part,
+  save_part = FALSE,
+  save_final = TRUE,
+  algorithm,
+  thr,
+  msdm = NULL,
+  ensemble = NULL,
+  extrapolation = FALSE,
+  cores = 1
+)
 }
 \arguments{
 \item{pred_dir}{character. Directory path with predictors (file formats supported are ASC, BILL, TIFF or TXT)}
 
 \item{proj_dir}{character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).}
+
+\item{result_dir}{character. Directory path with the folder in which model results will be recorded.
+\itemize{
+\item NULL: Results will be recorded in a default Result folder, at the same level as the pred_dir folder.
+\item Simple name: A folder with the specified name will be created at the same level as the pred_dir folder (e.g. usage result_dir="MyFolderName")
+\item Complete path: A folder will be created at the specified path (e.g. result_dir="C:/Users/mypc/Documents/MyFolderName").
+}}
 
 \item{occ_file}{character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.}
 
@@ -49,6 +76,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   \item BUFFER area used to model fitting deliminted by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
   \item BUFFER area used to model fitting deliminted by a buffer with a width size difinited by the user in km. Note this width size of buffer will be used for all species. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
   \item MASK: this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
+  \item USER_DEFINED: users can inform their own masks for accessible area. In this situation the program requires a folder within species-specific masks, one for each species, being that the mask name must match the species name within the occurrence file.For this option it is necessary inform the path to the folder containing the accessible areas. The following file formats can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/accessibleareafolder').
 }}
 
 \item{pseudoabs_method}{character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:
@@ -103,7 +131,7 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
   }
 In the case of use more than one threshold type it is necessary concatenate the names of threshold types, e.g., thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD')). When SENSITIVITY threshold is used in combination with other it is necessary specify the desired sensitivity value, e.g. thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')}
 
-\item{msdm}{character. Include spatial restrictions to model projection. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in ‘a Priori’ and ‘a Posteriori’ methods. The first one encompasses method that include geographical layers as predictor of models’ fitting, whereas a Posteriori constrain models based on occurrence and suitability patterns. This argument is filled only with a method, in the case of use MCP-B method msdm is filled in a different way se below:
+\item{msdm}{character. Include spatial restrictions to model projection. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in 'a Priori' and 'a Posteriori' methods. The first one encompasses method that include geographical layers as predictor of models' fitting, whereas a Posteriori constrain models based on occurrence and suitability patterns. This argument is filled only with a method, in the case of use MCP-B method msdm is filled in a different way se below:
 
 a Priori methods (layer created area added as a predictor at moment of model fitting):
 
@@ -165,12 +193,12 @@ dir.create(d_ex)
 # Virtual species occurrences
 data("occ")
 d_occ <- file.path(d_ex, 'occ.txt')
-write.table(occ, d_occ, sep = '\\t', row.names = FALSE)
+utils::write.table(occ, d_occ, sep = '\t', row.names = FALSE)
 # Five bioclimatic variables for current conditions
 data("env")
 d_env <- file.path(d_ex, 'current_env_var')
 dir.create(d_env)
-writeRaster(env, file.path(d_env, names(env)), bylayer=TRUE, format='GTiff')
+raster::writeRaster(env, file.path(d_env, names(env)), bylayer=TRUE, format='GTiff')
 # Five bioclimatic variables for future conditions
 # (for more details see predictors_future help)
 data("env_fut")
@@ -179,9 +207,9 @@ dir.create(d_fut)
 d0 <- file.path(d_fut, names(env_fut))
 sapply(d0, dir.create)
 
-writeRaster(env_fut$`2080_4.5`, file.path(d0[1],
+raster::writeRaster(env_fut$`2080_4.5`, file.path(d0[1],
             names(env_fut$`2080_4.5`)), bylayer=TRUE, format='GTiff')
-writeRaster(env_fut$`2080_8.5`, file.path(d0[2],
+raster::writeRaster(env_fut$`2080_8.5`, file.path(d0[2],
             names(env_fut$`2080_8.5`)), bylayer=TRUE, format='GTiff')
 
 # Polygon of terrestrial ecoregion
@@ -257,7 +285,6 @@ d_rslt
 # List of txt files and subdirectories
 list.files(d_rslt)
 list.dirs(d_rslt)
-
 
 
 }
