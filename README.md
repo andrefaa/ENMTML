@@ -36,7 +36,7 @@ https://www.sciencedirect.com/science/article/pii/S1364815219310424?via%3Dihub
 
 
 ### CITATION:
-**Andrade AFA, Velazco SJE, De Marco Jr P. 2020. ENMTML: An R package for a straightforward construction of complex ecological niche models. Environmental Modelling & Software:104615.(https://doi.org/10.1016/j.envsoft.2019.104615)**
+**Andrade, A.F.A., Velazco, S.J.E., De Marco Jr, P., 2020. ENMTML: An R package for a straightforward construction of complex ecological niche models. Environmental Modelling & Software 125, 104615. https://doi.org/10.1016/j.envsoft.2019.104615**
 
 
 ### How to run __ENMTML__?  
