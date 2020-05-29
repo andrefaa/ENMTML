@@ -1,4 +1,5 @@
 #Written by Andre Andrade
+utils::globalVariables("x")
 BandsPartition_TMLA <- function(evnVariables = NULL,
                                 RecordsData = NULL,
                                 N = NULL,

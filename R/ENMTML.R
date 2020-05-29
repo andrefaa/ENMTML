@@ -9,8 +9,8 @@
 #' @param result_dir character. Directory path with the folder in which model results will be recorded.
 #' \itemize{
 #' \item NULL: Results will be recorded in a default Result folder, at the same level as the pred_dir folder.
-#' \item Simple name: A folder with the specified name will be created at the same level as the pred_dir folder.
-#' \item Complete path: A folder will be created at the specified path.
+#' \item Simple name: A folder with the specified name will be created at the same level as the pred_dir folder (e.g. usage result_dir="MyFolderName")
+#' \item Complete path: A folder will be created at the specified path (e.g. result_dir="C:/Users/mypc/Documents/MyFolderName").
 #'}
 #'
 #' @param sp character. Name of the column with information about species names.
@@ -257,7 +257,6 @@
 #' @import dismo
 #' @import rgdal
 #' @import foreach
-#' @import igraph
 #' @importFrom ade4 scatter
 #' @importFrom ade4 dudi.pca
 #' @importFrom adehabitatHS madifa
@@ -332,6 +331,7 @@
 #' @importFrom utils capture.output
 #' @importFrom utils read.table
 #' @importFrom utils write.table
+#' @importFrom utils globalVariables
 #' @importFrom parallel makeCluster
 #' @importFrom parallel detectCores
 #' @importFrom parallel stopCluster
