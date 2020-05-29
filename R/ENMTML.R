@@ -5,6 +5,13 @@
 #' @param proj_dir character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).
 #'
 #' @param occ_file character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.
+#' 
+#' @param result_dir character. Directory path with the folder in which model results will be recorded.
+#' \itemize{
+#' \item NULL: Results will be recorded in a default Result folder, at the same level as the pred_dir folder.
+#' \item Simple name: A folder with the specified name will be created at the same level as the pred_dir folder.
+#' \item Complete path: A folder will be created at the specified path.
+#'}
 #'
 #' @param sp character. Name of the column with information about species names.
 #'
@@ -334,6 +341,7 @@
 #'
 ENMTML <- function(pred_dir,
                    proj_dir=NULL,
+                   result_dir=NULL,
                    occ_file,
                    sp,
                    x,
@@ -496,7 +504,7 @@ ENMTML <- function(pred_dir,
   cat("Loading environmental variables ...\n")
 
   options(warn = 1)
-  setwd(pred_dir)
+  # setwd(pred_dir)
 
   env <- unique(tools::file_ext(list.files(pred_dir)))
   form <- c('bil', 'asc', 'txt', 'tif')
@@ -700,14 +708,28 @@ ENMTML <- function(pred_dir,
   #4.Occurrence Data ----
   cat("Loading and processing species occurrence data ...\n")
 
-  DirR<-"Result"
-  setwd("..")
-  if (file.exists(file.path(getwd(),DirR))){
-    DirR<-file.path(getwd(), DirR)
+  if(is.null(result_dir)){
+    DirR <- file.path(dirname(pred_dir),"Result")
+    if (file.exists(DirR)){
+      warning("Result folder already exists,files may be overwritten!")
+    }else{
+      dir.create(DirR)
+    }
   }else{
-    dir.create(file.path(getwd(), DirR))
-    DirR<-file.path(getwd(), DirR)
+    DirR <- result_dir
+    if (file.exists(DirR)){
+      warning("Result folder already exists,files may be overwritten!")
+    }else{
+      if (!grepl('[^[:alnum:]]', DirR)){
+        warning("Folder with results will be created at the same level of the predictors' folder")
+        DirR <- file.path(dirname(pred_dir),result_dir)
+        dir.create(DirR)
+      }else{
+        dir.create(DirR)
+      }
+    }
   }
+  cat(paste0("Results can be found at:  ","\n",DirR))
 
   # Read txt with occurences data
   occ <- utils::read.table(occ_file,

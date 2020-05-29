@@ -408,25 +408,28 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["BIO"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentage of Predicted Area
-          RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
-
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["BIO"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["BIO"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentage of Predicted Area
+          # RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
+          # 
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["BIO"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["BIO"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           #Save Partition Predictions
           if(Save=="Y"){
             #Partial Thresholds
             if(N!=1){
+              RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
               raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -452,6 +455,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
               raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", 
                                                 sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
@@ -552,19 +556,22 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BIO"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          #Percentae of Predicted Area
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- ListFut[[ProjN[k]]][["BIO"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["BIO"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,
-                                              percentage=50)$pROC_summary
+          # #Percentage of Predicted Area
+          # RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
+          # 
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["BIO"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["BIO"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
 
 
           #BIO Validation
@@ -624,22 +631,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["DOM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          #Percentage of Predicted Area
-          RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["DOM"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentage of Predicted Area
+          # RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
+          # 
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["DOM"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(
                 RasT[["DOM"]],
                 paste(grep("DOM", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
@@ -667,6 +678,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(RasT[["DOM"]],paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -772,19 +784,22 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["DOM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentae of Predicted Area
-          RasT[["DOM"]] <- STANDAR(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesP[[k]]))
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["DOM"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentage of Predicted Area
+          # RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
+          # 
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["DOM"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
 
           #DOM Validation
           pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
@@ -844,24 +859,27 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MAH"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          #Percentage of Predicted Area
-          RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
-          RasT[["MAH"]][RasT[["MAH"]][] < -10] <- -10
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["MAH"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["MAH"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentage of Predicted Area
+          # RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
+          # RasT[["MAH"]][RasT[["MAH"]][] < -10] <- -10
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["MAH"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(
                 RasT[["MAH"]],
                 paste(grep("MAH", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
@@ -889,6 +907,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(RasT[["MAH"]],paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -997,21 +1016,23 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MAH"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentae of Predicted Area
-          RasT[["MAH"]] <- RasT[["MAH"]] <- STANDAR(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesP[[k]]))
-          RasT[["MAH"]][RasT[["MAH"]][] < -10] <- -10
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["MAH"]]>=j
-            ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["MAH"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,
-                                              percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # RasT[["MAH"]] <- RasT[["MAH"]] <- STANDAR(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesP[[k]]))
+          # RasT[["MAH"]][RasT[["MAH"]][] < -10] <- -10
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["MAH"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,
+          #                                     percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           
           #MAH Validation
@@ -1072,22 +1093,25 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["ENF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          #Percentae of Predicted Area
-          RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["ENF"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["ENF"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["ENF"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(predict=RasT[["ENF"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
               raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1111,6 +1135,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
               raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
@@ -1219,19 +1244,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["ENF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentae of Predicted Area
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- ListFut[[ProjN[k]]][["ENF"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["ENF"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,
-                                              percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- ListFut[[ProjN[k]]][["ENF"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["ENF"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,
+          #                                     percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           
           #ENF Validation
@@ -1292,23 +1319,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXD"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          #Percentae of Predicted Area
-          RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["MXD"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["MXD"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["MXD"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(predict=RasT[["MXD"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1332,6 +1362,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1435,19 +1466,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXD"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentae of Predicted Area
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- ListFut[[ProjN[k]]][["MXD"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MXD"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,
-                                              percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- ListFut[[ProjN[k]]][["MXD"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MXD"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,
+          #                                     percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           
           #MXD Validation
@@ -1508,25 +1541,28 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXS"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentage of Predicted Area
-          RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
-          
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["MXS"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["MXS"]],
-                                   test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                   error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentage of Predicted Area
+          # RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
+          # 
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["MXS"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["MXS"]],
+          #                          test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                          error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1550,6 +1586,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1652,19 +1689,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXS"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentae of Predicted Area
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- ListFut[[ProjN[k]]][["MXS"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MXS"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,
-                                              percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- ListFut[[ProjN[k]]][["MXS"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MXS"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,
+          #                                     percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           
           #MXS Validation
@@ -1760,23 +1799,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                               a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["MLK"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            #Percentae of Predicted Area
-            RasT[["MLK"]] <- predict(Model[[i]])
-            ArT <- NULL
-            for (j in Thr){
-              RasL <- RasT[["MLK"]]>=j
-              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-            }
-            Area[[i]] <- round(ArT*100,3)
-            
-            #PartialROC
-            pROC[[i]] <- partial_roc(prediction=RasT[["MLK"]],
-                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                error=5,iterations=500,percentage=50)$pROC_summary
+            # #Percentae of Predicted Area
+            # RasT[["MLK"]] <- predict(Model[[i]])
+            # ArT <- NULL
+            # for (j in Thr){
+            #   RasL <- RasT[["MLK"]]>=j
+            #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+            # }
+            # Area[[i]] <- round(ArT*100,3)
+            # 
+            # #PartialROC
+            # pROC[[i]] <- partial_roc(prediction=RasT[["MLK"]],
+            #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+            #                                     error=5,iterations=500,percentage=50)$pROC_summary
+            Area[[i]] <- 0
+            pROC[[i]] <- 0
             
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
+                RasT[["MLK"]] <- predict(Model[[i]])
                 raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -1800,6 +1842,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       overwrite=TRUE)
                 }
               }else{
+                RasT[["MLK"]] <- predict(Model[[i]])
                 raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -1939,19 +1982,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MLK"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
-            #Percentae of Predicted Area
-            ArT <- NULL
-            for (j in Thr){
-              RasL <- ListFut[[ProjN[k]]][["MLK"]]>=j
-              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-            }
-            Area[[i]] <- round(ArT*100,3)
-            
-            #PartialROC
-            pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MLK"]],
-                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                error=5,iterations=500,
-                                                percentage=50)$pROC_summary
+            # #Percentae of Predicted Area
+            # ArT <- NULL
+            # for (j in Thr){
+            #   RasL <- ListFut[[ProjN[k]]][["MLK"]]>=j
+            #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+            # }
+            # Area[[i]] <- round(ArT*100,3)
+            # 
+            # #PartialROC
+            # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MLK"]],
+            #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+            #                                     error=5,iterations=500,
+            #                                     percentage=50)$pROC_summary
+            Area[[i]] <- 0
+            pROC[[i]] <- 0
             
             
             #MLK Validation
@@ -2015,25 +2060,30 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["SVM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          #Percentae of Predicted Area
-          FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
-          RasT[["SVM"]] <- VariablesT[[1]]
-          RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["SVM"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["SVM"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+          # RasT[["SVM"]] <- VariablesT[[1]]
+          # RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["SVM"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["SVM"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+              RasT[["SVM"]] <- VariablesT[[1]]
+              RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
               raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -2057,6 +2107,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+              RasT[["SVM"]] <- VariablesT[[1]]
+              RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
               raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -2173,19 +2226,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["SVM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          #Percentae of Predicted Area
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- ListFut[[ProjN[k]]][["SVM"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["SVM"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,
-                                              percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- ListFut[[ProjN[k]]][["SVM"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["SVM"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,
+          #                                     percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
 
 
           #SVM Validation
@@ -2249,23 +2304,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["RDF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentage of Predicted Area
-          RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- RasT[["RDF"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=RasT[["RDF"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,percentage=50)$pROC_summary
+          # #Percentage of Predicted Area
+          # RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["RDF"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["RDF"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
           
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
               raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -2289,6 +2347,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
               raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -2410,19 +2469,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["RDF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           
-          #Percentae of Predicted Area
-          ArT <- NULL
-          for (j in Thr){
-            RasL <- ListFut[[ProjN[k]]][["RDF"]]>=j
-            ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-          }
-          Area[[i]] <- round(ArT*100,3)
-          
-          #PartialROC
-          pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["RDF"]],
-                                              test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                              error=5,iterations=500,
-                                              percentage=50)$pROC_summary
+          # #Percentae of Predicted Area
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- ListFut[[ProjN[k]]][["RDF"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          # 
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["RDF"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,
+          #                                     percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
 
 
           #RDF Validation
@@ -2494,23 +2555,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["GAM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
-            #Percentage of Predicted Area
-            RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
-            ArT <- NULL
-            for (j in Thr){
-              RasL <- RasT[["GAM"]]>=j
-              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-            }
-            Area[[i]] <- round(ArT*100,3)
-            
-            #PartialROC
-            pROC[[i]] <- partial_roc(prediction=RasT[["GAM"]],
-                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                error=5,iterations=500,percentage=50)$pROC_summary
+            # #Percentage of Predicted Area
+            # RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
+            # ArT <- NULL
+            # for (j in Thr){
+            #   RasL <- RasT[["GAM"]]>=j
+            #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+            # }
+            # Area[[i]] <- round(ArT*100,3)
+            # 
+            # #PartialROC
+            # pROC[[i]] <- partial_roc(prediction=RasT[["GAM"]],
+            #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+            #                                     error=5,iterations=500,percentage=50)$pROC_summary
+            Area[[i]] <- 0
+            pROC[[i]] <- 0
             
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
+                RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -2534,6 +2598,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       overwrite=TRUE)
                 }
               }else{
+                RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -2643,19 +2708,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
-            #Percentae of Predicted Area
-            ArT <- NULL
-            for (j in Thr){
-              RasL <- ListFut[[ProjN[k]]][["GAM"]]>=j
-              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-            }
-            Area[[i]] <- round(ArT*100,3)
-            
-            #PartialROC
-            pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAM"]],
-                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                error=5,iterations=500,
-                                                percentage=50)$pROC_summary
+            # #Percentae of Predicted Area
+            # ArT <- NULL
+            # for (j in Thr){
+            #   RasL <- ListFut[[ProjN[k]]][["GAM"]]>=j
+            #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+            # }
+            # Area[[i]] <- round(ArT*100,3)
+            # 
+            # #PartialROC
+            # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAM"]],
+            #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+            #                                     error=5,iterations=500,
+            #                                     percentage=50)$pROC_summary
+            Area[[i]] <- 0
+            pROC[[i]] <- 0
 
 
             #GAM Validation
@@ -2727,23 +2794,26 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["GLM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
-            #Percentage of Predicted Area
-            RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
-            ArT <- NULL
-            for (j in Thr){
-              RasL <- RasT[["GLM"]]>=j
-              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-            }
-            Area[[i]] <- round(ArT*100,3)
-            
-            #PartialROC
-            pROC[[i]] <- partial_roc(prediction=RasT[["GLM"]],
-                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                error=5,iterations=500,percentage=50)$pROC_summary
+            # #Percentage of Predicted Area
+            # RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
+            # ArT <- NULL
+            # for (j in Thr){
+            #   RasL <- RasT[["GLM"]]>=j
+            #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+            # }
+            # Area[[i]] <- round(ArT*100,3)
+            # 
+            # #PartialROC
+            # pROC[[i]] <- partial_roc(prediction=RasT[["GLM"]],
+            #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+            #                                     error=5,iterations=500,percentage=50)$pROC_summary
+            Area[[i]] <- 0
+            pROC[[i]] <- 0
             
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
+                RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -2767,6 +2837,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       overwrite=TRUE)
                 }
               }else{
+                RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -2873,19 +2944,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GLM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
             
-            #Percentae of Predicted Area
-            ArT <- NULL
-            for (j in Thr){
-              RasL <- ListFut[[ProjN[k]]][["GLM"]]>=j
-              ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-            }
-            Area[[i]] <- round(ArT*100,3)
-            
-            #PartialROC
-            pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GLM"]],
-                                                test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                error=5,iterations=500,
-                                                percentage=50)$pROC_summary
+            # #Percentae of Predicted Area
+            # ArT <- NULL
+            # for (j in Thr){
+            #   RasL <- ListFut[[ProjN[k]]][["GLM"]]>=j
+            #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+            # }
+            # Area[[i]] <- round(ArT*100,3)
+            # 
+            # #PartialROC
+            # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GLM"]],
+            #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+            #                                     error=5,iterations=500,
+            #                                     percentage=50)$pROC_summary
+            Area[[i]] <- 0
+            pROC[[i]] <- 0
 
 
             #GLM Validation
@@ -2948,25 +3021,29 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Boyce Index
         Boyce[[i]] <- ecospat.boyce(RastPart[["GAU"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentage of Predicted Area
-        RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
-                                    CI = NULL, maxn = NULL)$posterior.mode
-
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- RasT[["GAU"]]>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction=RasT[["GAU"]],
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,percentage=50)$pROC_summary
+        # #Percentage of Predicted Area
+        # RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
+        #                             CI = NULL, maxn = NULL)$posterior.mode
+        # 
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- RasT[["GAU"]]>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction=RasT[["GAU"]],
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
         
         #Save Partition Predictions
         if(Save=="Y"){
           if(N!=1){
+            RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
+                                                                         CI = NULL, maxn = NULL)$posterior.mode
             raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
@@ -2992,6 +3069,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   overwrite=TRUE)
             }
           }else{
+            RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
+                                                 CI = NULL, maxn = NULL)$posterior.mode
             raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
@@ -3104,19 +3183,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Boyce Index
         Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAU"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentae of Predicted Area
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- ListFut[[ProjN[k]]][["GAU"]]>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAU"]],
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,
-                                            percentage=50)$pROC_summary
+        # #Percentae of Predicted Area
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- ListFut[[ProjN[k]]][["GAU"]]>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAU"]],
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,
+        #                                     percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
 
 
         #GAU Validation
@@ -3211,24 +3292,28 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               #Boyce Index
               Boyce[[i]] <- ecospat.boyce(RastPart[["BRT"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
               
-              #Percentage of Predicted Area
-              RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
-                              n.trees=Model[[i]]$gbm.call$best.trees,type="response")
-              ArT <- NULL
-              for (j in Thr){
-                RasL <- RasT[["BRT"]]>=j
-                ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-              }
-              Area[[i]] <- round(ArT*100,3)
-              
-              #PartialROC
-              pROC[[i]] <- partial_roc(prediction=RasT[["BRT"]],
-                                                  test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                  error=5,iterations=500,percentage=50)$pROC_summary
+              # #Percentage of Predicted Area
+              # RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
+              #                 n.trees=Model[[i]]$gbm.call$best.trees,type="response")
+              # ArT <- NULL
+              # for (j in Thr){
+              #   RasL <- RasT[["BRT"]]>=j
+              #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+              # }
+              # Area[[i]] <- round(ArT*100,3)
+              # 
+              # #PartialROC
+              # pROC[[i]] <- partial_roc(prediction=RasT[["BRT"]],
+              #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+              #                                     error=5,iterations=500,percentage=50)$pROC_summary
+              Area[[i]] <- 0
+              pROC[[i]] <- 0
               
               #Save Partition Predictions
               if(Save=="Y"){
                 if(N!=1){
+                  RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
+                                                                   n.trees=Model[[i]]$gbm.call$best.trees,type="response")
                   raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                       format='GTiff',
                                       overwrite=TRUE)
@@ -3252,6 +3337,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                         overwrite=TRUE)
                   }
                 }else{
+                  RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
+                                                   n.trees=Model[[i]]$gbm.call$best.trees,type="response")
                   raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                       format='GTiff',
                                       overwrite=TRUE)
@@ -3389,19 +3476,21 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               #Boyce Index
               Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BRT"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
               
-              #Percentage of Predicted Area
-              ArT <- NULL
-              for (j in Thr){
-                RasL <- ListFut[[ProjN[k]]][["BRT"]]>=j
-                ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-              }
-              Area[[i]] <- round(ArT*100,3)
-              
-              #PartialROC
-              pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["BRT"]],
-                                                  test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                                  error=5,iterations=500,
-                                                  percentage=50)$pROC_summary
+              # #Percentage of Predicted Area
+              # ArT <- NULL
+              # for (j in Thr){
+              #   RasL <- ListFut[[ProjN[k]]][["BRT"]]>=j
+              #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+              # }
+              # Area[[i]] <- round(ArT*100,3)
+              # 
+              # #PartialROC
+              # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["BRT"]],
+              #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+              #                                     error=5,iterations=500,
+              #                                     percentage=50)$pROC_summary
+              Area[[i]] <- 0
+              pROC[[i]] <- 0
 
 
               #BRT Validation
@@ -3501,20 +3590,22 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentage of Predicted Area
-        RasT <- RasT[lapply(RasT,length)>1]
-        ENST <- mean(stack(RasT))
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction=ENST,
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,percentage=50)$pROC_summary
+        # #Percentage of Predicted Area
+        # RasT <- RasT[lapply(RasT,length)>1]
+        # ENST <- mean(stack(RasT))
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- ENST>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction=ENST,
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
       }
 
       #MEAN Validation
@@ -3572,20 +3663,22 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentage of Predicted Area
-        ENST <- mean(stack(RasT)*ThResW)
-        
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction=ENST,
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,percentage=50)$pROC_summary
+        # #Percentage of Predicted Area
+        # ENST <- mean(stack(RasT)*ThResW)
+        # 
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- ENST>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction=ENST,
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
       }
 
       #W_MEAN Validation
@@ -3644,21 +3737,23 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentage of Predicted Area
-        RasT <- RasT[lapply(RasT,length)>1]
-        ENST <- mean(stack(RasT[Best]))
-        
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction=ENST,
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,percentage=50)$pROC_summary
+        # #Percentage of Predicted Area
+        # RasT <- RasT[lapply(RasT,length)>1]
+        # ENST <- mean(stack(RasT[Best]))
+        # 
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- ENST>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction=ENST,
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
       }
 
       #SUP Validation
@@ -3718,21 +3813,23 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentage of Predicted Area
-        RasT <- RasT[lapply(RasT,length)>1]
-        ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
-        
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction=ENST,
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,percentage=50)$pROC_summary
+        # #Percentage of Predicted Area
+        # RasT <- RasT[lapply(RasT,length)>1]
+        # ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
+        # 
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- ENST>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction=ENST,
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
       }
 
       #PCA Validation
@@ -3796,21 +3893,23 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentage of Predicted Area
-        RasT <- RasT[lapply(RasT,length)>1]
-        ENST <- PCA_ENS_TMLA(brick(stack(RasT[Best])))
-        
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction = ENST,
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,percentage=50)$pROC_summary
+        # #Percentage of Predicted Area
+        # RasT <- RasT[lapply(RasT,length)>1]
+        # ENST <- PCA_ENS_TMLA(brick(stack(RasT[Best])))
+        # 
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- ENST>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction = ENST,
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
       }
 
       #PCA_SUP Validation
@@ -3870,22 +3969,24 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
         
-        #Percentage of Predicted Area
-        RasT <- RasT[lapply(RasT,length)>1]
-        RasT <- sapply(seq(1:length(ValidTHR)),function(x){RasT[[x]]*(RasT[[x]]>=ValidTHR[x])})
-        ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
-        
-        ArT <- NULL
-        for (j in Thr){
-          RasL <- ENST>=j
-          ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
-        }
-        Area[[i]] <- round(ArT*100,3)
-        
-        #PartialROC
-        pROC[[i]] <- partial_roc(prediction=ENST,
-                                            test_data=PredPoint[PredPoint$PresAbse==1,2],
-                                            error=5,iterations=500,percentage=50)$pROC_summary
+        # #Percentage of Predicted Area
+        # RasT <- RasT[lapply(RasT,length)>1]
+        # RasT <- sapply(seq(1:length(ValidTHR)),function(x){RasT[[x]]*(RasT[[x]]>=ValidTHR[x])})
+        # ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
+        # 
+        # ArT <- NULL
+        # for (j in Thr){
+        #   RasL <- ENST>=j
+        #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+        # }
+        # Area[[i]] <- round(ArT*100,3)
+        # 
+        # #PartialROC
+        # pROC[[i]] <- partial_roc(prediction=ENST,
+        #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+        #                                     error=5,iterations=500,percentage=50)$pROC_summary
+        Area[[i]] <- 0
+        pROC[[i]] <- 0
       }
 
       #PCA_SUP Validation
