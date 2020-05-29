@@ -496,7 +496,7 @@ ENMTML <- function(pred_dir,
   cat("Loading environmental variables ...\n")
 
   options(warn = 1)
-  setwd(pred_dir)
+  # setwd(pred_dir)
 
   env <- unique(tools::file_ext(list.files(pred_dir)))
   form <- c('bil', 'asc', 'txt', 'tif')
@@ -700,14 +700,28 @@ ENMTML <- function(pred_dir,
   #4.Occurrence Data ----
   cat("Loading and processing species occurrence data ...\n")
 
-  DirR<-"Result"
-  setwd("..")
-  if (file.exists(file.path(getwd(),DirR))){
-    DirR<-file.path(getwd(), DirR)
+  if(is.null(result_dir)){
+    DirR <- file.path(dirname(pred_dir),"Result")
+    if (file.exists(DirR)){
+      warning("Result folder already exists,files may be overwritten!")
+    }else{
+      dir.create(DirR)
+    }
   }else{
-    dir.create(file.path(getwd(), DirR))
-    DirR<-file.path(getwd(), DirR)
+    DirR <- result_dir
+    if (file.exists(DirR)){
+      warning("Result folder already exists,files may be overwritten!")
+    }else{
+      if (!grepl('[^[:alnum:]]', DirR)){
+        warning("Folder with results will be created at the same level of the predictors' folder")
+        DirR <- file.path(dirname(pred_dir),result_dir)
+        dir.create(DirR)
+      }else{
+        dir.create(DirR)
+      }
+    }
   }
+  cat(paste0("Results can be found at:  ","\n",DirR))
 
   # Read txt with occurences data
   occ <- utils::read.table(occ_file,
