@@ -1,5 +1,5 @@
 ## Written by Santiago Velazco & Andre Andrade
-
+utils::globalVariables("s")
 FitENM_TMLA_Parallel <- function(RecordsData,
                    Variables,
                    Fut=NULL,

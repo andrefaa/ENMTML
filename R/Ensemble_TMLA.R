@@ -1,3 +1,4 @@
+utils::globalVariables("s")
 Ensemble_TMLA <- function(DirR,
                           ValTable,
                           ThrTable,

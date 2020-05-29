@@ -1,3 +1,4 @@
+utils::globalVariables("j")
 MOP <- function(Variables,
                 RecordsData,
                 Algorithm,
