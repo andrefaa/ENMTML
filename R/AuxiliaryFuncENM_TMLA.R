@@ -49,7 +49,9 @@ PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
     POSPRE <- raster::cellFromXY(prediction_dataset[[1]],train_dataset[train_dataset$PresAbse==1,c("x","y")])
     ZER <- rep(0,nrow(PredRas))
     ZER[POSPRE] <- 1
-    ZER <- ZER[-POS]
+    if(length(POS) > 0) {
+      ZER <- ZER[-POS]
+    }
     f1 <- function(x) rep(x, ZER)
     Sli <- apply(Zli, 2, f1)
     m <- apply(Sli, 2, mean)
@@ -57,7 +59,11 @@ PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
     PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
     XY <- raster::xyFromCell(prediction_dataset[[1]],1:raster::ncell(prediction_dataset[[1]]))
     PredRAS <- data.frame(cbind(XY,ENF=NA))
-    PredRAS[-POS,"ENF"] <- PredRas
+    if(length(POS) > 0) {
+      PredRAS[-POS, "ENF"] <- PredRas
+    } else{
+      PredRAS[, "ENF"] <- PredRas
+    }
     sp::gridded(PredRAS) <- ~x+y
     FinalModelT <- rem_out(raster::raster(PredRAS))
     FinalModel <- FinalModelT

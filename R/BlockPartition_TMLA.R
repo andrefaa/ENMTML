@@ -1,16 +1,16 @@
 ## Written by Santiago Velazco
 
-BlockPartition_TMLA <- function(evnVariables = NA,
-                                RecordsData,
-                                N,
-                                pseudoabsencesMethod = PabM,
-                                PrAbRatio = PabR,
-                                DirSave = DirB,
-                                DirM = DirM,
-                                MRst = sp_accessible_area,
-                                type = TipoMoran,
-                                Geo_Buf = Geo_Buf,
-                                cores = cores) {
+BlockPartition_TMLA <- function(evnVariables = NULL,
+                                RecordsData = NULL,
+                                N = NULL,
+                                pseudoabsencesMethod = NULL,
+                                PrAbRatio = NULL,
+                                DirSave = NULL,
+                                DirM = NULL,
+                                MRst = NULL,
+                                type = NULL,
+                                Geo_Buf = NULL,
+                                cores = NULL) {
   # RecordsData: matrix or data frame with presences records
   # N: 2 (dafault). interger  Number of group for data  paritioning
   # pseudoabsences: logical, TRUE (dafault).
@@ -68,7 +68,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
   results <-
     foreach(
       s = 1:length(RecordsData),
-      .packages = c("raster", "ape", "dismo","modEvA"),
+      .packages = c("raster", "ape", "dismo"),
       .export = c("inv_bio")
     ) %dopar% {
       # for(s in 1:length(RecordsData)){
@@ -171,7 +171,7 @@ BlockPartition_TMLA <- function(evnVariables = NA,
       for (i in 1:ncol(part)) {
         Env.P1 <- cbind(part[i], Env.P)
         Env.P2 <- split(Env.P1[, -1], Env.P1[, 1])
-        mess1 <- modEvA::MESS(Env.P2[[1]], Env.P2[[2]])
+        mess1 <- MESS(Env.P2[[1]], Env.P2[[2]])
         Mess.Grid.P[i] <- mean(mess1$TOTAL, na.rm = TRUE)
         rm(Env.P1)
       }
