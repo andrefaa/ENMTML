@@ -5,6 +5,13 @@
 #' @param proj_dir character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).
 #'
 #' @param occ_file character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.
+#' 
+#' @param result_dir character. Directory path with the folder in which model results will be recorded.
+#' \itemize{
+#' \item NULL: Results will be recorded in a default Result folder, at the same level as the pred_dir folder.
+#' \item Simple name: A folder with the specified name will be created at the same level as the pred_dir folder.
+#' \item Complete path: A folder will be created at the specified path.
+#'}
 #'
 #' @param sp character. Name of the column with information about species names.
 #'
@@ -334,6 +341,7 @@
 #'
 ENMTML <- function(pred_dir,
                    proj_dir=NULL,
+                   result_dir=NULL,
                    occ_file,
                    sp,
                    x,
