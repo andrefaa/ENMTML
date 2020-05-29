@@ -1,5 +1,5 @@
 ## Written by Santiago Velazco
-
+utils::globalVariables("s")
 BlockPartition_TMLA <- function(evnVariables = NULL,
                                 RecordsData = NULL,
                                 N = NULL,
