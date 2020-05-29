@@ -3,7 +3,6 @@
 export(ENMTML)
 import(dismo)
 import(foreach)
-import(igraph)
 import(raster)
 import(rgdal)
 importFrom(RStoolbox,rasterPCA)
