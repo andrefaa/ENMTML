@@ -43,12 +43,29 @@ https://www.sciencedirect.com/science/article/pii/S1364815219310424?via%3Dihub
 The package have in main function *ENMTML* with several arguments, specify all of them according to your modeling needs.  
 
 ```ruby
-ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
-  thin_occ = NULL, eval_occ = NULL, colin_var = NULL,
-  imp_var = FALSE, sp_accessible_area = NULL, pseudoabs_method,
-  pres_abs_ratio = 1, part, save_part = FALSE, save_final = TRUE,
-  algorithm, thr, msdm = NULL, ensemble = NULL,
-  extrapolation = FALSE, cores = 1)
+ENMTML(pred_dir, 
+       proj_dir = NULL, 
+       result_dir = NULL,
+       occ_file, 
+       sp, 
+       x, 
+       y, 
+       min_occ = 10,
+       thin_occ = NULL, 
+       eval_occ = NULL, 
+       colin_var = NULL,
+       imp_var = FALSE, 
+       sp_accessible_area = NULL, 
+       pseudoabs_method,
+       pres_abs_ratio = 1, 
+       part, save_part = FALSE, 
+       save_final = TRUE,
+       algorithm, 
+       thr, 
+       msdm = NULL, 
+       ensemble = NULL,
+       extrapolation = FALSE, 
+       cores = 1)
 ```
 
 **See possible input options below**
@@ -56,6 +73,13 @@ ENMTML(pred_dir, proj_dir = NULL, occ_file, sp, x, y, min_occ = 10,
 ### ENMTML function arguments:  
 * **pred_dir**: character. Directory path with predictors (file formats supported are ASC, BILL, TIFF or TXT)
 * **proj_dir**: character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).
+* **result_dir**: character. Directory path with the folder in which model results will be recorded:
+  + NULL: Results will be recorded in a default Result folder, at the same level as the pred_dir folder (usage </br> 
+  <b style='color:red'>`result_dir=NULL`</b>).
+  + Simple name: A folder with the specified name will be created at the same level as the pred_dir folder (e.g. usage </br> 
+  <b style='color:red'>`result_dir="MyFolderName"`</b>)
+  + Complete path: A folder will be created at the specified path (e.g. </br> 
+  <b style='color:red'>`result_dir="C:/Users/mypc/Documents/MyFolderName"`</b>).
 * **occ_file**: character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.
 * **sp**: character. Name of the column with information about species names.
 * **x**: character. Name of the column with information about longitude.
