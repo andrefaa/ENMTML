@@ -1,12 +1,5 @@
-##%######################################################%##
-#                                                          #
-####                    Partial_ROC                     ####
-#                                                          #
-##%######################################################%##
-
 #' Modified from the original function from 
 #' ellipseenm (https://github.com/marlonecobos/ellipsenm/blob/master/R/partial_roc.R)
-
 #PartialROC
 partial_roc <- function(prediction, test_data, longitude, latitude, error = 5,
                         
@@ -87,7 +80,6 @@ partial_roc <- function(prediction, test_data, longitude, latitude, error = 5,
     vals <- na.omit(unique(prediction))
     
     classpixels <- data.frame(value = vals, count = c(table(prediction)),
-                              
                               row.names = 1:length(vals))
     
   }
@@ -126,21 +118,13 @@ partial_roc <- function(prediction, test_data, longitude, latitude, error = 5,
     
   }else {
     
-    classpixels <- classpixels %>%
-      
-      dplyr::mutate_(value = ~rev(value),
-                     
+    classpixels <- 
+      dplyr::mutate_(classpixels, value = ~rev(value),
                      count = ~rev(count),
-                     
                      totpixperclass = ~cumsum(count),
-                     
-                     percentpixels = ~totpixperclass/sum(count)) %>%
+                     percentpixels = ~totpixperclass/sum(count))
       
-      dplyr::arrange(value)
-    
-    
-    
-    
+      classpixels <- dplyr::arrange(classpixels, value)
     
     error_sens <- 1 - (error / 100)
     
@@ -160,11 +144,17 @@ partial_roc <- function(prediction, test_data, longitude, latitude, error = 5,
     
     
     
-    partial_AUC <- 1:iterations %>%
-      
-      purrr::map_df(~calc_aucDF(big_classpixels, fractional_area, test_data,
-                                
-                                n_data, n_samp, error_sens))
+    partial_AUC <-
+      purrr::map_df(
+        1:iterations ~ calc_aucDF(
+          big_classpixels,
+          fractional_area,
+          test_data,
+          n_data,
+          n_samp,
+          error_sens
+        )
+      )
     
     
     
