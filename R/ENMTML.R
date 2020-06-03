@@ -536,7 +536,7 @@ ENMTML <- function(pred_dir,
 
   #CRS
   if(is.na(raster::crs(envT))){
-    raster::crs(envT) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+    raster::crs(envT) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84"
   }
 
   #3.0.Check predictors consistency
