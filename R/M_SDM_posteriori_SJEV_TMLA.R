@@ -62,14 +62,14 @@ MSDM_Posterior <- function(RecordsData = NULL,
       raster::raster(RasterListBin[RasterListBin[, "sp"] == SpNames[s], 'RasterList'])
     if (is.na(raster::crs(Adeq))) {
       raster::crs(Adeq) <-
-        "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+        "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84"
     }
     raster::crs(Bin) <- raster::crs(Adeq)
-    
+
     # # Extract values for one species and calculate the threshold
     SpData <-
       data.frame(RecordsData[RecordsData[, "sp"] == SpNames[s],])
-    
+
     #### Cutoff MCP----
     if (cutoff == "MCP") {
       hull <-
