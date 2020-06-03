@@ -67,13 +67,11 @@ M_delimited <- function(var,
     varCord <- varCord[which(!is.na(var[[1]][])), ]
     varCord$Cell <- raster::cellFromXY(var, xy = varCord)
     sp::coordinates(varCord) <- ~ x + y
-    raster::crs(varCord) <-
-      "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+    raster::crs(varCord) <- crs(var)
     
     M_list <- lapply(occ_xy, function(x) {
       sp::coordinates(x) <- ~ x + y
-      raster::crs(x) <-
-        "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+      raster::crs(x) <- crs(var)
       return(x)
     })
     
