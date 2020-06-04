@@ -4,7 +4,9 @@
 \name{ecoregions}
 \alias{ecoregions}
 \title{Polygon with terrestrial ecoregion}
-\format{An object of class \code{SpatialPolygonsDataFrame} with 1194 rows and 2 columns.}
+\format{
+An object of class \code{SpatialPolygonsDataFrame} with 1194 rows and 2 columns.
+}
 \usage{
 ecoregions
 }
@@ -13,6 +15,7 @@ This is a spatially simplified shapefile with terrestrial polygon ecoregion from
 }
 \examples{
 require(ENMTML)
+require(raster)
 data("ecoregions")
 plot(ecoregions, col=rainbow(92)[as.factor(ecoregions@data$ECO_ID)])
 }

@@ -4,12 +4,14 @@
 \name{occ}
 \alias{occ}
 \title{Virtual species occurrences.}
-\format{A data.frame with 215 rows and 3 variables:
+\format{
+A data.frame with 215 rows and 3 variables:
 \describe{
   \item{sp}{virtual species names}
   \item{x}{longitude of species occurrences}
   \item{y}{latitude of species occurrences}
-}}
+}
+}
 \usage{
 occ
 }
@@ -18,7 +20,8 @@ A dataset containing occurrences of five virtual species throughout South Americ
 }
 \examples{
 require(ENMTML)
-data("predictors")
+require(raster)
+data("env")
 data("occ")
 
 plot(predictors[[1]], col='gray')
