@@ -13,7 +13,7 @@ STANDAR_FUT <- function(ModelFut, ModelPre) {
 }
 
 
-# Function to remove outliers from MAH and DOMAIN preiction
+# Function to remove outliers from MAH and DOMAIN prediction
 rem_out <- function(r) {
   ss <- quantile(r[], na.rm = T)
   me <- stats::median(r[], na.rm = T)

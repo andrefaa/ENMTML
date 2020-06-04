@@ -37,12 +37,12 @@
 #'   \item PEARSON: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user, usage colin_var=c(method='PEARSON', threshold='0.7').
 #' }
 #'
-#' @param imp_var logical Perform variable importance and curves response for selected algorithms? (default FALSE)
+#' @param imp_var logical. Perform variable importance and data for curves response for selected algorithms? (default FALSE)
 #'
 #' @param sp_accessible_area character. Restrict for each species the accessible area, i.e., the area used to model fitting. It is necessary to provide a vector for this argument. Three methods were implemented
 #' \itemize{
-#'   \item BUFFER area used to model fitting deliminted by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
-#'   \item BUFFER area used to model fitting deliminted by a buffer with a width size difinited by the user in km. Note this width size of buffer will be used for all species. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
+#'   \item BUFFER area used to model fitting delimited by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage sp_accessible_area=c(method='BUFFER', type='1').
+#'   \item BUFFER area used to model fitting delimited by a buffer with a width size defined by the user in km. Note this width size of buffer will be used for all species. Usage sp_accessible_area=c(method='BUFFER', type='2', width='300').
 #'   \item MASK: this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp').
 #'   \item USER_DEFINED: users can inform their own masks for accessible area. In this situation the program requires a folder within species-specific masks, one for each species, being that the mask name must match the species name within the occurrence file.For this option it is necessary inform the path to the folder containing the accessible areas. The following file formats can be loaded '.bil', '.asc', '.tif', '.shp', and '.txt'. Usage sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/accessibleareafolder').
 #' }
@@ -177,7 +177,7 @@
 #' raster::writeRaster(env_fut$`2080_8.5`, file.path(d0[2],
 #'             names(env_fut$`2080_8.5`)), bylayer=TRUE, format='GTiff')
 #'
-#' # Polygon of terrestrial ecoregion
+#' # Polygon of terrestrial ecoregions
 #' data("ecoregions")
 #' d_eco <- file.path(d_ex, 'ecoregions')
 #' dir.create(d_eco)
@@ -199,7 +199,7 @@
 #'args(ENMTML)
 #'
 #'# ENMTML provides a variety of tools to build different models
-#'# depending on the modeling objetives.
+#'# depending on the modeling objectives.
 #'# Here will be provided a single modeling procedure.
 #'# For more example and exploration of models
 #'# see <https://github.com/andrefaa/ENMTML>
@@ -257,7 +257,6 @@
 #' @import dismo
 #' @import rgdal
 #' @import foreach
-#' @importFrom ade4 scatter
 #' @importFrom ade4 dudi.pca
 #' @importFrom adehabitatHS madifa
 #' @importFrom caret filterVarImp
@@ -276,7 +275,6 @@
 #' @importFrom kernlab ksvm
 #' @importFrom kernlab predict
 #' @importFrom maxnet maxnet
-#' @importFrom maxnet response.plot
 #' @importFrom maxnet maxnet.formula
 #' @importFrom maxnet maxnet.default.regularization
 #' @importFrom maxlike maxlike
@@ -287,7 +285,6 @@
 #' @importFrom purrr map_df
 #' @importFrom randomForest randomForest
 #' @importFrom randomForest tuneRF
-#' @importFrom randomForest partialPlot
 #' @importFrom randomForest importance
 #' @importFrom RStoolbox rasterPCA
 #' @importFrom sp gridded
@@ -298,16 +295,7 @@
 #' @importFrom tools file_path_sans_ext
 #' @importFrom usdm vifstep
 #' @importFrom usdm exclude
-#' @importFrom visreg visreg
 #' @importFrom grDevices boxplot.stats
-#' @importFrom grDevices dev.off
-#' @importFrom grDevices png
-#' @importFrom grDevices rgb
-#' @importFrom graphics par
-#' @importFrom graphics box
-#' @importFrom graphics polygon
-#' @importFrom graphics rect
-#' @importFrom graphics rug
 #' @importFrom igraph clusters
 #' @importFrom igraph graph
 #' @importFrom igraph graph.edgelist
@@ -765,7 +753,7 @@ ENMTML <- function(pred_dir,
   }
 
   #4.3.Save Thinned & Unique Occurrences
-  ndb <- plyr::ldply(occA)[,1:3]
+  ndb <- plyr::ldply(occA, .id='sp')[,1:3]
   utils::write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
 
   #4.3.Remove species with less than min_occ----
@@ -797,7 +785,8 @@ ENMTML <- function(pred_dir,
                           Dir=DirR,
                           spN=spN,
                           SaveM = TRUE,
-                          Buffer_Opt=as.numeric(sp_accessible_area['type']))
+                          Buffer_Opt=as.numeric(sp_accessible_area['type']),
+                          cores=cores)
     }
     if(sp_accessible_area['method']=="BUFFER"&
        sp_accessible_area['type']=='2') {
@@ -809,7 +798,8 @@ ENMTML <- function(pred_dir,
                           Dir=DirR,
                           spN=spN,
                           SaveM = TRUE,
-                          Buffer_Opt=as.numeric(sp_accessible_area['type']))
+                          Buffer_Opt=as.numeric(sp_accessible_area['type']),
+                          cores=cores)
     }
     if(sp_accessible_area['method']=="MASK") {
       DirM <- M_delimited(var=envT,
@@ -819,7 +809,8 @@ ENMTML <- function(pred_dir,
                           EcoregionsFile=sp_accessible_area['filepath'],
                           Dir=DirR,
                           spN=spN,
-                          SaveM = TRUE)
+                          SaveM = TRUE,
+                          cores=cores)
     }
     if(sp_accessible_area['method']=="USER-DEFINED") {
       DirM <- M_delimited(var=envT,
@@ -829,7 +820,8 @@ ENMTML <- function(pred_dir,
                           EcoregionsFile=sp_accessible_area['filepath'],
                           Dir=DirR,
                           spN=spN,
-                          SaveM = TRUE)
+                          SaveM = TRUE,
+                          cores=cores)
     }
   }
 

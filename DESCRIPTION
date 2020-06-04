@@ -19,7 +19,7 @@ Imports: ade4, adehabitatHS, caret, data.table, dismo,
          maxlike, maxnet, methods, mgcv, parallel, doParallel, dplyr, plyr, 
          pracma, purrr, randomForest, 
          raster, rgdal, rgeos, RStoolbox, sp, SpatialEpi, 
-         spThin, tools, usdm, visreg
+         spThin, tools, usdm
 URL: https://github.com/andrefaa/ENMTML
 BugReports: https://github.com/andrefaa/ENMTML/issues
 Encoding: UTF-8

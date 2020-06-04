@@ -7,11 +7,12 @@ M_delimited <- function(var,
                         spN,
                         Buffer_Opt,
                         SaveM = TRUE,
-                        Mfolder = NULL) {
+                        Mfolder = NULL,
+                        cores=1) {
   var <- var[[1]]
   var <- !is.na(var)
   var[var[] == 0] <- NA
-  
+
   Dir_M <- "Extent_Masks"
   if (file.exists(file.path(Dir, Dir_M))) {
     Dir_M <- file.path(Dir, Dir_M)
@@ -62,20 +63,20 @@ M_delimited <- function(var,
     #   BufferDistanceKm <- utils::read.table(file.choose(),sep="\t",h=T)
     #   BufferDistanceKm <- BufferDistanceKm$Dist * 1000
     # }
-    
+
     varCord <- data.frame(sp::coordinates(var))
     varCord <- varCord[which(!is.na(var[[1]][])), ]
     varCord$Cell <- raster::cellFromXY(var, xy = varCord)
     sp::coordinates(varCord) <- ~ x + y
     raster::crs(varCord) <- crs(var)
-    
+
     M_list <- lapply(occ_xy, function(x) {
       sp::coordinates(x) <- ~ x + y
       raster::crs(x) <- crs(var)
       return(x)
     })
-    
-    cl <- parallel::makeCluster(parallel::detectCores() - 1)
+
+    cl <- parallel::makeCluster(cores)
     doParallel::registerDoParallel(cl)
     foreach(i = 1:length(M_list),
             .packages = c("raster")) %dopar% {
@@ -127,8 +128,8 @@ M_delimited <- function(var,
       x <- unique(stats::na.omit(x))
       x <- x[x != 0]
     })
-    
-    cl <- parallel::makeCluster(parallel::detectCores() - 1)
+
+    cl <- parallel::makeCluster(cores)
     doParallel::registerDoParallel(cl)
     foreach(i = 1:length(sp.Ecoregions),
             .packages = c("raster")) %dopar% {
