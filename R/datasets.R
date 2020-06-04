@@ -27,7 +27,7 @@
 #' require(ENMTML)
 #' require(raster)
 #' data("env")
-#' predictors
+#' env
 #' plot(env)
 "env"
 
@@ -39,7 +39,7 @@
 #' require(ENMTML)
 #' require(raster)
 #' data("env_fut")
-#' predictors_future
+#' env_fut
 #' plot(env_fut$`2080_4.5`)
 #' plot(env_fut$`2080_8.5`)
 "env_fut"

@@ -17,7 +17,7 @@ A list of RasterBrick with Bioclimatic variables (Bio1, Bio3, Bio4, Bio12 and Bi
 require(ENMTML)
 require(raster)
 data("env_fut")
-predictors_future
+env_fut
 plot(env_fut$`2080_4.5`)
 plot(env_fut$`2080_8.5`)
 }

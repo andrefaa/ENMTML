@@ -17,7 +17,7 @@ A RasterBrick with Bioclimatic variables (Bio1, Bio3, Bio4, Bio12 and Bio15) fro
 require(ENMTML)
 require(raster)
 data("env")
-predictors
+env
 plot(env)
 }
 \keyword{datasets}
