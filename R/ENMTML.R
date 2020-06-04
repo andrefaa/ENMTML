@@ -244,7 +244,7 @@
 #'# prior to the directory specified in the pred_dir argument
 #'
 #'d_env # Directory used to define environmental variables
-#'d_rslt <- d_env %>% dirname() %>% file.path(., 'Result')
+#'d_rslt <- file.path(dirname(d_env), 'Result')
 #'d_rslt
 #'# shell.exec(d_rslt) # for Windows users
 
