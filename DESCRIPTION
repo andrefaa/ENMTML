@@ -23,7 +23,7 @@ Imports: ade4, adehabitatHS, caret, data.table, dismo,
          flexclust, foreach, gbm, geoR, glmnet, igraph, kernlab, 
          maxlike, maxnet, methods, mgcv, parallel, doParallel, plyr, 
          pracma, randomForest, 
-         raster, rgdal, rgeos, RStoolbox, sp, SpatialEpi, 
+         raster, rgdal, rgeos, RStoolbox, sp, 
          spThin, tools, usdm
 URL: https://github.com/andrefaa/ENMTML
 BugReports: https://github.com/andrefaa/ENMTML/issues
