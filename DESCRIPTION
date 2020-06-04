@@ -15,7 +15,7 @@ Description: Fit ENMs.....
 License: GPL (>= 2)
 Depends: R (>= 3.5.0)
 Imports: ade4, adehabitatHS, ape, caret, data.table, dismo,  
-         flexclust, foreach, gbm, geoR, glmnet, kernlab, 
+         flexclust, foreach, gbm, geoR, glmnet, igraph, kernlab, 
          maxlike, maxnet, methods, mgcv, parallel, doParallel, dplyr, plyr, 
          pracma, purrr, randomForest, 
          raster, rgdal, rgeos, RStoolbox, sp, SpatialEpi, 
