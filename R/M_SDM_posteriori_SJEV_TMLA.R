@@ -42,7 +42,7 @@ MSDM_Posterior <- function(RecordsData = NULL,
       list.files(DirRaster, pattern = '.tif$', full.names = T)
     RasterList <- data.frame(sp, RasterList, stringsAsFactors = F)
     colnames(RasterList) <- c("sp", 'RasterList')
-    #Bianries
+    #Binaries
     RasterListBin <-
       list.files(file.path(DirRaster, Threshold),
                  pattern = '.tif$',
@@ -51,10 +51,10 @@ MSDM_Posterior <- function(RecordsData = NULL,
       data.frame(sp, RasterListBin, stringsAsFactors = F)
     colnames(RasterListBin) <- c("sp", 'RasterList')
   }
-  
+
   # loop to process each species
   for (s in 1:length(SpNames)) {
-    print(paste(s, "from", length(SpNames), ":", SpNames[s]))
+    cat(paste(s, "from", length(SpNames), ":", SpNames[s]), "\n")
     # Read the raster of the species
     Adeq <-
       raster::raster(RasterList[RasterList[, "sp"] == SpNames[s], 'RasterList'])
