@@ -13,31 +13,31 @@ MSDM_Priori_TMLA <- function(Species,
       dir.create(file.path(DirMSDM, DirPRI))
       DirPRI <- file.path(DirMSDM, DirPRI)
     }
-    
+
     if (length(list.files(DirPRI)) != 0) {
-      print("MSDM found! Using already created MSDM")
+      cat("MSDM found! Using already created MSDM \n")
     } else{
       #Carregar Mascara
       rsd <- as.data.frame(var, xy = T, centroids = T)
       long <- rsd
       lat <- rsd
       lins <- which(is.na(long[, 3]) == F)
-      
+
       #Criar Raster de Longitude
       long[lins, 3] <- long[lins, 1]
       sp::gridded(long) <-  ~ x + y
       long <- raster::raster(long)
-      
+
       #Criar Raster de Latitude
       lat[lins, 3] <- lat[lins, 2]
       sp::gridded(lat) <-  ~ x + y
       lat <- raster::raster(lat)
-      
+
       #Create LatLong Stack
       envM <- raster::stack(long, lat)
       names(envM) <- c("Long", "Lat")
       rm(lat, long)
-      
+
       raster::writeRaster(
         envM,
         file.path(DirPRI, names(envM)),
@@ -58,16 +58,15 @@ MSDM_Priori_TMLA <- function(Species,
       dir.create(file.path(DirMSDM, DirPRI))
       DirPRI <- file.path(DirMSDM, DirPRI)
     }
-    
+
     #Check if GeoMasks already exist----
     if (any(paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif"))) {
       if (all(paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif"))) {
-        print(
-          "Distance masks already exist for all species! Using already-created restrictions!"
-        )
+        cat(
+          "Distance masks already exist for all species! Using already-created restrictions!", "\n")
       } else{
-        print(
-          "Distance masks already exist for some species! Creating Distance masks for the rest of species"
+        cat(
+          "Distance masks already exist for some species! Creating Distance masks for the rest of species\n"
         )
         Species <-
           Species[!paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif")]
@@ -124,15 +123,15 @@ MSDM_Priori_TMLA <- function(Species,
       dir.create(file.path(DirMSDM, DirPRI))
       DirPRI <- file.path(DirMSDM, DirPRI)
     }
-    
+
     if (any(paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif"))) {
       if (all(paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif"))) {
-        print(
-          "Distance masks already exist for all species! Using already-created restrictions!"
+        cat(
+          "Distance masks already exist for all species! Using already-created restrictions!", "\n"
         )
       } else{
-        print(
-          "Distance masks already exist for some species! Creating Distance masks for the rest of species"
+        cat(
+          "Distance masks already exist for some species! Creating Distance masks for the rest of species\n"
         )
         Species <-
           Species[!paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif")]
@@ -193,15 +192,15 @@ MSDM_Priori_TMLA <- function(Species,
       dir.create(file.path(DirMSDM, DirPRI))
       DirPRI <- file.path(DirMSDM, DirPRI)
     }
-    
+
     if (any(paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif"))) {
       if (all(paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif"))) {
-        print(
-          "Distance masks already exist for all species! Using already-created restrictions!"
+        cat(
+          "Distance masks already exist for all species! Using already-created restrictions!", "\n"
         )
       } else{
-        print(
-          "Distance masks already exist for some species! Creating Distance masks for the rest of species"
+        cat(
+          "Distance masks already exist for some species! Creating Distance masks for the rest of species\n"
         )
         Species <-
           Species[!paste0(Species, ".tif") %in% list.files(DirPRI, pattern = ".tif")]

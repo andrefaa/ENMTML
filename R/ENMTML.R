@@ -729,7 +729,7 @@ ENMTML <- function(pred_dir,
       }
     }
   }
-  cat(paste0("Results can be found at:  ","\n",DirR))
+  cat(paste0("Results can be found at:  ","\n",DirR,"\n"))
 
   # Read txt with occurences data
   occ <- utils::read.table(occ_file,
