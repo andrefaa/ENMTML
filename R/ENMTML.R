@@ -721,16 +721,18 @@ ENMTML <- function(pred_dir,
     }
   }else{
     DirR <- result_dir
-    if (file.exists(DirR)){
-      warning("Result folder already exists,files may be overwritten!")
-    }else{
-      if (!grepl('[^[:alnum:]]', DirR)){
-        warning("Folder with results will be created at the same level of the predictors' folder")
-        DirR <- file.path(dirname(pred_dir),result_dir)
-        dir.create(DirR)
-      }else{
-        dir.create(DirR)
+    if (!grepl('/', DirR)){
+      message("Folder with results will be created at the same level of the predictors' folder")
+      if (file.exists(file.path(dirname(pred_dir),DirR))){
+        message("Result folder already exists,files may be overwritten!")
       }
+      DirR <- file.path(dirname(pred_dir),result_dir)
+      dir.create(DirR)
+    }else{
+      if (file.exists(DirR)){
+        message("Result folder already exists,files may be overwritten!")
+      }
+      dir.create(DirR)
     }
   }
   cat(paste0("Results can be found at:  ","\n",DirR,"\n"))
