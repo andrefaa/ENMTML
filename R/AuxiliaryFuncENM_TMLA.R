@@ -364,3 +364,18 @@ Moran.I <- function (x, weight, scaled = FALSE, na.rm = FALSE, alternative = "tw
     pv <- 1 - pv
   list(observed = obs, expected = ei, sd = sdi, p.value = pv)
 }
+
+##%######################################################%##
+#                                                          #
+####                    LatLong2grid                    ####
+#                                                          #
+##%######################################################%##
+lat2grd <- function(input){
+  toradians <- atan(1)/45
+  radiusearth <- 0.5*(6378.2+6356.7)
+  sine51 <- sin( 51.5*toradians)
+  output <- data.frame(cbind(
+    x=(input[,1]*toradians)*radiusearth*sine51,
+    y=(input[,2]*toradians)*radiusearth
+  ))	
+}

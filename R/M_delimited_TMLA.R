@@ -39,7 +39,7 @@ M_delimited <- function(var,
     if (Buffer_Opt == 1) {
       occ_km <- list()
       for (i in 1:length(spN)) {
-        occ_km[[i]] <- SpatialEpi::latlong2grid(occ_xy[[i]])
+        occ_km[[i]] <- lat2grd(occ_xy[[i]])
       }
       names(occ_km) <- names(occ_xy)
       occ_km <-

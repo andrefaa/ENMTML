@@ -17,7 +17,7 @@ OccsThin <- function(occ,
   spN <- names(occ)
   occDF <-
     lapply(occ, function(x)
-      cbind(SpatialEpi::latlong2grid(x[, 1:2]), x[, 4]))
+      cbind(lat2grd(x[, 1:2]), x[, 4]))
   
   if (ThinMethod == "MORAN") {
     #1.Defined by variogram----
