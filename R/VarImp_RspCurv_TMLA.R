@@ -59,27 +59,6 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    if (Algorithm != 'ENF') {
-      grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-        width = 3200,
-        height = 3200,
-        units = "px",
-        res = 800
-      )
-      dismo::response(Model)
-      grDevices::dev.off()
-    } else{
-      grDevices::png(
-        file.path(DirV, paste0("ENFAAxis_", spN, ".png")),
-        width = 3200,
-        height = 3200,
-        units = "px",
-        res = 800
-      )
-      ade4::scatter(Model)
-      grDevices::dev.off()
-    }
   }
   
   #Maxent----
@@ -114,19 +93,6 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    # if (!Algorithm %in% "MLK") {
-    #   grDevices::png(
-    #     file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-    #     width = 3200,
-    #     height = 3200,
-    #     units = "px",
-    #     res = 800
-    #   )
-    #   plot(Model, type = "cloglog")
-    #   grDevices::dev.off()
-    # } else{
-    #   plot(Model)
-    # }
   }
   
   
@@ -162,17 +128,6 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-      width = 3200,
-      height = 3200,
-      units = "px",
-      res = 800
-    )
-    dismo::gbm.plot(Model,
-                    plot.layout = c(length(Model$var.names) / 3, 3),
-                    write.title = F)
-    grDevices::dev.off()
   }
   
   #Random Forests----
@@ -206,26 +161,6 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-      width = 3200,
-      height = 3200,
-      units = "px",
-      res = 800
-    )
-    graphics::par(mfrow = c(ceiling(nrow(
-      Model$importance
-    ) / 3), 3))
-    # for (o in 1:nrow(Model$importance)) {
-    #   randomForest::partialPlot(
-    #     Model,
-    #     x.var = row.names(Model$importance)[o],
-    #     pred.data = SpDataT[, VarColT],
-    #     xlab = row.names(Model$importance)[o],
-    #     main = NULL
-    #   )
-    # }
-    grDevices::dev.off()
   }
   
   #Support Vector Machine----
@@ -259,9 +194,6 @@ VarImp_RspCurv <- function(Model,
       )
     }
     # #Response Curves
-    # grDevices::png(file.path(DirV,paste0("Response_Curves_",VarColT[k],".png")),width = 3200, height = 3200, units = "px", res = 800)
-    # partialPlot(Model,pred.data=SpDataT[,VarColT],main=NULL)
-    # grDevices::dev.off()
   }
   
   #GLM,GAM----
@@ -295,44 +227,6 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    if (Algorithm %in% "GLM") {
-      CCC <- sum(!grepl('[(]', names(Model$coefficients)))
-      grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-        width = 3200,
-        height = 3200,
-        units = "px",
-        res = 800
-      )
-      graphics::par(mfrow = c(CCC / 3, 3))
-      visreg::visreg(
-        Model,
-        scale = "response",
-        rug = F,
-        line = list(lwd = 1),
-        plot = T
-      )
-      grDevices::dev.off()
-    } else{
-      grDevices::png(
-        file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-        width = 3200,
-        height = 3200,
-        units = "px",
-        res = 800
-      )
-      graphics::par(mfrow = c(ceiling(length(
-        Model$var.summary
-      ) / 3), 3))
-      visreg::visreg(
-        Model,
-        scale = "response",
-        rug = F,
-        line = list(lwd = 1),
-        plot = T
-      )
-      grDevices::dev.off()
-    }
   }
   
   #Gaussian----
@@ -366,17 +260,5 @@ VarImp_RspCurv <- function(Model,
       )
     }
     #Response Curves
-    grDevices::png(
-      file.path(DirV, paste0("ResponseCurves_", spN, ".png")),
-      width = 3200,
-      height = 3200,
-      units = "px",
-      res = 800
-    )
-    graphics::par(mfrow = c(ceiling(length(
-      ncol(Model$x)
-    ) / 3), 3))
-    plot.graf(Model)
-    grDevices::dev.off()
   }
 }

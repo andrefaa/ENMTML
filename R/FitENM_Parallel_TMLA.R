@@ -268,7 +268,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    .packages = c("raster", "dismo",
                                  "kernlab", "randomForest", "maxnet", "maxlike",
                                  "plyr", "mgcv", "RStoolbox", "adehabitatHS",
-                                 "caret", "visreg", "glmnet", "gbm","dplyr"),
+                                 "caret", "glmnet", "gbm","dplyr"),
                      .export = c( "Validation2_0", "maxnet2",
                                   "PCA_ENS_TMLA", "predict.maxnet", "boycei"
                                   ,"partial_roc","trap_roc",
@@ -284,11 +284,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
-    
+
     #Partial Models List
     RasT <- as.list(Algorithm)
     names(RasT) <- Algorithm
-    
+
     #Validation List
     ListValidation <- as.list(Algorithm)
     names(ListValidation) <- Algorithm
@@ -391,7 +391,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                 PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1601,7 +1601,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           }
         }
-        
+
         #MXS Validation
         pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
         pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1675,7 +1675,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1688,7 +1688,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXS"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentae of Predicted Area
           # ArT <- NULL
           # for (j in Thr){
@@ -1696,7 +1696,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MXS"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -1704,8 +1704,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #                                     percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
-          
+
+
           #MXS Validation
           pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
           pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1748,7 +1748,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #                                                ,points=dataPr,
           #                                                link=("cloglog"),
           #                                                method="BFGS",
-          #                                                hessian = FALSE, 
+          #                                                hessian = FALSE,
           #                                                removeDuplicates=FALSE
           #                                                ,savedata=T)
           Model[[i]] <- tryCatch (expr={maxlike::maxlike(formula=Fmula,rasters=EnvMLK
@@ -1784,7 +1784,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
-            
+
             #Thresholds and Final Evaluation
             Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
             Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1807,14 +1807,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             # }
             # Area[[i]] <- round(ArT*100,3)
-            # 
+            #
             # #PartialROC
             # pROC[[i]] <- partial_roc(prediction=RasT[["MLK"]],
             #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
             #                                     error=5,iterations=500,percentage=50)$pROC_summary
             Area[[i]] <- 0
             pROC[[i]] <- 0
-            
+
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
@@ -1857,7 +1857,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
             }
           }
-          
+
           #MLK Validation
           pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
           pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1915,7 +1915,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                                     hessian = FALSE,savedata=TRUE,
                                                     method="Nelder-Mead",
                                                     removeDuplicates=FALSE)})
-              
+
               # Model <- maxlike::maxlike(Fmula,points=SpDataTM[SpDataTM[,"PresAbse"]==1,2:3],rasters=raster::stack((VariablesT-colMeans(na.omit(values(VariablesT))))/apply(na.omit(values(VariablesT)),2,stats::sd)),
               #                  link=c("cloglog"),hessian = FALSE,savedata=TRUE,
               #                  method="BFGS",removeDuplicates=FALSE)
@@ -1968,7 +1968,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
-            
+
             #Thresholds and Final Evaluation
             Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
             Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1981,7 +1981,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                               a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MLK"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            
+
             # #Percentae of Predicted Area
             # ArT <- NULL
             # for (j in Thr){
@@ -1989,7 +1989,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             # }
             # Area[[i]] <- round(ArT*100,3)
-            # 
+            #
             # #PartialROC
             # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["MLK"]],
             #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -1997,8 +1997,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #                                     percentage=50)$pROC_summary
             Area[[i]] <- 0
             pROC[[i]] <- 0
-            
-            
+
+
             #MLK Validation
             pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
             pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -2045,7 +2045,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2070,14 +2070,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=RasT[["SVM"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
           #                                     error=5,iterations=500,percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
+
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
@@ -2124,7 +2124,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           }
         }
-        
+
         #BIO Validation
         pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
         pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
