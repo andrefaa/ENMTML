@@ -1,5 +1,5 @@
 ## Written by Santiago Velazco & Andre Andrade
-
+utils::globalVariables("s")
 FitENM_TMLA_Parallel <- function(RecordsData,
                    Variables,
                    Fut=NULL,
@@ -9,17 +9,17 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    VarImp,
                    spN,
                    Tst,
-                   Threshold = Thresh,
-                   DirSave=DirR,
+                   Threshold,
+                   DirSave,
                    DirMask=NULL,
-                   DirMSDM=DirPRI,
+                   DirMSDM,
                    DirProj=NULL,
                    per=NULL,
                    repl=NULL,
                    Save="N",
-                   SaveFinal=SaveFinal,
-                   extrapolation=extrapolation,
-                   ensemble_metric=ensemble_metric,
+                   SaveFinal,
+                   extrapolation,
+                   ensemble_metric,
                    sensV,
                    cores) {
 
@@ -84,7 +84,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   RecordsData <- stats::na.omit(data.frame(RecordsData, raster::extract(Variables, RecordsData[, c("x", "y")])))
   Ncol2 <- ncol(RecordsData)
   VarCol <- colnames(RecordsData[,Ncol:Ncol2])
-  RecordsData[,VarCol] <- apply(RecordsData[,VarCol],2,as.double)
 
   #Project to different geographical area or time period----
   VariablesP <- list()
@@ -398,6 +397,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -427,10 +428,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(Save=="Y"){
             #Partial Thresholds
             if(N!=1){
+              RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
               raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["BIO"]]>=Thr_Alg[t],
@@ -443,7 +445,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["BIO"]]>=Thr_Alg[t],
@@ -455,7 +457,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
               raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif",
                                                 sep=""),format='GTiff',overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["BIO"]]>=Thr_Alg[t],
@@ -620,6 +622,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -645,12 +649,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(
                 RasT[["DOM"]],
                 paste(grep("DOM", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
                 format = 'GTiff',
                 overwrite = TRUE )
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["DOM"]]>=Thr_Alg[t],
@@ -663,7 +668,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               raster::writeRaster(RasT[["DOM"]],paste(grep("DOM",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["DOM"]]>=Thr_Alg[t],
@@ -672,10 +677,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(RasT[["DOM"]],paste(grep("DOM",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="DOM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["DOM"]]>=Thr_Alg[t],
@@ -819,9 +825,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MAH model
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][PAtrain[[i]][, "PresAbse"] == 1,]
-        covMat <- cov(dataPr[, VarColT])
-        Model[[i]] <- dismo::mahal(dataPr[, VarColT],center=colMeans(dataPr[, VarColT]),
-                                   cov=covMat,tol=1e-20)
+        Model[[i]] <- mahal(dataPr[, VarColT])
       }
 
       #MAH evaluation
@@ -846,6 +850,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -872,12 +878,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(
                 RasT[["MAH"]],
                 paste(grep("MAH", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
                 format = 'GTiff',
                 overwrite = TRUE )
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MAH"]]>=Thr_Alg[t],
@@ -890,7 +897,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               raster::writeRaster(RasT[["MAH"]],paste(grep("MAH",foldPart,value=T),"/",spN[s],"_",repl,sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MAH"]]>=Thr_Alg[t],
@@ -899,10 +906,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(RasT[["MAH"]],paste(grep("MAH",foldPart,value=T),"/",paste0(spN[s],repl),sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MAH",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MAH"]]>=Thr_Alg[t],
@@ -934,15 +942,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(repl==1 || is.null(repl)){
           if(is.null(repl)){
             Model <-
-              dismo::mahal(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
-                                                  SpDataT[, "Partition"] == 1, c("x", "y")],tol=1e-20) # only presences
+              mahal(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
+                                                  SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
             FinalModelT[FinalModelT[] < -10] <- -10
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel, SpDataT[SpDataT[,"Partition"]==1,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataT[SpDataT[,"Partition"]==1, "PresAbse"], PredPoint)
           }else{
-            Model <- dismo::mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT],tol=1e-20) # only presences
+            Model <- mahal(SpDataT[SpDataT[,"PresAbse"]==1, VarColT]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
             FinalModelT[FinalModelT[] < -10] <- -10
             FinalModel <- STANDAR(FinalModelT)
@@ -1076,6 +1084,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1100,10 +1110,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
               raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["ENF"]]>=Thr_Alg[t],
@@ -1114,7 +1125,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(repl)==F){
               raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["ENF"]]>=Thr_Alg[t],
@@ -1123,8 +1134,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
               raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",paste0(spN[s],repl),".tif", sep=""),format='GTiff',overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="ENF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["ENF"]]>=Thr_Alg[t],
@@ -1298,6 +1310,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1323,10 +1337,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MXD"]]>=Thr_Alg[t],
@@ -1337,7 +1352,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(repl)==F){
               raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MXD"]]>=Thr_Alg[t],
@@ -1346,10 +1361,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXD",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MXD"]]>=Thr_Alg[t],
@@ -1515,6 +1531,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1543,10 +1561,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MXS"]]>=Thr_Alg[t],
@@ -1557,7 +1576,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(repl)==F){
               raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MXS"]]>=Thr_Alg[t],
@@ -1566,10 +1585,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="MXS",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["MXS"]]>=Thr_Alg[t],
@@ -1770,6 +1790,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Threshold <- Threshold[order(Thr)]
             Thr <- sort(Thr)
             Thr <- ifelse(Thr<0,0,Thr)
+            Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -1795,10 +1817,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
+                RasT[["MLK"]] <- predict(Model[[i]])
                 raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["MLK"]]>=Thr_Alg[t],
@@ -1809,7 +1832,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
               if(is.null(repl)==F){
                 raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["MLK"]]>=Thr_Alg[t],
@@ -1818,10 +1841,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       overwrite=TRUE)
                 }
               }else{
+                RasT[["MLK"]] <- predict(Model[[i]])
                 raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="MLK",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["MLK"]]>=Thr_Alg[t],
@@ -2027,6 +2051,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2054,10 +2080,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+              RasT[["SVM"]] <- VariablesT[[1]]
+              RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
               raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["SVM"]]>=Thr_Alg[t],
@@ -2068,7 +2097,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(repl)==F){
               raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["SVM"]]>=Thr_Alg[t],
@@ -2077,10 +2106,13 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+              RasT[["SVM"]] <- VariablesT[[1]]
+              RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
               raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="SVM",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["SVM"]]>=Thr_Alg[t],
@@ -2262,6 +2294,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
           Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2288,10 +2322,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
+              RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
               raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["RDF"]]>=Thr_Alg[t],
@@ -2302,7 +2337,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
             if(is.null(repl)==F){
               raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["RDF"]]>=Thr_Alg[t],
@@ -2311,10 +2346,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     overwrite=TRUE)
               }
             }else{
+              RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
               raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
-              Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="RDF",x=PartCat,value=T)
               for(t in 1:length(Thr_Alg)){
                 raster::writeRaster(RasT[["RDF"]]>=Thr_Alg[t],
@@ -2509,6 +2545,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Threshold <- Threshold[order(Thr)]
             Thr <- sort(Thr)
             Thr <- ifelse(Thr<0,0,Thr)
+            Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2535,10 +2573,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
+                RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["GAM"]]>=Thr_Alg[t],
@@ -2549,7 +2588,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
               if(is.null(repl)==F){
                 raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["GAM"]]>=Thr_Alg[t],
@@ -2558,10 +2597,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       overwrite=TRUE)
                 }
               }else{
+                RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GAM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["GAM"]]>=Thr_Alg[t],
@@ -2744,6 +2784,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Threshold <- Threshold[order(Thr)]
             Thr <- sort(Thr)
             Thr <- ifelse(Thr<0,0,Thr)
+            Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+            Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
             Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                          PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
             Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2770,10 +2812,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
+                RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["GLM"]]>=Thr_Alg[t],
@@ -2784,7 +2827,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
               if(is.null(repl)==F){
                 raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["GLM"]]>=Thr_Alg[t],
@@ -2793,10 +2836,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       overwrite=TRUE)
                 }
               }else{
+                RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
-                Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                 foldCatAlg <- grep(pattern="GLM",x=PartCat,value=T)
                 for(t in 1:length(Thr_Alg)){
                   raster::writeRaster(RasT[["GLM"]]>=Thr_Alg[t],
@@ -2967,6 +3011,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Threshold <- Threshold[order(Thr)]
         Thr <- sort(Thr)
         Thr <- ifelse(Thr<0,0,Thr)
+        Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+        Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
         Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                      PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -2995,10 +3041,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #Save Partition Predictions
         if(Save=="Y"){
           if(N!=1){
+            RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
+                                                                         CI = NULL, maxn = NULL)$posterior.mode
             raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
-            Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+            Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               raster::writeRaster(RasT[["GAU"]]>=Thr_Alg[t],
@@ -3011,7 +3059,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
-            Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+            Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               raster::writeRaster(RasT[["GAU"]]>=Thr_Alg[t],
@@ -3020,10 +3068,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   overwrite=TRUE)
             }
           }else{
+            RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
+                                                 CI = NULL, maxn = NULL)$posterior.mode
             raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
-            Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+            Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
             foldCatAlg <- grep(pattern="GAU",x=PartCat,value=T)
             for(t in 1:length(Thr_Alg)){
               raster::writeRaster(RasT[["GAU"]]>=Thr_Alg[t],
@@ -3232,6 +3282,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               Threshold <- Threshold[order(Thr)]
               Thr <- sort(Thr)
               Thr <- ifelse(Thr<0,0,Thr)
+              Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+              Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
               Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                            PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
               Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
@@ -3259,10 +3311,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               #Save Partition Predictions
               if(Save=="Y"){
                 if(N!=1){
+                  RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
+                                                                   n.trees=Model[[i]]$gbm.call$best.trees,type="response")
                   raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                       format='GTiff',
                                       overwrite=TRUE)
-                  Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                  Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
                     raster::writeRaster(RasT[["BRT"]]>=Thr_Alg[t],
@@ -3273,7 +3327,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                 }
                 if(is.null(repl)==F){
                   raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
-                  Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                  Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
                     raster::writeRaster(RasT[["BRT"]]>=Thr_Alg[t],
@@ -3282,10 +3336,12 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                         overwrite=TRUE)
                   }
                 }else{
+                  RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
+                                                   n.trees=Model[[i]]$gbm.call$best.trees,type="response")
                   raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],".tif", sep=""),
                                       format='GTiff',
                                       overwrite=TRUE)
-                  Thr_Alg <- Thr[Thr$THR%in%Threshold,2]
+                  Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
                   foldCatAlg <- grep(pattern="BRT",x=PartCat,value=T)
                   for(t in 1:length(Thr_Alg)){
                     raster::writeRaster(RasT[["BRT"]]>=Thr_Alg[t],
