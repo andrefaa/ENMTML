@@ -21,7 +21,6 @@ Ensemble_TMLA <- function(DirR,
   ensF <- paste(DirENS, PredictType[PredictType != "N"], sep = "/")
   for (i in 1:length(ensF)) {
     dir.create(ensF[i])
-    assign(paste("Dir", PredictType[PredictType != "N"][i], sep = ""), ensF[i])
   }
 
   #Binary ensemble directories
@@ -29,8 +28,6 @@ Ensemble_TMLA <- function(DirR,
     file.path(sort(rep(ensF, length(Threshold))), Threshold)
   for (i in 1:length(ensFCat)) {
     dir.create(ensFCat[i])
-    assign(paste("Dir", PredictType[PredictType != "N"][i], "Cat", sep =
-                   ""), ensFCat[i])
   }
 
   #Projection directories
@@ -155,6 +152,9 @@ Ensemble_TMLA <- function(DirR,
       Thr <- Thresholds_TMLA(Eval, Eval_JS, sensV)
       ListSummary[["MEAN"]] <-
         data.frame(Sp = spN[s], Algorithm = "MEA", Thr)
+      DirMEAN <- grep(pattern = "Ensemble/MEAN",
+                         x = ensF,
+                         value = T)
       raster::writeRaster(
         Final,
         paste(DirMEAN, '/', spN[s], ".tif", sep = ""),
@@ -229,6 +229,9 @@ Ensemble_TMLA <- function(DirR,
         data.frame(Sp = spN[s], Algorithm = "WMEA", Thr)
 
       #Save Maps
+      DirW_MEAN <- grep(pattern = "Ensemble/W_MEAN",
+                      x = ensF,
+                      value = T)
       raster::writeRaster(
         Final,
         paste(DirW_MEAN, '/', spN[s], ".tif", sep = ""),
@@ -308,6 +311,9 @@ Ensemble_TMLA <- function(DirR,
         data.frame(Sp = spN[s], Algorithm = "SUP", Thr)
 
       #Save Final Maps
+      DirSUP <- grep(pattern = "Ensemble/SUP",
+                        x = ensF,
+                        value = T)
       raster::writeRaster(
         Final,
         paste(DirSUP, '/', spN[s], ".tif", sep = ""),
@@ -378,6 +384,9 @@ Ensemble_TMLA <- function(DirR,
         data.frame(Sp = spN[s], Algorithm = "PCA", Thr)
 
       #Save Final Maps
+      DirPCA <- grep(pattern = "Ensemble/PCA",
+                        x = ensF,
+                        value = T)
       raster::writeRaster(
         Final,
         paste(DirPCA, '/', spN[s], ".tif", sep = ""),
@@ -453,6 +462,9 @@ Ensemble_TMLA <- function(DirR,
         data.frame(Sp = spN[s], Algorithm = "PCS", Thr)
 
       #Save Final Maps
+      DirPCA_SUP <- grep(pattern = "Ensemble/PCA_SUP",
+                        x = ensF,
+                        value = T)
       raster::writeRaster(
         Final,
         paste(DirPCA_SUP, '/', spN[s], ".tif", sep = ""),
@@ -531,7 +543,10 @@ Ensemble_TMLA <- function(DirR,
         data.frame(Sp = spN[s],
                    Algorithm = "PCT",
                    Threshold = Thr)
-
+      #Save Final Maps
+      DirPCA_THR <- grep(pattern = "Ensemble/PCA_THR",
+                        x = ensF,
+                        value = T)
       raster::writeRaster(
         Final,
         paste(DirPCA_THR, '/', paste(spN[s], sep = "_"), ".tif", sep =
