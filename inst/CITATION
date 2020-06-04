@@ -1,0 +1,14 @@
+note <- sprintf("R package version %s", meta$Version)
+
+bibentry(bibtype = "article",
+         title = "ENMTML: An R package for a straightforward construction of complex ecological niche models",
+         author = c(person("André", "Andrade"),
+                    person("Santiago", "Velazco"),
+                    person("Paulo", "De Marco")),
+         journal = "Environmental Modelling & Software",
+         number = 125,
+         pages = 104615,
+         year = 2020,
+         note = note,
+         doi = "10.1016/j.envsoft.2019.104615",
+         url = "https://github.com/andrefaa/ENMTML")
