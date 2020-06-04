@@ -763,7 +763,7 @@ ENMTML <- function(pred_dir,
   }
 
   #4.3.Save Thinned & Unique Occurrences
-  ndb <- plyr::ldply(occA)[,1:3]
+  ndb <- plyr::ldply(occA, .id='sp')[,1:3]
   utils::write.table(ndb,file.path(DirR,"Occurrences_Cleaned.txt"),sep="\t",row.names=F)
 
   #4.3.Remove species with less than min_occ----
@@ -795,7 +795,8 @@ ENMTML <- function(pred_dir,
                           Dir=DirR,
                           spN=spN,
                           SaveM = TRUE,
-                          Buffer_Opt=as.numeric(sp_accessible_area['type']))
+                          Buffer_Opt=as.numeric(sp_accessible_area['type']),
+                          cores=cores)
     }
     if(sp_accessible_area['method']=="BUFFER"&
        sp_accessible_area['type']=='2') {
@@ -807,7 +808,8 @@ ENMTML <- function(pred_dir,
                           Dir=DirR,
                           spN=spN,
                           SaveM = TRUE,
-                          Buffer_Opt=as.numeric(sp_accessible_area['type']))
+                          Buffer_Opt=as.numeric(sp_accessible_area['type']),
+                          cores=cores)
     }
     if(sp_accessible_area['method']=="MASK") {
       DirM <- M_delimited(var=envT,
@@ -817,7 +819,8 @@ ENMTML <- function(pred_dir,
                           EcoregionsFile=sp_accessible_area['filepath'],
                           Dir=DirR,
                           spN=spN,
-                          SaveM = TRUE)
+                          SaveM = TRUE,
+                          cores=cores)
     }
     if(sp_accessible_area['method']=="USER-DEFINED") {
       DirM <- M_delimited(var=envT,
@@ -827,7 +830,8 @@ ENMTML <- function(pred_dir,
                           EcoregionsFile=sp_accessible_area['filepath'],
                           Dir=DirR,
                           spN=spN,
-                          SaveM = TRUE)
+                          SaveM = TRUE,
+                          cores=cores)
     }
   }
 
