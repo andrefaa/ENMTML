@@ -286,7 +286,6 @@
 #' @importFrom RStoolbox rasterPCA
 #' @importFrom sp gridded
 #' @importFrom sp over
-#' @importFrom SpatialEpi latlong2grid
 #' @importFrom spThin thin
 #' @importFrom tools file_ext
 #' @importFrom tools file_path_sans_ext
