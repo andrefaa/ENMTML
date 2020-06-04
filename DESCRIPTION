@@ -13,7 +13,6 @@ Authors@R:
            role = c("aut"),
            comment = c(ORCID = "0000-0002-7527-0967")))
 Description: ENMTML is a package to create and process Ecological Niche Models. The main purpose of this package is to assemble all this methodological complexity spread over several papers and bring it into the spotlight in a simple way for people not used to the details of ENMs. The package contains several alternatives to different methodological steps, e.g., pseudo-absence allocation and accessible area delimitation, formulated within a single function, to make it accessible for people not used to the programming environment.
-Language: en-gb
 License: GPL (>= 2)
 Depends: R (>= 3.5.0)
 Imports: ade4, adehabitatHS, caret, data.table, dismo,  
