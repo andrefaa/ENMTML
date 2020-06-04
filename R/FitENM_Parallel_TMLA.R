@@ -404,27 +404,27 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
-          
+
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["BIO"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentage of Predicted Area
           # RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
-          # 
+          #
           # ArT <- NULL
           # for (j in Thr){
           #   RasL <- RasT[["BIO"]]>=j
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=RasT[["BIO"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
           #                                     error=5,iterations=500,percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
+
           #Save Partition Predictions
           if(Save=="Y"){
             #Partial Thresholds
@@ -456,7 +456,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               }
             }else{
               RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
-              raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif", 
+              raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",paste0(spN[s],repl),".tif",
                                                 sep=""),format='GTiff',overwrite=TRUE)
               Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
               foldCatAlg <- grep(pattern="BIO",x=PartCat,value=T)
@@ -543,7 +543,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -558,14 +558,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BIO"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           # #Percentage of Predicted Area
           # RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
-          # 
+          #
           # ArT <- NULL
           # for (j in Thr){
           #   RasL <- RasT[["BIO"]]>=j
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=RasT[["BIO"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -616,7 +616,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -633,14 +633,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Boyce[[i]] <- ecospat.boyce(RastPart[["DOM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
           # #Percentage of Predicted Area
           # RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
-          # 
+          #
           # ArT <- NULL
           # for (j in Thr){
           #   RasL <- RasT[["DOM"]]>=j
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -770,7 +770,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -783,17 +783,17 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["DOM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentage of Predicted Area
           # RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
-          # 
+          #
           # ArT <- NULL
           # for (j in Thr){
           #   RasL <- RasT[["DOM"]]>=j
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=RasT[["DOM"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -844,7 +844,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -868,14 +868,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
           #                                     error=5,iterations=500,percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
+
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
@@ -922,7 +922,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           }
         }
-        
+
         #MAH Validation
         pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
         pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1002,7 +1002,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1015,7 +1015,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MAH"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentae of Predicted Area
           # RasT[["MAH"]] <- RasT[["MAH"]] <- STANDAR(PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesP[[k]]))
           # RasT[["MAH"]][RasT[["MAH"]][] < -10] <- -10
@@ -1025,7 +1025,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(values(RasL)))/length(na.omit(values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(predict=RasT[["MAH"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -1033,8 +1033,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #                                     percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
-          
+
+
           #MAH Validation
           pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
           pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1078,7 +1078,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1101,7 +1101,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(predict=RasT[["ENF"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -1148,7 +1148,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           }
         }
-        
+
         #ENF Validation
         pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
         pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1207,7 +1207,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Future Projections
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              PredRas <- Predict_ENFA(Model,VariablesP[[k]],PAtrainM[[1]])
+              PredRas <- PREDICT_ENFA(Model,VariablesP[[k]],PAtrainM[[1]])
               PredRas <- STANDAR_FUT(PredRas,FinalModelT)
               if(minValue(PredRas)<0){
                 PredRas <- PredRas-minValue(PredRas)
@@ -1223,14 +1223,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         pROC <- list()
         Area <- list()
         for(k in 1:length(VariablesP)){
-          ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(Predict_ENFA(Model[[i]],VariablesP[[k]],PAtrainM[[1]]))
+          ListFut[[ProjN[k]]][["ENF"]] <- STANDAR(PREDICT_ENFA(Model[[i]],VariablesP[[k]],PAtrainM[[1]]))
           PredPoint <- raster::extract(ListFut[[ProjN[k]]][["ENF"]], PAtest[[i]][, c("x", "y")])
           PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
           Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1243,7 +1243,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["ENF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentae of Predicted Area
           # ArT <- NULL
           # for (j in Thr){
@@ -1251,7 +1251,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["ENF"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -1259,8 +1259,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #                                     percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
-          
+
+
           #ENF Validation
           pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
           pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1304,7 +1304,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1327,14 +1327,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(predict=RasT[["MXD"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
           #                                     error=5,iterations=500,percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
+
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
@@ -1377,7 +1377,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             }
           }
         }
-        
+
         #MXD Validation
         pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
         pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1452,7 +1452,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1465,7 +1465,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["MXD"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentae of Predicted Area
           # ArT <- NULL
           # for (j in Thr){
@@ -1473,7 +1473,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(predict=ListFut[[ProjN[k]]][["MXD"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -1481,8 +1481,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #                                     percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
-          
+
+
           #MXD Validation
           pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
           pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
@@ -1525,7 +1525,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -1540,25 +1540,25 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["MXS"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentage of Predicted Area
           # RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
-          # 
+          #
           # ArT <- NULL
           # for (j in Thr){
           #   RasL <- RasT[["MXS"]]>=j
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=RasT[["MXS"]],
           #                          test_data=PredPoint[PredPoint$PresAbse==1,2],
           #                          error=5,iterations=500,percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
-          
+
+
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
@@ -2213,7 +2213,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2233,7 +2233,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["SVM"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -2288,7 +2288,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2303,7 +2303,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(RastPart[["RDF"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentage of Predicted Area
           # RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
           # ArT <- NULL
@@ -2312,14 +2312,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=RasT[["RDF"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
           #                                     error=5,iterations=500,percentage=50)$pROC_summary
           Area[[i]] <- 0
           pROC[[i]] <- 0
-          
+
           #Save Partition Predictions
           if(Save=="Y"){
             if(N!=1){
@@ -2455,7 +2455,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                     PredPoint[PredPoint$PresAbse == 0, 2])
           Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                          a=PredPoint[PredPoint$PresAbse == 0, 2])
-          
+
           #Thresholds and Final Evaluation
           Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2468,7 +2468,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                             a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
           #Boyce Index
           Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["RDF"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-          
+
           # #Percentae of Predicted Area
           # ArT <- NULL
           # for (j in Thr){
@@ -2476,7 +2476,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
           # }
           # Area[[i]] <- round(ArT*100,3)
-          # 
+          #
           # #PartialROC
           # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["RDF"]],
           #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -2539,7 +2539,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
-            
+
             #Thresholds and Final Evaluation
             Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
             Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2554,7 +2554,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                               a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["GAM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            
+
             # #Percentage of Predicted Area
             # RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
             # ArT <- NULL
@@ -2563,14 +2563,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             # }
             # Area[[i]] <- round(ArT*100,3)
-            # 
+            #
             # #PartialROC
             # pROC[[i]] <- partial_roc(prediction=RasT[["GAM"]],
             #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
             #                                     error=5,iterations=500,percentage=50)$pROC_summary
             Area[[i]] <- 0
             pROC[[i]] <- 0
-            
+
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
@@ -2694,7 +2694,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
-            
+
             #Thresholds and Final Evaluation
             Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
             Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2707,7 +2707,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                               a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            
+
             # #Percentae of Predicted Area
             # ArT <- NULL
             # for (j in Thr){
@@ -2715,7 +2715,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             # }
             # Area[[i]] <- round(ArT*100,3)
-            # 
+            #
             # #PartialROC
             # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAM"]],
             #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -2778,7 +2778,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
-            
+
             #Thresholds and Final Evaluation
             Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
             Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2793,7 +2793,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                               a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(RastPart[["GLM"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            
+
             # #Percentage of Predicted Area
             # RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
             # ArT <- NULL
@@ -2802,14 +2802,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             # }
             # Area[[i]] <- round(ArT*100,3)
-            # 
+            #
             # #PartialROC
             # pROC[[i]] <- partial_roc(prediction=RasT[["GLM"]],
             #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
             #                                     error=5,iterations=500,percentage=50)$pROC_summary
             Area[[i]] <- 0
             pROC[[i]] <- 0
-            
+
             #Save Partition Predictions
             if(Save=="Y"){
               if(N!=1){
@@ -2930,7 +2930,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                       PredPoint[PredPoint$PresAbse == 0, 2])
             Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                            a=PredPoint[PredPoint$PresAbse == 0, 2])
-            
+
             #Thresholds and Final Evaluation
             Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
             Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -2943,7 +2943,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                               a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
             #Boyce Index
             Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GLM"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-            
+
             # #Percentae of Predicted Area
             # ArT <- NULL
             # for (j in Thr){
@@ -2951,7 +2951,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
             # }
             # Area[[i]] <- round(ArT*100,3)
-            # 
+            #
             # #PartialROC
             # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GLM"]],
             #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3005,7 +3005,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3020,25 +3020,25 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         #Boyce Index
         Boyce[[i]] <- ecospat.boyce(RastPart[["GAU"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentage of Predicted Area
         # RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
         #                             CI = NULL, maxn = NULL)$posterior.mode
-        # 
+        #
         # ArT <- NULL
         # for (j in Thr){
         #   RasL <- RasT[["GAU"]]>=j
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction=RasT[["GAU"]],
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
         #                                     error=5,iterations=500,percentage=50)$pROC_summary
         Area[[i]] <- 0
         pROC[[i]] <- 0
-        
+
         #Save Partition Predictions
         if(Save=="Y"){
           if(N!=1){
@@ -3154,7 +3154,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       pROC <- list()
       Area <- list()
       for(k in 1:length(VariablesP)){
-        ListFut[[ProjN[k]]][["GAU"]] <- STANDAR(predict.graf.raster(Model[[i]], VariablesP[[k]], 
+        ListFut[[ProjN[k]]][["GAU"]] <- STANDAR(predict.graf.raster(Model[[i]], VariablesP[[k]],
                                                                     type = "response",
                                                                     CI = NULL, maxn = NULL)$posterior.mode)
         if(maxValue(ListFut[[ProjN[k]]][["GAU"]])==0){
@@ -3169,7 +3169,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3182,7 +3182,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         #Boyce Index
         Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["GAU"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentae of Predicted Area
         # ArT <- NULL
         # for (j in Thr){
@@ -3190,7 +3190,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["GAU"]],
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3255,7 +3255,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             Model[[i]] <- ModelT
           }
         }
-        
+
         Model <- Model[sapply(Model, function(x) !is.null(x))]
 
         #Check BRT Models
@@ -3276,7 +3276,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                         PredPoint[PredPoint$PresAbse == 0, 2])
               Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
-              
+
               #Thresholds and Final Evaluation
               Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
               Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3291,7 +3291,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                                 a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
               #Boyce Index
               Boyce[[i]] <- ecospat.boyce(RastPart[["BRT"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-              
+
               # #Percentage of Predicted Area
               # RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
               #                 n.trees=Model[[i]]$gbm.call$best.trees,type="response")
@@ -3301,14 +3301,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
               # }
               # Area[[i]] <- round(ArT*100,3)
-              # 
+              #
               # #PartialROC
               # pROC[[i]] <- partial_roc(prediction=RasT[["BRT"]],
               #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
               #                                     error=5,iterations=500,percentage=50)$pROC_summary
               Area[[i]] <- 0
               pROC[[i]] <- 0
-              
+
               #Save Partition Predictions
               if(Save=="Y"){
                 if(N!=1){
@@ -3462,7 +3462,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                         PredPoint[PredPoint$PresAbse == 0, 2])
               Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                              a=PredPoint[PredPoint$PresAbse == 0, 2])
-              
+
               #Thresholds and Final Evaluation
               Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
               Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3475,7 +3475,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                                 a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
               #Boyce Index
               Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["BRT"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-              
+
               # #Percentage of Predicted Area
               # ArT <- NULL
               # for (j in Thr){
@@ -3483,7 +3483,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
               #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
               # }
               # Area[[i]] <- round(ArT*100,3)
-              # 
+              #
               # #PartialROC
               # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["BRT"]],
               #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3577,7 +3577,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3589,7 +3589,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentage of Predicted Area
         # RasT <- RasT[lapply(RasT,length)>1]
         # ENST <- mean(stack(RasT))
@@ -3599,7 +3599,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction=ENST,
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3650,7 +3650,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3662,17 +3662,17 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentage of Predicted Area
         # ENST <- mean(stack(RasT)*ThResW)
-        # 
+        #
         # ArT <- NULL
         # for (j in Thr){
         #   RasL <- ENST>=j
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction=ENST,
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3709,7 +3709,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #Partial Models
       Final <- do.call(Map, c(rbind,RastPart[W]))
       Final <- lapply(Final, function (x) colMeans(x))
-      
+
 
       # Threshold
       Eval <- list()
@@ -3724,7 +3724,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3736,18 +3736,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentage of Predicted Area
         # RasT <- RasT[lapply(RasT,length)>1]
         # ENST <- mean(stack(RasT[Best]))
-        # 
+        #
         # ArT <- NULL
         # for (j in Thr){
         #   RasL <- ENST>=j
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction=ENST,
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3800,7 +3800,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3812,18 +3812,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentage of Predicted Area
         # RasT <- RasT[lapply(RasT,length)>1]
         # ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
-        # 
+        #
         # ArT <- NULL
         # for (j in Thr){
         #   RasL <- ENST>=j
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction=ENST,
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3880,7 +3880,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3892,18 +3892,18 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentage of Predicted Area
         # RasT <- RasT[lapply(RasT,length)>1]
         # ENST <- PCA_ENS_TMLA(brick(stack(RasT[Best])))
-        # 
+        #
         # ArT <- NULL
         # for (j in Thr){
         #   RasL <- ENST>=j
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction = ENST,
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
@@ -3956,7 +3956,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   PredPoint[PredPoint$PresAbse == 0, 2])
         Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                        a=PredPoint[PredPoint$PresAbse == 0, 2])
-        
+
         #Thresholds and Final Evaluation
         Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
         Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
@@ -3968,19 +3968,19 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
                                           a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
         Boyce[[i]] <- ecospat.boyce(Final[[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
-        
+
         # #Percentage of Predicted Area
         # RasT <- RasT[lapply(RasT,length)>1]
         # RasT <- sapply(seq(1:length(ValidTHR)),function(x){RasT[[x]]*(RasT[[x]]>=ValidTHR[x])})
         # ENST <- PCA_ENS_TMLA(brick(stack(RasT)))
-        # 
+        #
         # ArT <- NULL
         # for (j in Thr){
         #   RasL <- ENST>=j
         #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
         # }
         # Area[[i]] <- round(ArT*100,3)
-        # 
+        #
         # #PartialROC
         # pROC[[i]] <- partial_roc(prediction=ENST,
         #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],

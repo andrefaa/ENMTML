@@ -5,7 +5,7 @@
 #' @param proj_dir character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).
 #'
 #' @param occ_file character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.
-#' 
+#'
 #' @param result_dir character. Directory path with the folder in which model results will be recorded.
 #' \itemize{
 #' \item NULL: Results will be recorded in a default Result folder, at the same level as the pred_dir folder.
@@ -260,7 +260,6 @@
 #' @importFrom ade4 scatter
 #' @importFrom ade4 dudi.pca
 #' @importFrom adehabitatHS madifa
-#' @importFrom ape Moran.I
 #' @importFrom caret filterVarImp
 #' @importFrom caret varImp
 #' @importFrom data.table rbindlist
@@ -309,6 +308,11 @@
 #' @importFrom graphics polygon
 #' @importFrom graphics rect
 #' @importFrom graphics rug
+#' @importFrom igraph clusters
+#' @importFrom igraph graph
+#' @importFrom igraph graph.edgelist
+#' @importFrom igraph clusters
+#' @importFrom igraph V
 #' @importFrom methods as
 #' @importFrom stats as.formula
 #' @importFrom stats binomial
@@ -536,7 +540,7 @@ ENMTML <- function(pred_dir,
 
   #CRS
   if(is.na(raster::crs(envT))){
-    raster::crs(envT) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+    raster::crs(envT) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84"
   }
 
   #3.0.Check predictors consistency
@@ -729,7 +733,7 @@ ENMTML <- function(pred_dir,
       }
     }
   }
-  cat(paste0("Results can be found at:  ","\n",DirR))
+  cat(paste0("Results can be found at:  ","\n",DirR,"\n"))
 
   # Read txt with occurences data
   occ <- utils::read.table(occ_file,

@@ -260,7 +260,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           Imoran.Grid.P[p] <- NA
         } else{
           Imoran.Grid.P[p] <-
-            ape::Moran.I(species2$pc1,
+            Moran.I(species2$pc1,
                          dist,
                          na.rm = T,
                          scaled = T)$observed

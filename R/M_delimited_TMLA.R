@@ -23,10 +23,10 @@ M_delimited <- function(var,
   #Check if GeoMasks already exist----
   if (any(paste0(spN, ".tif") %in% list.files(Dir_M, pattern = ".tif"))) {
     if (all(paste0(spN, ".tif") %in% list.files(Dir_M, pattern = ".tif"))) {
-      print("GeoMasks already exist for all species! Using already-created restrictions!")
+      cat("GeoMasks already exist for all species! Using already-created restrictions!\n")
       return(Dir_M)
     } else{
-      print("GeoMasks already exist for some species! Creating GeoMasks for the rest of species")
+      cat("GeoMasks already exist for some species! Creating GeoMasks for the rest of species\n")
       spN <-
         spN[!paste0(spN, ".tif") %in% list.files(Dir_M, pattern = ".tif")]
     }
@@ -67,13 +67,11 @@ M_delimited <- function(var,
     varCord <- varCord[which(!is.na(var[[1]][])), ]
     varCord$Cell <- raster::cellFromXY(var, xy = varCord)
     sp::coordinates(varCord) <- ~ x + y
-    raster::crs(varCord) <-
-      "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+    raster::crs(varCord) <- crs(var)
     
     M_list <- lapply(occ_xy, function(x) {
       sp::coordinates(x) <- ~ x + y
-      raster::crs(x) <-
-        "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+      raster::crs(x) <- crs(var)
       return(x)
     })
     
