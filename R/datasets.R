@@ -10,7 +10,8 @@
 #' }
 #' @examples
 #' require(ENMTML)
-#' data("predictors")
+#' require(raster)
+#' data("env")
 #' data("occ")
 #'
 #' plot(predictors[[1]], col='gray')
@@ -24,6 +25,7 @@
 #' A RasterBrick with Bioclimatic variables (Bio1, Bio3, Bio4, Bio12 and Bio15) from a portion of South America (source Worldclim: https://worldclim.org/version2).
 #' @examples
 #' require(ENMTML)
+#' require(raster)
 #' data("env")
 #' predictors
 #' plot(env)
@@ -35,6 +37,7 @@
 #'
 #' @examples
 #' require(ENMTML)
+#' require(raster)
 #' data("env_fut")
 #' predictors_future
 #' plot(env_fut$`2080_4.5`)
@@ -51,6 +54,7 @@
 #'
 #' @examples
 #' require(ENMTML)
+#' require(raster)
 #' data("ecoregions")
 #' plot(ecoregions, col=rainbow(92)[as.factor(ecoregions@data$ECO_ID)])
 "ecoregions"
