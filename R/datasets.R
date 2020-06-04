@@ -14,7 +14,7 @@
 #' data("env")
 #' data("occ")
 #'
-#' plot(predictors[[1]], col='gray')
+#' plot(env[[1]], col='gray')
 #' points(points(occ[,2:3],
 #'              col=rainbow(5)[as.factor(occ$species)],
 #'              pch=19))
