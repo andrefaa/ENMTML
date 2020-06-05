@@ -278,7 +278,7 @@
 #' @importFrom mgcv gam
 #' @importFrom plyr ldply
 #' @importFrom dplyr bind_rows
-#' @importFrom dplyr group_by
+#' @importFrom dplyr group_by_
 #' @importFrom dplyr summarise_all
 #' @importFrom dplyr funs
 #' @importFrom pracma haversine
@@ -1659,8 +1659,8 @@ ENMTML <- function(pred_dir,
 
       # valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
       # valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
-      valF_Mean <- dplyr::summarise_all(dplyr::group_by(valF, Sp, Algorithm, Threshold), dplyr::funs(mean(.,na.rm=T)))
-      valF_SD <- dplyr::summarise_all(dplyr::group_by(valF, Sp, Algorithm, Threshold), dplyr::funs(stats::sd(.,na.rm=T)))
+      valF_Mean <- dplyr::summarise_all(dplyr::group_by_(valF, c('Sp', 'Algorithm', 'Threshold')), dplyr::funs(mean(.,na.rm=T)))
+      valF_SD <- dplyr::summarise_all(dplyr::group_by_(valF, c('Sp', 'Algorithm', 'Threshold')), dplyr::funs(stats::sd(.,na.rm=T)))
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)
