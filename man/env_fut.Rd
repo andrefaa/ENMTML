@@ -4,7 +4,9 @@
 \name{env_fut}
 \alias{env_fut}
 \title{Raster with 5 bioclimatic variables for 2080's climate conditions}
-\format{An object of class \code{list} of length 2.}
+\format{
+An object of class \code{list} of length 2.
+}
 \usage{
 env_fut
 }
@@ -13,8 +15,9 @@ A list of RasterBrick with Bioclimatic variables (Bio1, Bio3, Bio4, Bio12 and Bi
 }
 \examples{
 require(ENMTML)
+require(raster)
 data("env_fut")
-predictors_future
+env_fut
 plot(env_fut$`2080_4.5`)
 plot(env_fut$`2080_8.5`)
 }

@@ -4,7 +4,9 @@
 \name{env}
 \alias{env}
 \title{Raster with 5 bioclimatic variables for current climate conditions}
-\format{An object of class \code{RasterBrick} of dimension 246 x 282 x 5.}
+\format{
+An object of class \code{RasterBrick} of dimension 246 x 282 x 5.
+}
 \usage{
 env
 }
@@ -13,8 +15,9 @@ A RasterBrick with Bioclimatic variables (Bio1, Bio3, Bio4, Bio12 and Bio15) fro
 }
 \examples{
 require(ENMTML)
+require(raster)
 data("env")
-predictors
+env
 plot(env)
 }
 \keyword{datasets}
