@@ -57,10 +57,10 @@ ENMTML(
 \itemize{
 \item MORAN: Distance defined by Moran Variogram, usage thin_occ=c(method='MORAN').
 \item CELLSIZE: Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='CELLSIZE').
-\item USER-DEFINED: User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', distance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.
+\item USER-DEFINED: User defined distance. For this option it is necessary to provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', distance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.
 }}
 
-\item{eval_occ}{character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the databased used in the occ_file argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default NULL).}
+\item{eval_occ}{character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the database used in the occ_file argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default NULL).}
 
 \item{colin_var}{character. Method to reduce variable collinearity:
 \itemize{
@@ -146,7 +146,7 @@ a Posteriori methods
   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep). Usage msdm=c(method='OBR').
   \item LR: Lower Quantile, select the nearest 25\% patches (Mendes et al., in prep). Usage msdm=c(method='LR').
   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep). Usage msdm=c(method='PRES').
-  \item MCP: Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on ocurrences data. Usage msdm=c(method='MCP').
+  \item MCP: Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on occurrences data. Usage msdm=c(method='MCP').
   \item MCP-B: Creates a buffer (with a width size defined by user in km) around the MCP. Usage msdm=c(method='MCP-B', width=100). In this case width=100 means that a buffer with 100km of width will be created around the MCP.
   }}
 
