@@ -76,7 +76,11 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
     lapply(RecordsData, function(x)
       cbind(x, rep(0, nrow(x))))
   colnames <- c("x", "y", "Seg")
-  RecordsData <- lapply(RecordsData, stats::setNames(), colnames)
+  RecordsData <-
+    lapply(RecordsData, function(x) {
+      colnames(x) <- colnames
+      return(x)
+    })
   RecordsData <- lapply(RecordsData, function(x)
     round(x, digits = 5))
 
@@ -593,14 +597,8 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
     return(out)
   }
 
-  FinalResult <-
-    data.frame(data.table::rbindlist(do.call(c, lapply(
-      results, "[", "ResultList"
-    ))), stringsAsFactors = F)
-  FinalInfoGrid <-
-    data.frame(data.table::rbindlist(do.call(c, lapply(
-      results, "[", "ResOptm"
-    ))), stringsAsFactors = F)
+  FinalResult <- dplyr::bind_rows(lapply(results, function(x) x[[1]]))
+  FinalInfoGrid <- dplyr::bind_rows(lapply(results, function(x) x[[2]]))
 
   utils::write.table(
     FinalInfoGrid,

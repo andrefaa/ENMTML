@@ -4018,8 +4018,11 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
 
 # Save .txt with the models performance----
-FinalValidation <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Validation"))))
-FinalSummary <- data.frame(data.table::rbindlist(do.call(rbind,lapply(results, "[", "Summary"))))
+FinalValidation <- dplyr::bind_rows(lapply(results, function(x) x[[1]]))
+FinalSummary <- dplyr::bind_rows(lapply(results, function(x) x[[2]]))
+FinalValidation <- FinalValidation[,!grepl('pROC', colnames(FinalValidation))]
+FinalValidation <- FinalValidation[,!grepl('Percentage_predicted_area', colnames(FinalValidation))]
+FinalValidation <- FinalValidation[,!grepl('Boyce_SD', colnames(FinalValidation))]
 
 utils::write.table(FinalValidation,paste(DirSave, VALNAME, sep = '/'),sep="\t",
             col.names = T,row.names=F)

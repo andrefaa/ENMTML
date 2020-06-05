@@ -593,14 +593,8 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
     }
 
   parallel::stopCluster(cl)
-  FinalResult <-
-    data.frame(data.table::rbindlist(do.call(c, lapply(
-      results, "[", "ResultList"
-    ))))
-  FinalInfoGrid <-
-    data.frame(data.table::rbindlist(do.call(c, lapply(
-      results, "[", "BestGridList"
-    ))))
+  FinalResult <- dplyr::bind_rows(lapply(results, function(x) x[[1]]))
+  FinalInfoGrid <- dplyr::bind_rows(lapply(results, function(x) x[[2]]))
 
   colnames(FinalResult) <- c("sp", "x", "y", "Partition", "PresAbse")
   utils::write.table(

@@ -261,7 +261,6 @@
 #' @importFrom adehabitatHS madifa
 #' @importFrom caret filterVarImp
 #' @importFrom caret varImp
-#' @importFrom data.table rbindlist
 #' @importFrom doParallel registerDoParallel
 #' @importFrom flexclust dist2
 #' @importFrom gbm predict.gbm
@@ -278,6 +277,9 @@
 #' @importFrom maxlike maxlike
 #' @importFrom mgcv gam
 #' @importFrom plyr ldply
+#' @importFrom dplyr bind_rows
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarise_all
 #' @importFrom pracma haversine
 #' @importFrom pracma std
 #' @importFrom randomForest randomForest
@@ -1642,16 +1644,22 @@ ENMTML <- function(pred_dir,
       valF <- plyr::ldply(valF,data.frame,.id=NULL)
       valF <- valF[order(as.character(valF[,1])),]
       valF <- valF[!colnames(valF) %in% "Boyce_SD"]
-      valF <- valF[,c('Sp', 'Algorithm', 'Partition', 'Threshold', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb', 'pROC', 'OR',  'Percentage_predicted_area', 'Boyce')]
+      valF <- valF[,c('Sp', 'Algorithm', 'Partition', 'Threshold', 'AUC', 'Kappa', 'TSS', 'Jaccard', 'Sorensen', 'Fpb',
+                      # 'pROC',
+                      'OR',
+                      # 'Percentage_predicted_area',
+                      'Boyce')]
 
-      #Substituir Colune de NAs por -9999 (problema ao calcular médias se toda a coluna é NA)
+      #Substitute column with NAs by -9999 (problema ao calcular médias se toda a coluna é NA)
       if (any(apply(is.na(valF),2,all))){
         cols <- which(apply(is.na(valF),2,all))
         valF[cols][is.na(valF[cols])] <- -9999
       }
 
-      valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
-      valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
+      # valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
+      # valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
+      valF_Mean <- dplyr::summarise_all(dplyr::group_by(valF, Sp, Algorithm, Threshold), funs(mean(.,na.rm=T)))
+      valF_SD <- dplyr::summarise_all(dplyr::group_by(valF, Sp, Algorithm, Threshold), funs(stats::sd(.,na.rm=T)))
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)

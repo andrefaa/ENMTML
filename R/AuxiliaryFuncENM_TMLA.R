@@ -77,7 +77,7 @@ PREDICT <- function(Variables, Models_List) {
   ListRaster <- as.list(names(Models_List))
   names(ListRaster) <- names(Models_List)
   Algorithm <- names(Models_List)
-  
+
   if (any(Algorithm == "BIOCLIM") == TRUE) {
     ListRaster[["BIOCLIM"]] <-
       round(predict(Variables, Models_List[["BIO"]]), 4)
@@ -171,12 +171,12 @@ KM <- function(cell_coord, variable, NumAbsence) {
     Centroids = Km$centers[, 1:2],
     Clusters = Km$cluster
   ))
-  
+
   abse <- ppa2$Centroids
   colnames(abse) <- c("lon", "lat")
-  
+
   ppaNA <- raster::extract(variable[[1]], abse)
-  
+
   if (sum(is.na(ppaNA)) != 0) {
     ppaNA1 <- which(is.na(ppaNA))
     # Wich pseudo absence is a environmental NA
@@ -185,14 +185,14 @@ KM <- function(cell_coord, variable, NumAbsence) {
     ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
     ppa.clustres <- ppa.clustres[ppaNA1]
     nearest.point <- list()
-    
+
     if (length(ppaNA1) < 2) {
       error <- matrix(abse[ppaNA1,], 1)
       colnames(error) <- colnames(abse)
     } else{
       error <- abse[ppaNA1,]
     }
-    
+
     nearest.point <- list()
     for (eee in 1:length(ppaNA1)) {
       x <-
@@ -232,17 +232,22 @@ inv_geo <- function(e, p, d) {
 }
 
 
-# MESS function modified from modEvA package 
-MESS <- function (V, P, id.col = NULL) 
+##%######################################################%##
+#                                                          #
+####     MESS function modified from modEvA package     ####
+#                                                          #
+##%######################################################%##
+
+MESS <- function (V, P, id.col = NULL)
 {
   index.V <- 1:nrow(V)
   index.P <- 1:nrow(P)
   if (is.null(id.col)) {
-    if (ncol(V) != ncol(P)) 
+    if (ncol(V) != ncol(P))
       stop("The number of variables in V and P does not match.")
   }
   else {
-    if (ncol(V) != ncol(P) - 1) 
+    if (ncol(V) != ncol(P) - 1)
       stop("'id.col' should refer to a column in P; P should therefore have one more column than V.")
     P.input <- P
     P <- P[, -id.col]
@@ -250,7 +255,7 @@ MESS <- function (V, P, id.col = NULL)
   n.vars <- ncol(V)
   n.varP <- ncol(P)
   nrow.P <- nrow(P)
-  results <- matrix(nrow = nrow.P, ncol = n.vars, dimnames = list(NULL, 
+  results <- matrix(nrow = nrow.P, ncol = n.vars, dimnames = list(NULL,
                                                                   colnames(P)))
   for (i in 1:n.vars) {
     min.Vi <- min(V[, i], na.rm = TRUE)
@@ -261,22 +266,22 @@ MESS <- function (V, P, id.col = NULL)
       VV[VV < P[j, i]] <- 1
       VV[VV >= P[j, i]] <- 0
       Fj <- sum(VV, na.rm = TRUE) * 100/length(VV)
-      if (Fj == 0) 
-        SIM[j] <- (P[j, i] - min.Vi)/(max.Vi - min.Vi) * 
+      if (Fj == 0)
+        SIM[j] <- (P[j, i] - min.Vi)/(max.Vi - min.Vi) *
         100
-      else if (Fj > 0 && Fj <= 50) 
+      else if (Fj > 0 && Fj <= 50)
         SIM[j] <- 2 * Fj
-      else if (Fj > 50 && Fj < 100) 
+      else if (Fj > 50 && Fj < 100)
         SIM[j] <- 2 * (100 - Fj)
-      else if (Fj == 100) 
-        SIM[j] <- (max.Vi - P[j, i])/(max.Vi - min.Vi) * 
+      else if (Fj == 100)
+        SIM[j] <- (max.Vi - P[j, i])/(max.Vi - min.Vi) *
         100
     }
     results[, i] <- SIM
   }
   results <- data.frame(results)
   results$TOTAL <- apply(results[, 1:n.vars], 1, min)
-  results$MoD <- as.factor(colnames(results)[apply(results[, 
+  results$MoD <- as.factor(colnames(results)[apply(results[,
                                                            1:n.vars], 1, which.min)])
   if (!is.null(id.col)) {
     results <- data.frame(P.input[, id.col], results)
@@ -284,6 +289,7 @@ MESS <- function (V, P, id.col = NULL)
   }
   return(results)
 }
+
 ##%######################################################%##
 #                                                          #
 ####        RasterLayer NA CHECK By Boris Leroy         ####
@@ -377,5 +383,6 @@ lat2grd <- function(input){
   output <- data.frame(cbind(
     x=(input[,1]*toradians)*radiusearth*sine51,
     y=(input[,2]*toradians)*radiusearth
-  ))	
+  ))
 }
+
