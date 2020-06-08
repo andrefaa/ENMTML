@@ -31,6 +31,7 @@ OccsThin <- function(occ,
     }else{
       if (names(envT)[1] != "PC1") {
         pc1 <- PCA_env_TMLA(env = envT, Dir = pred_dir)[[1]]
+      }
     }
     
     #Optimal distance for each species
