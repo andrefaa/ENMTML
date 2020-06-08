@@ -25,10 +25,10 @@
 #' \itemize{
 #' \item MORAN: Distance defined by Moran Variogram, usage thin_occ=c(method='MORAN').
 #' \item CELLSIZE: Distance defined by 2x cellsize (Haversine Transformation), usage thin_occ=c(method='CELLSIZE').
-#' \item USER-DEFINED: User defined distance. For this option it is neede provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', distance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.
+#' \item USER-DEFINED: User defined distance. For this option it is necessary to provide a vector with two values. Usage thin_occ=c(method='USER-DEFINED', distance='300'). The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.
 #' }
 #'
-#' @param eval_occ character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the databased used in the occ_file argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default NULL).
+#' @param eval_occ character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the database used in the occ_file argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default NULL).
 #'
 #' @param colin_var character. Method to reduce variable collinearity:
 #' \itemize{
@@ -114,7 +114,7 @@
 #'   \item OBR: Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep). Usage msdm=c(method='OBR').
 #'   \item LR: Lower Quantile, select the nearest 25\% patches (Mendes et al., in prep). Usage msdm=c(method='LR').
 #'   \item PRES: Select only the patches with confirmed occurrence data (Mendes et al, in prep). Usage msdm=c(method='PRES').
-#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on ocurrences data. Usage msdm=c(method='MCP').
+#'   \item MCP: Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on occurrences data. Usage msdm=c(method='MCP').
 #'   \item MCP-B: Creates a buffer (with a width size defined by user in km) around the MCP. Usage msdm=c(method='MCP-B', width=100). In this case width=100 means that a buffer with 100km of width will be created around the MCP.
 #'   }
 #'
@@ -278,8 +278,9 @@
 #' @importFrom mgcv gam
 #' @importFrom plyr ldply
 #' @importFrom dplyr bind_rows
-#' @importFrom dplyr group_by
+#' @importFrom dplyr group_by_
 #' @importFrom dplyr summarise_all
+#' @importFrom dplyr funs
 #' @importFrom pracma haversine
 #' @importFrom pracma std
 #' @importFrom randomForest randomForest
@@ -1658,8 +1659,8 @@ ENMTML <- function(pred_dir,
 
       # valF_Mean <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) mean(x, na.rm=T))
       # valF_SD <- stats::aggregate(.~Sp+Algorithm+Threshold, data=valF, function(x) stats::sd(x, na.rm=T))
-      valF_Mean <- dplyr::summarise_all(dplyr::group_by(valF, Sp, Algorithm, Threshold), funs(mean(.,na.rm=T)))
-      valF_SD <- dplyr::summarise_all(dplyr::group_by(valF, Sp, Algorithm, Threshold), funs(stats::sd(.,na.rm=T)))
+      valF_Mean <- dplyr::summarise_all(dplyr::group_by_(valF, c('Sp', 'Algorithm', 'Threshold')), dplyr::funs(mean(.,na.rm=T)))
+      valF_SD <- dplyr::summarise_all(dplyr::group_by_(valF, c('Sp', 'Algorithm', 'Threshold')), dplyr::funs(stats::sd(.,na.rm=T)))
       valF_SD <- valF_SD[,-c(1:4)]
       colnames(valF_SD) <- paste0(colnames(valF_SD),"_SD")
       valF <- cbind(valF_Mean,valF_SD)

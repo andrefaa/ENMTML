@@ -50,7 +50,7 @@ MOP <- function(Variables,
       if (!file.exists(file.path(DirProj[i], paste0(spN[j], "_MOP.tif")))) {
         spOccS <- RecordsData[RecordsData$sp == spN[j], ]
         if (is.null(DirMask)) {
-          MM <- Variables[[i]][1]
+          MM <- Variables[[i]][[1]]
         } else{
           MM <- raster::raster(file.path(DirMask, paste0(spN[j], ".tif")))
         }

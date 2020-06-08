@@ -89,9 +89,9 @@ ENMTML(pred_dir,
   + **MORAN** Distance defined by Moran Variogram. Usage </br> <b style='color:red'>`thin_occ=c(method='MORAN')`</b>.
   + **CELLSIZE** Distance defined by 2x cellsize (Haversine Transformation). Usage </br> 
   <b style='color:red'>`thin_occ=c(method='CELLSIZE')`</b>.
-  + **USER-DEFINED** User defined distance. For this option it is neede provide a vector with two values. Usage </br>
+  + **USER-DEFINED** User defined distance. For this option it is necessary to provide a vector with two values. Usage </br>
   <b style='color:red'>`thin_occ=c(method='USER-DEFINED', ditance='300')`</b>. The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.
-* **eval_occ:** character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the databased used in the `occ_file` argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default `NULL`).
+* **eval_occ:** character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the database used in the `occ_file` argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default `NULL`).
 * **colin_var:** character. Method to reduce variable collinearity:
   + **PCA:** Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables. Usage </br> <b style='color:red'>`colin_var=c(method='PCA')`</b>.
   + **VIF:** Variance Inflation Factor. Usage </br><b style='color:red'>`colin_var=c(method='VIF')`</b>.
@@ -152,7 +152,7 @@ ENMTML(pred_dir,
   + **OBR:** Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep). Usage </br><b style='color:red'>`msdm=c(method='OBR')`</b>.
   + **LR:** Lower Quantile, select the nearest 25\% patches (Mendes et al., in prep). Usage </br><b style='color:red'>`msdm=c(method='LR')`</b>.
   + **PRES:** Select only the patches with confirmed occurrence data (Mendes et al, in prep). Usage </br><b style='color:red'>`msdm=c(method='PRES')`</b>.
-  + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on ocurrences data. Usage </br><b style='color:red'>`msdm=c(method='MCP')`</b>.
+  + **MCP:** Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on occurrences data. Usage </br><b style='color:red'>`msdm=c(method='MCP')`</b>.
   + **MCP-B:** Creates a buffer (with a width size defined by user in km) around the MCP. Usage </br><b style='color:red'>`msdm=c(method='MCP-B', width=100)`</b>. In this case `width=100` means that a buffer with 100km of width will be created around the MCP.</b>
 
 * **ensemble:** character. Method used to ensemble different algorithms. It is possible to use more than one method. A vector must be provided for this argument. For SUP, W_MEAN or PCA_SUP method it is necessary provide an evaluation metric to ensemble arguments (i.e., AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):
