@@ -28,6 +28,9 @@ OccsThin <- function(occ,
       } else{
         pc1 <- envT[[1]]
       }
+    }else{
+      if (names(envT)[1] != "PC1") {
+        pc1 <- PCA_env_TMLA(env = envT, Dir = pred_dir)[[1]]
     }
     
     #Optimal distance for each species
@@ -47,7 +50,7 @@ OccsThin <- function(occ,
     }
     
     #Data Frame for thining
-    occDF <- ldply(occDF, data.frame)
+    occDF <- plyr::ldply(occDF, data.frame)
     
     #Thinning
     occPOS <- vector("list", length = length(breaksD))
@@ -89,6 +92,16 @@ OccsThin <- function(occ,
       sep = "\t",
       row.names = F
     )
+    
+    #Record Thinning Distance
+    ThinDist <- data.frame(Species=spN,Distance_km=round(unlist(v1),3))
+    utils::write.table(
+      ThinDist,
+      file.path(DirR,"ThinningDistance.txt"),
+      sep="\t",
+      row.names=F
+      )
+    
     return(occ)
     
   } else if (ThinMethod == "USER-DEFINED") {

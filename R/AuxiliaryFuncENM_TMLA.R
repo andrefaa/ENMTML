@@ -297,16 +297,16 @@ MESS <- function (V, P, id.col = NULL)
 ##%######################################################%##
 synchroniseNA <- function(x)
 {
-  if(canProcessInMemory(x, n = 2))
+  if(raster::canProcessInMemory(x, n = 2))
   {
-    val <- getValues(x)
+    val <- raster::getValues(x)
     NA.pos <- unique(which(is.na(val), arr.ind = T)[, 1])
     val[NA.pos, ] <- NA
-    x <- setValues(x, val)
+    x <- raster::setValues(x, val)
     return(x)
   } else
   {
-    x <- mask(x, calc(x, fun = sum))
+    x <- raster::mask(x, calc(x, fun = sum))
     return(x)
   }
 }
