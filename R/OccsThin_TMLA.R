@@ -96,12 +96,7 @@ OccsThin <- function(occ,
     
     #Record Thinning Distance
     ThinDist <- data.frame(Species=spN,Distance_km=round(unlist(v1),3))
-    utils::write.table(
-      ThinDist,
-      file.path(DirR,"ThinningDistance.txt"),
-      sep="\t",
-      row.names=F
-      )
+    utils::write.table(ThinDist,file.path(DirR,"ThinningDistance.txt"),sep="\t",row.names=F)
     
     return(occ)
     
