@@ -43,15 +43,23 @@ OccsThin <- function(occ,
       seq(0, x, l = 10))
     v1 <- vector("list", length = length(breaksD))
     for (i in 1:length(breaksD)) {
-      v1[[i]] <-
-        geoR::variog(coords = occDF[[i]][, 1:2],
-                     data = occDF[[i]][, 3],
-                     uvec = breaksD[[i]])
-      v1[[i]] <- v1[[i]]$u[which(v1[[i]]$v == min(v1[[i]]$v[-1]))]
+      v1[[i]] <- 
+        correlog(coords=occDF[[i]][, 1:2], z=occDF[[i]][, 3], method="Moran", nbclass=10) 
+      v1[[i]] <- v1[[i]][abs(v1[[i]][,2]) < 0.1 ,]
+      if(nrow(v1[[i]])>0){
+        v1[[i]] <- min(v1[[i]][,1])
+      }else{
+        v1[[i]] <- 0
+      }
+      # v1[[i]] <-
+      #   geoR::variog(coords = occDF[[i]][, 1:2],
+      #                data = occDF[[i]][, 3],
+      #                uvec = breaksD[[i]])
+      # v1[[i]] <- v1[[i]]$u[which(v1[[i]]$v == min(v1[[i]]$v[-length(v1[[i]]$v)]))]
     }
     
     #Data Frame for thining
-    occDF <- plyr::ldply(occDF, data.frame)
+    occDF <- plyr::ldply(occ, data.frame,.id="sp")
     
     #Thinning
     occPOS <- vector("list", length = length(breaksD))
@@ -59,10 +67,10 @@ OccsThin <- function(occ,
       invisible(utils::capture.output(
         occT <-
           spThin::thin(
-            occDF[occDF$.id == spN[i],],
+            loc.data =  occDF[occDF$sp == spN[i],],
             lat.col = "y",
             long.col = "x",
-            spec.col = ".id",
+            spec.col = "sp",
             thin.par = v1[[i]],
             reps = 20,
             write.files = F,
