@@ -20,8 +20,8 @@ Description: ENMTML is a package to create and process Ecological Niche Models. 
 License: GPL (>= 2)
 Depends: R (>= 3.5.0)
 Imports: ade4, adehabitatHS, caret, dismo,  
-         flexclust, foreach, gbm, geoR, glmnet, igraph, kernlab, 
-         maxlike, maxnet, methods, mgcv, parallel, doParallel, dplyr, plyr, 
+         flexclust, foreach, gbm, glmnet, igraph, kernlab, 
+         maxlike, maxnet, methods, mgcv, parallel, pgirmess, doParallel, dplyr, plyr, 
          pracma, randomForest, 
          raster, rgdal, rgeos, RStoolbox, sp, 
          spThin, tools, usdm
