@@ -44,7 +44,7 @@ OccsThin <- function(occ,
     v1 <- vector("list", length = length(breaksD))
     for (i in 1:length(breaksD)) {
       v1[[i]] <- 
-        correlog(coords=occDF[[i]][, 1:2], z=occDF[[i]][, 3], method="Moran", nbclass=10) 
+        pgirmess::correlog(coords=occDF[[i]][, 1:2], z=occDF[[i]][, 3], method="Moran", nbclass=NULL) 
       v1[[i]] <- v1[[i]][abs(v1[[i]][,2]) < 0.1 ,]
       if(nrow(v1[[i]])>0){
         v1[[i]] <- min(v1[[i]][,1])
