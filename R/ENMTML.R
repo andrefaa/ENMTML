@@ -1678,8 +1678,10 @@ ENMTML <- function(pred_dir,
         }
         BootF <- plyr::ldply(BootF,data.frame,.id=NULL)
         BootF <- BootF[order(as.character(BootF[,1])),]
-        BootF_Mean <- aggregate(.~sp, data=BootF, mean)
-        BootF_SD <- aggregate(.~sp, data=BootF, function(x) stats::sd(x))
+        BootF_Mean <- dplyr::summarise_all(dplyr::group_by(BootF,sp), dplyr::funs(mean(.,na.rm=T)))
+        BootF_SD <- dplyr::summarise_all(dplyr::group_by(BootF, sp), dplyr::funs(stats::sd(.,na.rm=T)))
+        # BootF_Mean <- aggregate(.~sp, data=BootF, mean)
+        # BootF_SD <- aggregate(.~sp, data=BootF, function(x) stats::sd(x))
         BootF_SD <- BootF_SD[,-c(1,4)]
         colnames(BootF_SD) <- paste0(colnames(BootF_SD),"_SD")
         BootF <- cbind(BootF_Mean,BootF_SD)
