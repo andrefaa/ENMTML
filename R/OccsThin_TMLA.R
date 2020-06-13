@@ -35,35 +35,44 @@ OccsThin <- function(occ,
     }
     
     #Optimal distance for each species
-    ocsD <- lapply(occDF, function(x)
-      dist(x[, 1:2]))
-    maxD <- lapply(ocsD, function(x)
-      max(x))
-    breaksD <- lapply(maxD, function(x)
-      seq(0, x, l = 10))
-    v1 <- vector("list", length = length(breaksD))
-    for (i in 1:length(breaksD)) {
-      v1[[i]] <- 
-        pgirmess::correlog(coords=occDF[[i]][, 1:2], z=occDF[[i]][, 3], method="Moran", nbclass=10) 
-      v1[[i]] <- v1[[i]][abs(v1[[i]][,2]) < 0.1 ,]
-      if(nrow(v1[[i]])>0){
-        v1[[i]] <- min(v1[[i]][,1])
+    # ocsD <- lapply(occDF, function(x)
+    #   dist(x[, 1:2]))
+    # maxD <- lapply(ocsD, function(x)
+    #   max(x))
+    # breaksD <- lapply(maxD, function(x)
+    #   seq(0, x, l = 10))
+    options(warn = -1)
+    v1 <- vector("list", length = length(occDF))
+    names(v1) <- spN
+    for (i in 1:length(occDF)) {
+      v1[[i]] <- tryCatch({ 
+        v1[[i]] <- pgirmess::correlog(coords=occDF[[i]][, 1:2], z=occDF[[i]][, 3], method="Moran", nbclass=10)
+      }, error = function(err) { 
+        v1[[i]] <- pgirmess::correlog(coords=occDF[[i]][, 1:2], z=occDF[[i]][, 3], method="Moran", nbclass=NULL)
+      }, error = function(e){
+        v1[[i]] <- NA
+      })
+      
+      if(!is.na(v1[[i]])){
+        v1[[i]] <- t(data.frame(v1[[i]][which(abs(v1[[i]][,2])==min(abs(v1[[i]][,2]))),]))
       }else{
-        v1[[i]] <- 0
+          v1[[i]] <- 0
       }
+    }
+    options(warn = 1)
       # v1[[i]] <-
       #   geoR::variog(coords = occDF[[i]][, 1:2],
       #                data = occDF[[i]][, 3],
       #                uvec = breaksD[[i]])
       # v1[[i]] <- v1[[i]]$u[which(v1[[i]]$v == min(v1[[i]]$v[-length(v1[[i]]$v)]))]
-    }
     
     #Data Frame for thining
     occDF <- plyr::ldply(occ, data.frame,.id="sp")
+    Moran <- plyr::ldply(v1, data.frame,.id="sp")
     
     #Thinning
-    occPOS <- vector("list", length = length(breaksD))
-    for (i in 1:length(v1)) {
+    occPOS <- vector("list", length = length(occ))
+    for (i in 1:length(occ)) {
       invisible(utils::capture.output(
         occT <-
           spThin::thin(
@@ -71,7 +80,7 @@ OccsThin <- function(occ,
             lat.col = "y",
             long.col = "x",
             spec.col = "sp",
-            thin.par = v1[[i]],
+            thin.par = v1[[i]][1],
             reps = 20,
             write.files = F,
             locs.thinned.list.return = T,
@@ -103,8 +112,9 @@ OccsThin <- function(occ,
     )
     
     #Record Thinning Distance
-    ThinDist <- data.frame(Species=spN,Distance_km=round(unlist(v1),3))
-    utils::write.table(ThinDist,file.path(DirR,"ThinningDistance.txt"),sep="\t",row.names=F)
+    Moran <- Moran[,1:4]
+    colnames(Moran) <- c("sp","Distancia_km","I_Moran","p_value")
+    utils::write.table(Moran,file.path(DirR,"ThinningDistance_Moran.txt"),sep="\t",row.names=F)
     
     return(occ)
     
