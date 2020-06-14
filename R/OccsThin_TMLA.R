@@ -53,8 +53,14 @@ OccsThin <- function(occ,
         v1[[i]] <- NA
       })
       
+      #Select valid distances
       if(!is.na(v1[[i]])){
-        v1[[i]] <- t(data.frame(v1[[i]][which(abs(v1[[i]][,2])==min(abs(v1[[i]][,2]))),]))
+        if (any(abs(v1[[i]][,2])<=0.2)){
+          v1[[i]] <- subset(v1[[i]],abs(v1[[i]][,2])<=0.2)
+          v1[[i]] <- t(data.frame(v1[[i]][which(abs(v1[[i]][,1])==min(abs(v1[[i]][,1]))),]))
+        }else{
+          v1[[i]] <- t(data.frame(v1[[i]][which(abs(v1[[i]][,2])==min(abs(v1[[i]][,2]))),]))
+        }
       }else{
           v1[[i]] <- 0
       }
