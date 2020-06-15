@@ -825,7 +825,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       #MAH model
       for (i in 1:N) {
         dataPr <- PAtrain[[i]][PAtrain[[i]][, "PresAbse"] == 1,]
-        Model[[i]] <- mahal(dataPr[, VarColT])
+        Model[[i]] <- dismo::mahal(dataPr[, VarColT])
       }
 
       #MAH evaluation
@@ -942,7 +942,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(repl==1 || is.null(repl)){
           if(is.null(repl)){
             Model <-
-              mahal(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
+              dismo::mahal(x = VariablesT, p = SpDataT[SpDataT[, "PresAbse"] == 1 &
                                                   SpDataT[, "Partition"] == 1, c("x", "y")]) # only presences
             FinalModelT <- PREDICT_DomainMahal(mod = Model, variables = VariablesT)
             FinalModelT[FinalModelT[] < -10] <- -10
@@ -1206,10 +1206,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Future Projections
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              PredRas <- PREDICT_ENFA(Model,VariablesP[[k]],PAtrainM[[1]])
+              PredRas <- PREDICT_ENFA(Model,brick(VariablesP[[k]]),PAtrainM[[1]])
               PredRas <- STANDAR_FUT(PredRas,FinalModelT)
-              if(minValue(PredRas)<0){
-                PredRas <- PredRas-minValue(PredRas)
+              if(raster::minValue(PredRas)<0){
+                PredRas <- PredRas-raster::minValue(PredRas)
               }
               ListFut[[ProjN[k]]][["ENF"]] <- PredRas
             }
