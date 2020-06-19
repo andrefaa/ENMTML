@@ -2191,7 +2191,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
               FutureModel <- data.frame(kernlab::predict(object=Model,newdata=raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
-              RasF <- VariablesT[[1]]
+              RasF <- VariablesP[[k]][[1]]
               RasF[!is.na(RasF[])] <- FutureModel
               ListFut[[ProjN[k]]][["SVM"]] <- STANDAR_FUT(RasF,FinalModelT)
             }
@@ -2202,7 +2202,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Boyce <- list()
         for(k in 1:length(VariablesP)){
           ProjectedModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
-          RasF <- VariablesT[[1]]
+          RasF <- VariablesP[[k]][[1]]
           RasF[!is.na(RasF[])] <- ProjectedModel
           ListFut[[ProjN[k]]][["SVM"]] <- RasF
 
