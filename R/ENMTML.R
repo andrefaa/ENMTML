@@ -478,7 +478,7 @@ ENMTML <- function(pred_dir,
     if(!(sp_accessible_area['method']%in%c('BUFFER','MASK','USER-DEFINED','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
       stop("'sp_accessible_area' Argument is not valid!(BUFFER/MASK/USER-DEFINED)")
     }
-    if(sp_accessible_area['method']=="USER-DEFINED"&length(thin_occ)!=2){
+    if(sp_accessible_area['method']=="USER-DEFINED"&length(sp_accessible_area)!=2){
       stop("'sp_accessible_area' Argument is not valid for method=USER-DEFINED! A folder containing the masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath=filepath='C:/Users/mycomputer/accessibleareafolder')")
     }
     if(sp_accessible_area['method']=="MASK"&length(sp_accessible_area)!=2){
