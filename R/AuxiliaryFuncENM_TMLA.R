@@ -386,3 +386,15 @@ lat2grd <- function(input){
   ))
 }
 
+##%######################################################%##
+#                                                          #
+####                    RandomPoints                    ####
+##%######################################################%##
+OptimRandomPoints <- function(r, n, p) {
+  v <- raster::getValues(r)
+  v <- which(!is.na(v))
+  v <- v[!v%in%raster::cellFromXY(r,p)]
+  v <- sample(v, n)
+  v <- raster::xyFromCell(r, v)
+  return(v)
+}

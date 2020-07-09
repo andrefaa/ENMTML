@@ -68,11 +68,11 @@ M_delimited <- function(var,
     varCord <- varCord[which(!is.na(var[[1]][])), ]
     varCord$Cell <- raster::cellFromXY(var, xy = varCord)
     sp::coordinates(varCord) <- ~ x + y
-    raster::crs(varCord) <- crs(var)
+    raster::crs(varCord) <- raster::crs(var)
 
     M_list <- lapply(occ_xy, function(x) {
       sp::coordinates(x) <- ~ x + y
-      raster::crs(x) <- crs(var)
+      raster::crs(x) <- raster::crs(var)
       return(x)
     })
 
@@ -86,8 +86,8 @@ M_delimited <- function(var,
                 M <-
                   dismo::circles(M_list[[i]], d = BufferDistanceKm[i], lonlat = T)
               }
-              M <- rgeos::gUnaryUnion(M@polygons)
-              Filter <- sp::over(varCord, M)
+              # M <- rgeos::gUnaryUnion(M@polygons)
+              Filter <- sp::over(varCord, M@polygons)
               M <- varCord$Cell[which(is.na(Filter))]
               M2 <- var
               M2[M] <- NA

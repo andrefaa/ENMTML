@@ -608,7 +608,7 @@ ENMTML <- function(pred_dir,
         names(EnvF) <- PfolN
         envT <- raster::brick(raster::stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
       }else{
-        envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+        envT<-PCA_env_TMLA(env = envT, Dir = pred_dir,spca=T)
       }
     }
 
@@ -1195,11 +1195,15 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR[[s]] <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS[[s]] <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTR[[s]] <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            absencesTS[[s]] <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+            # absencesTR[[s]] <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(SpMask),prob = FALSE)
+            # absencesTS[[s]] <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR[[s]] <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
-            absencesTS[[s]] <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
+            absencesTR[[s]] <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            absencesTS[[s]] <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+            # absencesTR[[s]] <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
+            # absencesTS[[s]] <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
           }
         }
         absencesTR <- lapply(absencesTR, function(x) cbind(x, rep(1,nrow(x))))
@@ -1265,20 +1269,25 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTR.0 <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            absencesTS.0 <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+            # absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            # absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = raster::extent(pseudo.mask),
-                                         prob = FALSE)
+            absencesTR.0 <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            # absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
+            #                              ext = raster::extent(pseudo.mask),
+            #                              prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
-                                           prob = FALSE)
+              absencesTS.0 <- OptimRandomPoints(r=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+              # absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+              #                              ext = raster::extent(pseudo.mask),
+              #                              prob = FALSE)
             }else{
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
-                                           prob = FALSE)
+              absencesTS.0 <- OptimRandomPoints(r=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+              # absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+              #                              ext = raster::extent(pseudo.mask),
+              #                              prob = FALSE)
             }
           }
           absencesTR[[i]] <- as.data.frame(absencesTR.0)
@@ -1345,20 +1354,25 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTR.0 <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            absencesTS.0 <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+            # absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            # absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = raster::extent(pseudo.mask),
-                                         prob = FALSE)
+            absencesTR.0 <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            # absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
+            #                              ext = raster::extent(pseudo.mask),
+            #                              prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
-                                           prob = FALSE)
+              absencesTS.0 <- OptimRandomPoints(r=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+              # absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+              #                              ext = raster::extent(pseudo.mask),
+              #                              prob = FALSE)
             }else{
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
-                                           prob = FALSE)
+              absencesTS.0 <- OptimRandomPoints(r=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+              # absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+              #                              ext = raster::extent(pseudo.mask),
+              #                              prob = FALSE)
             }
           }
           absencesTR[[i]] <- as.data.frame(absencesTR.0)
@@ -1425,20 +1439,25 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
-            absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            absencesTR.0 <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            absencesTS.0 <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+            # absencesTR.0 <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),ext = raster::extent(SpMask),prob = FALSE)
+            # absencesTS.0 <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
-                                         ext = raster::extent(pseudo.mask),
-                                         prob = FALSE)
+            absencesTR.0 <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
+            # absencesTR.0 <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[i]]),
+            #                              ext = raster::extent(pseudo.mask),
+            #                              prob = FALSE)
             if(!is.null(eval_occ)){
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
-                                           prob = FALSE)
+              absencesTS.0 <- OptimRandomPoints(r=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+              # absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+              #                              ext = raster::extent(pseudo.mask),
+              #                              prob = FALSE)
             }else{
-              absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
-                                           ext = raster::extent(pseudo.mask),
-                                           prob = FALSE)
+              absencesTS.0 <- OptimRandomPoints(r=pseudo.maskP, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+              # absencesTS.0 <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[i]]),
+              #                              ext = raster::extent(pseudo.mask),
+              #                              prob = FALSE)
             }
           }
           absencesTR[[i]] <- as.data.frame(absencesTR.0)
