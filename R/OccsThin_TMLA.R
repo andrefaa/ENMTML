@@ -130,7 +130,7 @@ OccsThin <- function(occ,
     # distance <- as.integer(readLines(n=1))
     
     #Data Frame for thining
-    occDF <- ldply(occDF, data.frame)
+    occDF <- plyr::ldply(occDF, data.frame)
     
     #Thinning
     occPOS <- vector("list", length = length(occ))
@@ -185,7 +185,7 @@ OccsThin <- function(occ,
     distance <- pracma::haversine(df$x, df$y) * 2
     
     #Data Frame for thining
-    occDF <- ldply(occDF, data.frame)
+    occDF <- plyr::ldply(occDF, data.frame)
     
     #Thinning
     occPOS <- vector("list", length = length(occ))
