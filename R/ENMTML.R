@@ -608,7 +608,7 @@ ENMTML <- function(pred_dir,
         names(EnvF) <- PfolN
         envT <- raster::brick(raster::stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
       }else{
-        envT<-PCA_env_TMLA(env = envT, Dir = pred_dir,spca=T)
+        envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
       }
     }
 
