@@ -486,7 +486,14 @@ ENMTML <- function(pred_dir,
     }
   }
 
-
+  # temporary parallel package debug for macOS systems
+  if (Sys.getenv("RSTUDIO") == "1" && 
+      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+      Sys.info()["sysname"] == "Darwin" &&
+      any(getRversion() %in% c("4.0.0", "4.0.1", "4.0.2"))) {
+    parallel:::setDefaultClusterOptions(setup_strategy = "sequential")
+  }
+  
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
   algorithm <- Ord[Ord%in%algorithm]
