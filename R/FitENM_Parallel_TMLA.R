@@ -27,7 +27,16 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   options(warn = -1)
 
   #Start Cluster
-  cl <- parallel::makeCluster(cores,outfile="")
+  # temporary parallel package debug for macOS systems
+  if (Sys.getenv("RSTUDIO") == "1" &&
+      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+      Sys.info()["sysname"] == "Darwin" &&
+      any(getRversion() %in% c("4.0.0", "4.0.1", "4.0.2"))) {
+    cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
+  }else{
+    cl <- parallel::makeCluster(cores,outfile="")
+
+  }
   doParallel::registerDoParallel(cl)
 
   # Directory to save----
