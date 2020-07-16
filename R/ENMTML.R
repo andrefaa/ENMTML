@@ -479,7 +479,7 @@ ENMTML <- function(pred_dir,
       stop("'sp_accessible_area' Argument is not valid!(BUFFER/MASK/USER-DEFINED)")
     }
     if(sp_accessible_area['method']=="USER-DEFINED"&length(sp_accessible_area)!=2){
-      stop("'sp_accessible_area' Argument is not valid for method=USER-DEFINED! A folder containing the masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath=filepath='C:/Users/mycomputer/accessibleareafolder')")
+      stop("'sp_accessible_area' Argument is not valid for method=USER-DEFINED! A folder containing the masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/accessibleareafolder')")
     }
     if(sp_accessible_area['method']=="MASK"&length(sp_accessible_area)!=2){
       stop("'sp_accessible_area' Argument is not valid for method=MASK! A filepath containing the file used to generate the species-specific masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/ecoregion/olson.shp')")
@@ -1195,13 +1195,13 @@ ENMTML <- function(pred_dir,
             }else{
               SpMaskP <- SpMask
             }
-            absencesTR[[s]] <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
-            absencesTS[[s]] <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+            absencesTR[[s]] <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTR[[s]]),p=occ_xy[[s]])
+            absencesTS[[s]] <- OptimRandomPoints(r=SpMask, n=(1 / pres_abs_ratio)*nrow(occTS[[s]]),p=occ_xy[[s]])
             # absencesTR[[s]] <- dismo::randomPoints(SpMask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(SpMask),prob = FALSE)
             # absencesTS[[s]] <- dismo::randomPoints(SpMaskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(SpMask),prob = FALSE)
           }else{
-            absencesTR[[s]] <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[i]]),p=occ_xy[[i]])
-            absencesTS[[s]] <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTS[[i]]),p=occ_xy[[i]])
+            absencesTR[[s]] <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTR[[s]]),p=occ_xy[[s]])
+            absencesTS[[s]] <- OptimRandomPoints(r=pseudo.mask, n=(1 / pres_abs_ratio)*nrow(occTS[[s]]),p=occ_xy[[s]])
             # absencesTR[[s]] <- dismo::randomPoints(pseudo.mask, (1 / pres_abs_ratio)*nrow(occTR[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
             # absencesTS[[s]] <- dismo::randomPoints(pseudo.maskP, (1 / pres_abs_ratio)*nrow(occTS[[s]]),ext = raster::extent(pseudo.mask),prob = FALSE)
           }
