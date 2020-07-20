@@ -61,8 +61,15 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   # BestGridList <- rep(list(NULL),length(RecordsData))
 
   #Start Cluster
-  cl <- parallel::makeCluster(cores, outfile = "")
-  doParallel::registerDoParallel(cl)
+  if (Sys.getenv("RSTUDIO") == "1" &&
+      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+      Sys.info()["sysname"] == "Darwin" &&
+      as.numeric(gsub('[.]', '', getRversion())) >= 360) {
+        cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
+      }else{
+        cl <- parallel::makeCluster(cores,outfile="")
+      }
+      doParallel::registerDoParallel(cl)
 
   # LOOP----
   results <-
