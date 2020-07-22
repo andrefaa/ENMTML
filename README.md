@@ -17,7 +17,7 @@ install_github("andrefaa/ENMTML")
 library(ENMTML)  
 ```
 
-### Warnning
+### Warning
 Dear ENMTML users
 
 Due to the latest R updates and some packages that are dependent on ENMTML our package is currently having problems with macOS operating systems. We hope to solve this in the next few weeks. 
