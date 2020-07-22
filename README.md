@@ -17,6 +17,15 @@ install_github("andrefaa/ENMTML")
 library(ENMTML)  
 ```
 
+### Warnning
+Dear ENMTML users
+
+Due to the latest R updates and some packages that are dependent on ENMTML our package is currently having problems with macOS operating systems. We hope to solve this in the next few weeks. 
+
+Thank you for your patience
+(22/07/2020)
+
+
 ### What I can do with __ENMTML__ package?  
 There are a couple of pre and post-processing available in the package, here is a list of what is currently available:  
 **1.** Control colinearity on environmental variables  
