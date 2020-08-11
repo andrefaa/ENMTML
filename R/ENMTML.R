@@ -486,7 +486,6 @@ ENMTML <- function(pred_dir,
     }
   }
 
-
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
   algorithm <- Ord[Ord%in%algorithm]

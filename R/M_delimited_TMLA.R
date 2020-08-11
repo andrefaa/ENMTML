@@ -20,7 +20,7 @@ M_delimited <- function(var,
     dir.create(file.path(Dir, Dir_M))
     Dir_M <- file.path(Dir, Dir_M)
   }
-  
+
   #Check if GeoMasks already exist----
   if (any(paste0(spN, ".tif") %in% list.files(Dir_M, pattern = ".tif"))) {
     if (all(paste0(spN, ".tif") %in% list.files(Dir_M, pattern = ".tif"))) {
@@ -32,8 +32,8 @@ M_delimited <- function(var,
         spN[!paste0(spN, ".tif") %in% list.files(Dir_M, pattern = ".tif")]
     }
   }
-  
-  
+
+
   #Extent Restriction----
   if (method == 'BUFFER') {
     if (Buffer_Opt == 1) {
@@ -48,13 +48,13 @@ M_delimited <- function(var,
       for (i in 1:length(occ_km)) {
         diag(occ_km[[i]]) <- Inf
       }
-      
+
       BufferDistanceKm <-
         sapply(occ_km, function(x)
           max(apply(x, 2, min)))
       BufferDistanceKm <- BufferDistanceKm * 1000
     }
-    
+
     if (Buffer_Opt == 2) {
       BufferDistanceKm <- BufferDistanceKm * 1000
     }
@@ -76,7 +76,14 @@ M_delimited <- function(var,
       return(x)
     })
 
-    cl <- parallel::makeCluster(cores)
+    if (Sys.getenv("RSTUDIO") == "1" &&
+        !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+        Sys.info()["sysname"] == "Darwin" &&
+        as.numeric(gsub('[.]', '', getRversion())) >= 360) {
+          cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
+        }else{
+          cl <- parallel::makeCluster(cores,outfile="")
+        }
     doParallel::registerDoParallel(cl)
     foreach(i = 1:length(M_list),
             .packages = c("raster")) %dopar% {
@@ -100,7 +107,7 @@ M_delimited <- function(var,
             }
     parallel::stopCluster(cl)
   }
-  
+
   if (method == 'MASK') {
     Dir <- EcoregionsFile
     EcoregionsFileExt <- unique(tools::file_ext(Dir))
@@ -120,7 +127,7 @@ M_delimited <- function(var,
         raster::brick(raster::stack(EcoregionsFile))
       EcoregionsFile <- raster::crop(EcoregionsFile, var)
     }
-    
+
     sp.Ecoregions <-
       lapply(occ_xy, function(x)
         raster::extract(EcoregionsFile, x))
@@ -129,7 +136,14 @@ M_delimited <- function(var,
       x <- x[x != 0]
     })
 
-    cl <- parallel::makeCluster(cores)
+    if (Sys.getenv("RSTUDIO") == "1" &&
+        !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+        Sys.info()["sysname"] == "Darwin" &&
+        as.numeric(gsub('[.]', '', getRversion())) >= 360) {
+          cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
+        }else{
+          cl <- parallel::makeCluster(cores,outfile="")
+        }
     doParallel::registerDoParallel(cl)
     foreach(i = 1:length(sp.Ecoregions),
             .packages = c("raster")) %dopar% {
@@ -147,7 +161,7 @@ M_delimited <- function(var,
             }
     parallel::stopCluster(cl)
   }
-  
+
   if (method == 'USER-DEFINED') {
     Dir <- EcoregionsFile
     EcoregionsFileExt <- unique(tools::file_ext(list.files(Dir)))
@@ -189,7 +203,7 @@ M_delimited <- function(var,
         EcoregionsFile <- raster::crop(EcoregionsFile, var)
       }
     }
-    
+
     EcoregionsFile[EcoregionsFile != 1] <- NA
     raster::writeRaster(
       EcoregionsFile,
