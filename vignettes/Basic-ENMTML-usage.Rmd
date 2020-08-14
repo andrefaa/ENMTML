@@ -1,0 +1,155 @@
+---
+title: "Basic ENMTML usage"
+authors: "André Andrade, Santiago Velazco & Paulo De Marco"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Basic ENMTML usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning=F
+)
+```
+
+## Basic *ENMTML* Run
+
+We present here a simple model, with the simplest parameters and decisions.  
+The main objective of this run is to introduce the main arguments and help with some details which are required to run the function.   
+**We will use the files available at the package example, so that everyone can easily reproduce those steps!**
+
+## Creating the folder structure from the example files
+
+**ENMTML** example data set consists of five bioclimantic variables for the current period and five different virtual species.  
+
+In order to simulate the files and folders needed for an standard **ENMTML** run we will create different folders containing the example data.  
+
+For this we will use the *raster* package:
+
+```{r include=F}
+load("C:/Users/decoa/OneDrive/Trabajos/22 - ENM_Package/ENMTML/Data/occ.RData")
+load("C:/Users/decoa/OneDrive/Trabajos/22 - ENM_Package/ENMTML/Data/env.RData")
+```
+
+```{r}
+if (!"raster"%in%installed.packages()){install.packages("raster")}  
+require(raster)  
+
+
+# First we will create a folder (ENMTML_example) within the working directory
+getwd() #' Working directory of R session
+d_ex <- file.path(getwd(), 'ENMTML_example')
+d_ex
+dir.create(d_ex)
+
+# We will now save ENMTML data set within the ENMTML_example folder
+
+# Virtual species occurrences
+data("occ")
+
+# See the format of the .TXT file(tab-separated)! 
+# We only need three columns:
+  # one containing species name
+  # one containing longitude information 
+  # one containing latitude information
+
+knitr::kable(occ[c(1:4,43:46,90:94,127:130),])
+d_occ <- file.path(d_ex, 'occ.txt')
+utils::write.table(occ, d_occ, sep = '\t', row.names = FALSE)
+
+# Five bioclimatic variables for current conditions
+data("env")
+d_env <- file.path(d_ex, 'current_env_var')
+dir.create(d_env)
+raster::writeRaster(env, file.path(d_env, names(env)), bylayer=TRUE, 
+                    overwrite=T, format='GTiff')
+
+# shell.exec(d_ex) # open the directory and folders created
+rm(list = c('env','occ'))
+
+# We now we have the minimum data required to create models with ENMTML package!
+# A directory with environmental rasters and a .txt file with occurrence.
+
+```
+
+
+**The following objects contains the path to the folder with predictors and the path to the occurrence file (TXT)**
+
+* **d_occ** : File path to species occurrence file (.txt; tab-separated)
+* **d_env** : Directory path with current environmental conditions (here in .tiff)
+
+
+## Model design  
+
+We will now fit models for with the following specifications: 
+
+* **Five** different algorithms: Bioclim, Generalized Linear Model, Random Forests, Support Vector Machine and Maxent  
+* **Random** pseudo-absence allocation  
+* **No** accessible area restriction  
+* **Random** partition between training-test datasets  
+* **No** Ensemble  
+* **No** Bias correction  
+* **No** Collinearity control in the predictors  
+* **Binary maps** will be produced using the *Maximum Specificity and Sensitivity Threshold*  
+
+
+```
+require(ENMTML)
+
+ENMTML(
+ pred_dir = d_env,
+ proj_dir = NULL,
+ result_dir = file.path(d_ex,"Result"),
+ occ_file = d_occ,
+ sp = 'species',
+ x = 'x',
+ y = 'y',
+ min_occ = 10,
+ thin_occ = NULL,
+ eval_occ = NULL,
+ colin_var = NULL,
+ imp_var = FALSE,
+ sp_accessible_area = NULL,
+ pseudoabs_method = c(method = 'RND'),
+ pres_abs_ratio = 1,
+ part=c(method= 'KFOLD', folds='2'),
+ save_part = FALSE,
+ save_final = TRUE,
+ algorithm = c('BIO','GLM', 'RDF', 'SVM', 'MXD'),
+ thr = c(type='MAX_TSS'),
+ msdm = NULL,
+ ensemble = NULL,
+ extrapolation = FALSE,
+ cores = 1
+)
+```
+
+
+### Results
+
+**ENMTML** function will create a folder named **Result** within the *ENMTML_example* folder containing the *Algorithms* sub-folder and several  *.txt* files:  
+
+* **Evaluation_Table.txt** Contains the results for model evaluation, with several metrics    
+* **InfoModeling.txt** Information of the chosen modeling parameters       
+* **Number_Unique_Occurrences.txt** Number of unique occurrences for each species    
+* **Occurrences_Cleaned.txt** Dataset produced after selecting a single occurrence per grid-cell(*unique occurrences*)       
+* **Thresholds_Algorithm.txt** Information about the thresholds used to create the presence-absence maps for each algorithm (Presence-absence maps are created from the Threshold of complete models)    
+* **Moran & Mess** Contains information about autocorrelation and environmental similatiry between the datasets used to fit and evaluate the model  
+
+
+## What's next?
+
+We will see next several methodological advances for the Standard model and how those are incorpoated in our modelling routine.  
+We will also cover projection for other periods, extent and include other algorithms and produce and ensemble model!
+
+__Hope you understood the logic behind **ENMTML** and were able to produce your first models!__  
+
+**See you next time!**
+
+> Feel free to contact us by mail (you can find the paths to André and Santiago e-mails at the end of the [GitHub page](https://github.com/andrefaa/ENMTML))
+
+

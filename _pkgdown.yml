@@ -1,0 +1,38 @@
+title: "ENMTML"
+template:
+  params:
+    bootswatch: flatly
+
+reference:
+  - title: Functions and datasets
+    desc: ~
+    contents:
+      - '`ENMTML`'
+      - '`occ`'
+      - '`env`'
+      - '`env_fut`'
+      - '`ecoregions`'
+
+navbar:
+  left:
+    - icon: fa-home
+      href: index.html
+  right:
+    - icon: fas fa-book
+      text: "Articles"
+      menu:
+      -  text: "Getting Started"
+         href: articles/ENMTML.html
+      -  text: "Basic Usage"
+         href: articles/Basic-ENMTML-usage.html
+    - text: "FAQ"
+      icon: fa-question-circle
+      href: articles/faq.html
+    - text: "Functions"
+      icon: fa-file-code-o
+      href: reference/index.html
+    - text: "News"
+      icon: fa-newspaper-o
+      href: news/index.html
+    - icon: fa-github fa-lg
+      href: https://github.com/andrefaa/ENMTML

@@ -914,7 +914,7 @@ cov.SE <- function(x1, x2 = NULL, e1 = NULL, e2 = NULL, l) {
 
 
 
-  if(class(sumdiffs) == 'dist') {
+  if(any(class(sumdiffs) %in% 'dist')) {
 
     K <- as.matrix(K)
 
