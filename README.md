@@ -1,4 +1,4 @@
-# __ENMTML__ <img src='man/figures/logo.png' align="right" height="170" />
+<!-- # __ENMTML__ <img src="https://github.com/andrefaa/ENMTML/blob/master/man/figures/logo.png" align="right" width="170" /> -->
 [![DOI](https://zenodo.org/badge/DOI/10.1016/j.envsoft.2019.104615.svg)](https://doi.org/10.1016/j.envsoft.2019.104615)
 [![License](https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html)
 [![Lifecycle:manturing](https://img.shields.io/badge/lifecycle-manturing-blue.svg)](https://www.tidyverse.org/lifecycle/#manturing)
