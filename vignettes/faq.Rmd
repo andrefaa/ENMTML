@@ -30,7 +30,7 @@ Yellow are the *Mandatory Folders*, you **need** them to run the package.
 Green are the *Optional Folders*, only required according to your project design.  
 Blue are *Output Folders*, those will be created during the modeling routine.  
 
-<img src='man/figures/folders.png' align="center" width=720 />
+<img src='man/figures/folders.png' align="center" height=720 />
 
 
 <a name="Function Arguments"> </a>
