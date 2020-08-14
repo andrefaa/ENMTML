@@ -76,7 +76,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
     foreach(
       s = 1:length(RecordsData),
       .packages = c("raster", "ape", "dismo"),
-      .export = c("inv_bio")
+      .export = c("inv_bio","MESS")
     ) %dopar% {
       # for(s in 1:length(RecordsData)){
       print(paste(s, SpNames[s]))
