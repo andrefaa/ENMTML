@@ -568,7 +568,7 @@ ENMTML <- function(pred_dir,
       envT <- usdm::exclude(envT, VF)
       if (!is.null(proj_dir)) {
         RasM <- colMeans(stats::na.omit(values(envT)))
-        RasSTD <- apply(stats::na.omit(values(envT)), 2, pracma::std())
+        RasSTD <- apply(stats::na.omit(values(envT)), 2, stats::sd)
       }
       envT <- raster::scale(envT)
 
@@ -592,7 +592,7 @@ ENMTML <- function(pred_dir,
             rm(ProjTT)
           }
 
-          EnvF[[i]] <- EnvF[[names(envT)]]
+          EnvF[[i]] <- raster::subset(EnvF[[i]],subset=names(envT))
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
       }
@@ -622,7 +622,7 @@ ENMTML <- function(pred_dir,
       envT <- envT[[names(envT)[!apply(corr_matrix,2,function(x) any(x > 0.70))]]]
       if(!is.null(proj_dir)){
         RasM <- colMeans(stats::na.omit(values(envT)))
-        RasSTD <- apply(stats::na.omit(values(envT)),2,pracma::std())
+        RasSTD <- apply(stats::na.omit(values(envT)),2,stats::sd)
       }
       envT <- raster::scale(envT)
 
@@ -649,7 +649,7 @@ ENMTML <- function(pred_dir,
             rm(ProjTT)
           }
 
-          EnvF[[i]] <- EnvF[[names(envT)]]
+          EnvF[[i]] <- raster::subset(EnvF[[i]],subset=names(envT))
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
       }
