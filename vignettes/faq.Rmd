@@ -32,7 +32,6 @@ Blue are *Output Folders*, those will be created during the modeling routine.
 
 <img src='https://raw.githubusercontent.com/andrefaa/ENMTML/master/man/figures/folders.png' height=720 />
 
-
 <a name="Function Arguments"> </a>
 
 ## <i class="fas fa-puzzle-piece"></i></i> Function Arguments
