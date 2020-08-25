@@ -596,6 +596,7 @@ ENMTML <- function(pred_dir,
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
       }
+      names(EnvF) <- PfolN
     }
 
     #3.1.2.PCA----
@@ -653,6 +654,7 @@ ENMTML <- function(pred_dir,
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
       }
+      names(EnvF) <- PfolN
     }
   }else{
   #3.3.4.colin_var = NULL ----
