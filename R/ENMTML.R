@@ -591,7 +591,7 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
           }
-
+          EnvF[[i]] <- synchroniseNA(EnvF[[i]])
           EnvF[[i]] <- raster::subset(EnvF[[i]],subset=names(envT))
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
@@ -649,7 +649,7 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
           }
-
+          EnvF[[i]] <- synchroniseNA(EnvF[[i]])
           EnvF[[i]] <- raster::subset(EnvF[[i]],subset=names(envT))
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
