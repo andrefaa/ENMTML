@@ -1240,10 +1240,10 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
-            pseudo.mask <- inv_bio(envT, occTR[[i]][,c("x","y")])
+            pseudo.mask <- inv_bio(envT, occ_xy[[i]][,c("x","y")])
 
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
@@ -1325,11 +1325,11 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
 
-            pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
+            pseudo.mask <- inv_geo(e=envT, p=occ_xy[[i]][,c("x","y")], d=Geo_Buf)
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
           }else{
@@ -1409,12 +1409,12 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
 
-            pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-            pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
+            pseudo.mask <- inv_geo(e=envT, p=occ_xy[[i]][,c("x","y")], d=Geo_Buf)
+            pseudo.mask1 <- inv_bio(envT, occ_xy[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
@@ -1494,12 +1494,12 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
 
-            pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-            pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
+            pseudo.mask <- inv_geo(e=envT, p=occ_xy[[i]][,c("x","y")], d=Geo_Buf)
+            pseudo.mask1 <- inv_bio(envT, occ_xy[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
