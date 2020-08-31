@@ -4,12 +4,12 @@ Occ_Unicas_TMLA <- function(env,
   spN <- names(occ.xy)
   occ.v <-
     lapply(occ.xy, function(x)
-      raster::extract(env, x, cellnumber = T))
+      data.frame(raster::extract(env, x, cellnumber = T))[1])
   occ.v <- mapply(cbind, occ.xy, occ.v, SIMPLIFY = F)
   occ.v <- lapply(occ.v, function(x)
     stats::na.omit(x))
   occ.v <- lapply(occ.v, function(x)
-    x[!duplicated(x$cells), ])
+     x[!duplicated(x$cells), ])
   uni <-
     data.frame(Species = spN,
                UniqueOcc = sapply(occ.v, function(x)
