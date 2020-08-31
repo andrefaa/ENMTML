@@ -61,6 +61,7 @@ PCAFuturo <- function(Env,
   EixXY <- cbind(DF[, (1:2)], Eix)
   sp::gridded(EixXY) <- ~ x + y
   PCAPr <- raster::stack(EixXY)
+  raster::crs(PCAPr) <- raster::crs(Env)
   PCA.95 <- PCAPr[[1:(sum(VarEx <= 0.95) + 1)]]
   if (Save == "Y") {
     raster::writeRaster(
@@ -123,6 +124,7 @@ PCAFuturo <- function(Env,
   for (j in 1:length(PCAFut)) {
     sp::gridded(PCAFut[[j]]) <- ~ x + y
     PCAFut[[j]] <- raster::stack(PCAFut[[j]])
+    raster::crs(PCAFut[[j]]) <- raster::crs(Env)
     names(PCAFut[[j]]) <- names(PCAPr)
     PCAFut.95[[j]] <- PCAFut[[j]][[1:raster::nlayers(PCA.95)]]
     if (Save == "Y") {

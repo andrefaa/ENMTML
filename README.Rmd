@@ -5,18 +5,18 @@
 
 ## An R package for an integrated construction of Ecological Niche Models
 
-## <i class="fas fa-cogs"></i> Installation
+### Installation
 ```ruby
 if (!"devtools"%in%installed.packages()){install.packages("devtools")}  
 devtools::install_github("andrefaa/ENMTML")  
 ```
-## <i class="far fa-question-circle"></i> Why **ENMTML**?
-[ENMTML](https://andrefaa.github.io/ENMTML/) stands for **E**cological **N**iche **M**odelling at **T**he **M**eta**L**and EcologyLab.  
+### Why **ENMTML**?  
+**ENMTML** stands for **E**cological **N**iche **M**odelling within **T**he **M**eta**L**and EcologyLab.  
 It is a product from the [Prof. Paulo De Marco's lab in Ubiversidade Federal de Goiás, Brasil](https://themetaland.wixsite.com/themetaland).
 
-It puts together a lot of our work with ENM's in the past years in a single package, with the objective of making it easy to use but also covering the complex methodological development that exists in the field.
+It puts together a lot of our work with ENM's in the past years in a single script, with the objective of making it easy to use but also covering the complex methodological development that exists in the field.
 
-## <i class="fas fa-bullseye"></i> What is the main objective of **ENMTML**?
+### What is the main objective of **ENMTML**?   
 We believe there is a division within ENM/SDM.
 
 Developers are constantly coming up with better methods, which causes those improvements to be scattered throughout literature and not always reach users.  
@@ -40,14 +40,14 @@ We bring together several alternatives for:
 * Ensemble models  
 * Projection to a different time period/spatial extent (MOP calculation included)  
 
-## <i class="fas fa-search"></i> What if I couldn't find what I was looking for in **ENMTML**? 
+### What if I couldn't find what I was looking for in **ENMTML**?  
+
 
 #### Please let us know!
 
 We are regularly working on the package and are very interested in incorporating new functionalities to the package. 
 
-## <i class="fas fa-exclamation-circle"></i></i> Last but not least  
-  
+### Last but not least  
 **There are no defaults!** 
 
 We believe **every ENM should be carefully planned and every decision matters!**  

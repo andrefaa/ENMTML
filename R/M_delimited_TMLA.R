@@ -207,7 +207,7 @@ M_delimited <- function(var,
     EcoregionsFile[EcoregionsFile != 1] <- NA
     raster::writeRaster(
       EcoregionsFile,
-      paste(Dir_M, paste(names(sp.Ecoregions), ".tif", sep = ""), sep = "/"),
+      paste(Dir_M, paste(names(EcoregionsFile), ".tif", sep = ""), sep = "/"),
       format = "GTiff",
       overwrite = T,
       bylayer = T

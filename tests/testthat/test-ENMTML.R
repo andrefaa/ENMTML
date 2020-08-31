@@ -3,7 +3,7 @@
 # Prepare data
 require(ENMTML)
 require(raster)
-setwd('C:/Users/santi/OneDrive/Documentos/FORESTAL/1-Trabajos/65-ENM_TheMetaLand/ENMTML/tests/testthat')
+
 d_ex <- file.path(getwd(), 'ENMTML_example')
 d_ex
 dir.create(d_ex)
@@ -40,10 +40,10 @@ shapefile(ecoregions, d_eco, overwrite=TRUE)
 rm(list = c('d0', 'ecoregions', 'env', 'env_fut', 'occ'))
 
 
-test_that('ENMTML: basic test doesn\'t work', {
+test_that('ENMTML: basic test works', {
   ENMTML(
     pred_dir = d_env,
-    proj_dir = NULL,
+    proj_dir = d_fut,
     result_dir = 'Test_01',
     occ_file = d_occ,
     sp = 'species',
@@ -54,15 +54,14 @@ test_that('ENMTML: basic test doesn\'t work', {
     eval_occ = NULL,
     colin_var = c(method='PCA'),
     imp_var = FALSE,
-    sp_accessible_area = c(method='BUFFER', type='2', width='500'),
+    sp_accessible_area=c(method='BUFFER', type='2', width='300'),
     pseudoabs_method = c(method = 'RND'),
     pres_abs_ratio = 1,
-    part=c(method= 'KFOLD', folds='2'),
+    part=c(method= 'BLOCK'),
     save_part = FALSE,
     save_final = TRUE,
-    algorithm = c("BIO", "GLM"),
-                  # "MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"),
-    thr = c(type='MAX_TSS'),
+    algorithm = c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","RDF","MXS","MXD","MLK","GAU"),
+    thr = c(type='SORENSEN'),
     msdm = NULL,
     ensemble = NULL,
     extrapolation = FALSE,
@@ -70,19 +69,31 @@ test_that('ENMTML: basic test doesn\'t work', {
   )
   d_rslt <- file.path(dirname(d_env), 'Test_01')
 
-  # Aqui temos que escreve o que esperamos que retorne o pacote ou seja
-  # todos os exepct que achemos necessários deixei dois exemplos
-  expect_true(any(grepl(
-    "Evaluation_Table.txt", list.files(d_rslt)
-  )) == TRUE)
+  #Check if basic txt files were accurately created
+  toMatch <- c("Evaluation_Table.txt", "Number_Unique_Occurrences.txt", "Thresholds_Algorithms.txt",
+               "InfoModeling.txt","Occurrences_Cleaned.txt")
+  expect_true(all(toMatch%in%list.files(d_rslt)))
 
+  #Check if algorithms produced valid predictions
   d <- list.dirs(file.path(d_rslt, "Algorithm"), recursive = FALSE, full.names = TRUE)
   d <- sapply(d, function(x) length(list.files(x, pattern = '.tif')))
   expect_true(all(d==5) == TRUE)
+
+  #Check if PCA folder was correctly created
+  expect_true(any(grepl("PCA",list.files(d_env)) == TRUE))
+
+  #Check if future predictions are correct
+  f <- list.dirs(file.path(d_rslt, "Projection"), recursive = FALSE, full.names = TRUE)
+  f_alg <- sapply(f, function(x) length(list.files(x)))
+  expect_true(all(f_alg==12) == TRUE)
+  fs <- sapply(f, function(x) list.files(x,full.names = T))
+  fs <- sapply(fs, function(x) list.files(x,pattern = '.tif'))
+  expect_true(all(sapply(fs, function(x) length(x==5)) == TRUE))
+
+  #Check if masks and blocks were created for all species
+  m <- length(list.files(file.path(d_rslt, "Extent_Masks")))
+  expect_true(m==5)
+
+  b <- length(list.files(file.path(d_rslt, "BLOCK"),pattern = ".tif$"))
+  expect_true(b==5)
 })
-
-# Daqui para baixo podemos criar outros test
-
-
-# Ao final de todo  escrevi esse código para eliminar as saidas dos testes. Caso contrário temos que estar apagando na mão o tempo todo
-unlink(d_ex, recursive = TRUE)

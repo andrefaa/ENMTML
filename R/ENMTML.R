@@ -568,7 +568,7 @@ ENMTML <- function(pred_dir,
       envT <- usdm::exclude(envT, VF)
       if (!is.null(proj_dir)) {
         RasM <- colMeans(stats::na.omit(values(envT)))
-        RasSTD <- apply(stats::na.omit(values(envT)), 2, pracma::std())
+        RasSTD <- apply(stats::na.omit(values(envT)), 2, stats::sd)
       }
       envT <- raster::scale(envT)
 
@@ -591,11 +591,12 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
           }
-
-          EnvF[[i]] <- EnvF[[names(envT)]]
+          EnvF[[i]] <- synchroniseNA(EnvF[[i]])
+          EnvF[[i]] <- raster::subset(EnvF[[i]],subset=names(envT))
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
       }
+      names(EnvF) <- PfolN
     }
 
     #3.1.2.PCA----
@@ -622,7 +623,7 @@ ENMTML <- function(pred_dir,
       envT <- envT[[names(envT)[!apply(corr_matrix,2,function(x) any(x > 0.70))]]]
       if(!is.null(proj_dir)){
         RasM <- colMeans(stats::na.omit(values(envT)))
-        RasSTD <- apply(stats::na.omit(values(envT)),2,pracma::std())
+        RasSTD <- apply(stats::na.omit(values(envT)),2,stats::sd)
       }
       envT <- raster::scale(envT)
 
@@ -648,11 +649,12 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
           }
-
-          EnvF[[i]] <- EnvF[[names(envT)]]
+          EnvF[[i]] <- synchroniseNA(EnvF[[i]])
+          EnvF[[i]] <- raster::subset(EnvF[[i]],subset=names(envT))
           EnvF[[i]] <- (EnvF[[i]]-RasM)/RasSTD
         }
       }
+      names(EnvF) <- PfolN
     }
   }else{
   #3.3.4.colin_var = NULL ----
@@ -1238,10 +1240,10 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
-            pseudo.mask <- inv_bio(envT, occTR[[i]][,c("x","y")])
+            pseudo.mask <- inv_bio(envT, occ_xy[[i]][,c("x","y")])
 
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
@@ -1323,11 +1325,11 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
 
-            pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
+            pseudo.mask <- inv_geo(e=envT, p=occ_xy[[i]][,c("x","y")], d=Geo_Buf)
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
           }else{
@@ -1407,12 +1409,12 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
 
-            pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-            pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
+            pseudo.mask <- inv_geo(e=envT, p=occ_xy[[i]][,c("x","y")], d=Geo_Buf)
+            pseudo.mask1 <- inv_bio(envT, occ_xy[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
@@ -1492,12 +1494,12 @@ ENMTML <- function(pred_dir,
         absencesTR <- list()
         absencesTS <- list()
 
-        for (i in 1:length(occTR)) {
+        for (i in 1:length(occ_xy)) {
           set.seed(i)
           if(EnvMsk=="N"){
 
-            pseudo.mask <- inv_geo(e=envT, p=occTR[[i]][,c("x","y")], d=Geo_Buf)
-            pseudo.mask1 <- inv_bio(envT, occTR[[i]][,c("x","y")])
+            pseudo.mask <- inv_geo(e=envT, p=occ_xy[[i]][,c("x","y")], d=Geo_Buf)
+            pseudo.mask1 <- inv_bio(envT, occ_xy[[i]][,c("x","y")])
             pseudo.mask <- pseudo.mask*pseudo.mask1
             raster::writeRaster(pseudo.mask,paste(DirCons,spN[i],sep="/"),format="GTiff",overwrite=T)
 
