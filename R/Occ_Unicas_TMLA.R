@@ -9,7 +9,7 @@ Occ_Unicas_TMLA <- function(env,
   occ.v <- lapply(occ.v, function(x)
     stats::na.omit(x))
   occ.v <- lapply(occ.v, function(x)
-    x <- x[!duplicated(x$cells), -3])
+     x[!duplicated(x$cells), ])
   uni <-
     data.frame(Species = spN,
                UniqueOcc = sapply(occ.v, function(x)
