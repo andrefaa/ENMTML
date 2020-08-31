@@ -672,6 +672,7 @@ ENMTML <- function(pred_dir,
             raster::brick(raster::stack(file.path(
               Pfol[i], list.files(Pfol[i], pattern = paste0('\\.', ProjT, '$'))
             )))
+          EnvF[[i]] <- synchroniseNA(EnvF[[i]])
         }
         if (ProjT == 'txt') {
           ProjTT <-
@@ -679,6 +680,7 @@ ENMTML <- function(pred_dir,
                                    T))
           sp::gridded(ProjTT) <- ~ x + y
           EnvF[[i]] <- raster::brick(raster::stack(ProjTT))
+          EnvF[[i]] <- synchroniseNA(EnvF[[i]])
           rm(ProjTT)
         }
       }
