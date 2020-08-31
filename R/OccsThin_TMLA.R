@@ -13,26 +13,33 @@ OccsThin <- function(occ,
   #VarColin: Method chosen to deal with Variables Colinearity
   #DirR: Directory to save TXT with thinned occuurences
   
-  #Convert from decimals to km
+  #Species names
   spN <- names(occ)
-  occDF <-
-    lapply(occ, function(x)
-      cbind(lat2grd(x[, 1:2]), x[, 4]))
   
   if (ThinMethod == "MORAN") {
+    
     #1.Defined by variogram----
     #Check if there is a PC
     if (!is.null(VarColin)) {
       if (VarColin != "PCA" && names(envT)[1] != "PC1") {
-        pc1 <- PCA_env_TMLA(env = envT, Dir = pred_dir)[[1]]
+        pc1 <- RStoolbox::rasterPCA(envT, spca = T,nComp = 1)$map
       } else{
         pc1 <- envT[[1]]
       }
     }else{
       if (names(envT)[1] != "PC1") {
-        pc1 <- PCA_env_TMLA(env = envT, Dir = pred_dir)[[1]]
+        pc1 <- RStoolbox::rasterPCA(envT, spca = T,nComp = 1)$map
       }
     }
+    
+    #Extract occurrence PC1 values
+    occDF <- lapply(occ, function(x)
+      cbind(x[, 1:2], raster::extract(pc1,x[, 1:2])))
+    
+    #Convert from decimals to km
+    occDF <-
+      lapply(occDF, function(x)
+        cbind(lat2grd(x[, 1:2]), x[, 3]))
     
     #Optimal distance for each species
     # ocsD <- lapply(occDF, function(x)
@@ -130,7 +137,7 @@ OccsThin <- function(occ,
     # distance <- as.integer(readLines(n=1))
     
     #Data Frame for thining
-    occDF <- plyr::ldply(occDF, data.frame)
+    occDF <- plyr::ldply(occ, data.frame)
     
     #Thinning
     occPOS <- vector("list", length = length(occ))
@@ -179,13 +186,13 @@ OccsThin <- function(occ,
     #3.Based on cellsize----
     #Haversine Transformation
     distance <-
-      raster::xyFromCell(envT[[1]], 1:raster::ncell(envT[[1]]))
+      raster::xyFromCell(envT[[1]], 1:2)
     df <-
       data.frame(x = c(distance[1, c(2, 1)]), y = c(distance[2, c(2, 1)]))
-    distance <- pracma::haversine(df$x, df$y) * 2
+    distance <- raster::pointDistance(df$x, df$y, lonlat=TRUE)/1000 * 2
     
     #Data Frame for thining
-    occDF <- plyr::ldply(occDF, data.frame)
+    occDF <- plyr::ldply(occ, data.frame)
     
     #Thinning
     occPOS <- vector("list", length = length(occ))
