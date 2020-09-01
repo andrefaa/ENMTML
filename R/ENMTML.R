@@ -860,16 +860,6 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(!is.null(colin_var)){
-          if(colin_var['method']!="PCA"){
-            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
-          }else{
-            envTT<-envT
-          }
-        }else{
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
-        }
-
 
         bands <- as.integer(part['type'])
         TipoMoran <- "all"
@@ -882,7 +872,7 @@ ENMTML <- function(pred_dir,
         }
         occINPUT <-
           BandsPartition_TMLA(
-            evnVariables = envTT,
+            evnVariables = envT,
             RecordsData = occ_xy,
             N = bands,
             pseudoabsencesMethod = pseudoabs_method['method'],
@@ -896,10 +886,10 @@ ENMTML <- function(pred_dir,
           )
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
-        rm(envTT)
       }
-
     }
+
+    
     if(part['method']=="BLOCK"){
       #6.2.Block----
 
@@ -917,15 +907,6 @@ ENMTML <- function(pred_dir,
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
       }else{
-        if(!is.null(colin_var)){
-          if(colin_var['method']!="PCA"){
-            envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
-          }else{
-            envTT<-envT
-          }
-        }else{
-          envTT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
-        }
 
         TipoMoran <- "all"
 
@@ -938,7 +919,7 @@ ENMTML <- function(pred_dir,
 
         occINPUT <-
           BlockPartition_TMLA(
-            evnVariables = envTT,
+            evnVariables = envT,
             RecordsData = occ_xy,
             N = 2,
             pseudoabsencesMethod = pseudoabs_method['method'],
@@ -953,7 +934,6 @@ ENMTML <- function(pred_dir,
 
         occINPUT[,4] <- as.numeric(occINPUT[,4])
         occINPUT[,5] <- as.numeric(occINPUT[,5])
-        rm(envTT)
       }
     }
 

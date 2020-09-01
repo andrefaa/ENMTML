@@ -207,6 +207,24 @@ KM <- function(cell_coord, variable, NumAbsence) {
   return(abse)
 }
 
+
+
+KM_BLOCK <- function(cell_coord, variable, NumAbsence) {
+  # cell_env = cell environmental data
+  # variable = a stack raster with variables
+  # NumAbsence = number of centroids sellected as absences
+  # This function will be return a list whith the centroids sellected
+  # for the clusters
+  var <- raster::extract(variable, cell_coord)
+  Km <- stats::kmeans(cbind(cell_coord, var), centers = NumAbsence)
+  return(list(
+    Centroids = Km$centers[, 1:2],
+    Clusters = Km$cluster
+  ))
+  
+  
+}
+
 # Inverse bioclim
 inv_bio <- function(e, p) {
   Model <- dismo::bioclim(e, p)

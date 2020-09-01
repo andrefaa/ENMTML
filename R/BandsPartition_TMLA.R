@@ -15,55 +15,6 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
   #evnVariables: Predictors
   #RecordsData: Occurrence List
   #N: Longitudinal(1) or Latitudinal(2) bands
-  KM <- function(cell_coord, variable, NumAbsence) {
-    # cell_env = cell environmental data
-    # variable = a stack raster with variables
-    # NumAbsence = number of centroids sellected as absences
-    # This function will be return a list whith the centroids sellected
-    # for the clusters
-    var <- raster::extract(variable, cell_coord)
-    Km <- stats::kmeans(cbind(cell_coord, var), centers = NumAbsence)
-    ppa2 <- (list(
-      Centroids = Km$centers[, 1:2],
-      Clusters = Km$cluster
-    ))
-
-    abse <- ppa2$Centroids
-    colnames(abse) <- c("lon", "lat")
-
-    ppaNA <- raster::extract(variable[[1]], abse)
-
-    if (sum(is.na(ppaNA)) != 0) {
-      ppaNA1 <- which(is.na(ppaNA))
-      # Wich pseudo absence is a environmental NA
-      ppaNA2 <-
-        data.frame(cbind(ppa2$Clusters, raster::rasterToPoints(variable[[1]])[, -3]),
-                   stringsAsFactors = F)
-      ppa.clustres <- split(ppaNA2[, 2:3], ppaNA2[, 1])
-      ppa.clustres <- ppa.clustres[ppaNA1]
-      nearest.point <- list()
-
-      if (length(ppaNA1) < 2) {
-        error <- matrix(abse[ppaNA1, ], 1)
-        colnames(error) <- colnames(abse)
-      } else{
-        error <- abse[ppaNA1, ]
-      }
-
-      nearest.point <- list()
-      for (eee in 1:length(ppaNA1)) {
-        x <-
-          flexclust::dist2(ppa.clustres[[eee]], error, method = "euclidean", p = 2)
-        x <- data.frame(x, stringsAsFactors = F)
-        nearest.point[[eee]] <-
-          data.frame(ppa.clustres[[eee]][which.min(x[, eee]), ], stringsAsFactors = F)
-      }
-      nearest.point <- t(matrix(unlist(nearest.point), 2))
-      abse[ppaNA1, ] <- nearest.point
-    }
-    return(abse)
-  }
-
 
   #Development
   #Start Cluster
@@ -97,9 +48,10 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
   results <- foreach(
     x = 1:length(RecordsData),
     .packages = c("raster", "ape", "dismo", "plyr"),
-    .export = c("Moran_for_Quadrants_Pair_TMLA")
+    .export = c("Moran_for_Quadrants_Pair_TMLA","MESS","inv_bio","inv_geo",
+                "KM","OptimRandomPoints")
   ) %dopar% {
-    # for(x in 1:length(RecordsData)){
+
     opt <- NULL
     print(names(RecordsData)[x])
     RecordsData.s <- RecordsData[[x]]
@@ -126,10 +78,11 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       colnames(RecordsData.st) <- c("x", "y", "Seg", "Partition")
 
       #Moran's I----
+      pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T,nComp = 1)$map
       Moran <-
         Moran_for_Quadrants_Pair_TMLA(
           occ = RecordsData.st,
-          pc1 = evnVariables[[1]],
+          pc1 = pc1,
           quad = quad,
           type = type
         )
@@ -259,7 +212,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
     }
 
     RecordsData.s <-
-      cbind(RecordsData.s, ifelse((RecordsData.s$Seg / 2) %% 1, 1, 2))
+      cbind(RecordsData.s, ifelse((RecordsData.s$Seg / 2) %% 1, 2, 1))
     RecordsData.s <-
       cbind(rep(names(RecordsData)[x], nrow(RecordsData.s)), RecordsData.s)
     colnames(RecordsData.s) <- c("sp", "x", "y", "Seg", "Partition")
@@ -316,13 +269,16 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
             )
           }
         }
-        absences.0 <-
-          dismo::randomPoints(
-            pseudo.mask[[i]],
-            (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
-            ext = extent(pseudo.mask[[i]]),
-            prob = FALSE
-          )
+        # absences.0 <-
+        #   dismo::randomPoints(
+        #     pseudo.mask[[i]],
+        #     (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
+        #     ext = extent(pseudo.mask[[i]]),
+        #     prob = FALSE
+        #   )
+        
+        absences.0 <- OptimRandomPoints(r=pseudo.mask[[i]], n=(1 / PrAbRatio)*sum(RecordsData.s[, "Partition"] == i),p=RecordsData.s[RecordsData.s[,"Partition"]==i, 2:3] )
+        
         colnames(absences.0) <- c(x, y)
         absences[[i]] <-
           data.frame(absences.0, stringsAsFactors = F)
@@ -337,7 +293,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       absences <-
         lapply(absences, function(y)
           cbind(rep(names(RecordsData)[x], nrow(y)), y))
-      absences <- ldply(absences, data.frame)
+      absences <- plyr::ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
 
@@ -377,13 +333,17 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
             )
           }
         }
-        absences.0 <-
-          dismo::randomPoints(
-            pseudo.mask[[i]],
-            (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
-            ext = raster::extent(pseudo.mask[[i]]),
-            prob = FALSE
-          )
+        # absences.0 <-
+        #   dismo::randomPoints(
+        #     pseudo.mask[[i]],
+        #     (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
+        #     ext = raster::extent(pseudo.mask[[i]]),
+        #     prob = FALSE
+        #   )
+        
+        absences.0 <- OptimRandomPoints(r=pseudo.mask[[i]], n=(1 / PrAbRatio)*sum(RecordsData.s[, "Partition"] == i),p=RecordsData.s[RecordsData.s[,"Partition"]==i, 2:3] )
+        
+        
         colnames(absences.0) <- c(x, y)
         absences[[i]] <-
           data.frame(absences.0, stringsAsFactors = F)
@@ -398,7 +358,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       absences <-
         lapply(absences, function(y)
           cbind(rep(names(RecordsData)[x], nrow(y)), y))
-      absences <- ldply(absences, data.frame)
+      absences <- plyr::ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
 
@@ -438,13 +398,15 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
             )
           }
         }
-        absences.0 <-
-          dismo::randomPoints(
-            pseudo.mask[[i]],
-            (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
-            ext = extent(pseudo.mask[[i]]),
-            prob = FALSE
-          )
+        # absences.0 <-
+        #   dismo::randomPoints(
+        #     pseudo.mask[[i]],
+        #     (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
+        #     ext = extent(pseudo.mask[[i]]),
+        #     prob = FALSE
+        #   )
+        absences.0 <- OptimRandomPoints(r=pseudo.mask[[i]], n=(1 / PrAbRatio)*sum(RecordsData.s[, "Partition"] == i),p=RecordsData.s[RecordsData.s[,"Partition"]==i, 2:3] )
+        
         colnames(absences.0) <- c(x, y)
         absences[[i]] <-
           data.frame(absences.0, stringsAsFactors = F)
@@ -459,7 +421,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       absences <-
         lapply(absences, function(y)
           cbind(rep(names(RecordsData)[x], nrow(y)), y))
-      absences <- ldply(absences, data.frame)
+      absences <- plyr::ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
 
@@ -502,13 +464,15 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
             )
           }
         }
-        absences.0 <-
-          dismo::randomPoints(
-            pseudo.mask[[i]],
-            (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
-            ext = extent(pseudo.mask[[i]]),
-            prob = FALSE
-          )
+        # absences.0 <-
+        #   dismo::randomPoints(
+        #     pseudo.mask[[i]],
+        #     (1 / PrAbRatio) * sum(RecordsData.s[, "Partition"] == i),
+        #     ext = extent(pseudo.mask[[i]]),
+        #     prob = FALSE
+        #   )
+        absences.0 <- OptimRandomPoints(r=pseudo.mask[[i]], n=(1 / PrAbRatio)*sum(RecordsData.s[, "Partition"] == i),p=RecordsData.s[RecordsData.s[,"Partition"]==i, 2:3] )
+        
         colnames(absences.0) <- c(x, y)
         absences[[i]] <-
           data.frame(absences.0, stringsAsFactors = F)
@@ -523,7 +487,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       absences <-
         lapply(absences, function(y)
           cbind(rep(names(RecordsData)[x], nrow(y)), y))
-      absences <- ldply(absences, data.frame)
+      absences <- plyr::ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
 
@@ -592,7 +556,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       absences <-
         lapply(absences, function(y)
           cbind(rep(names(RecordsData)[x], nrow(y)), y))
-      absences <- ldply(absences, data.frame)
+      absences <- plyr::ldply(absences, data.frame)
       colnames(absences) <- colnames(RecordsData.s)
     }
 
