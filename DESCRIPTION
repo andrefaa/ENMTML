@@ -22,14 +22,13 @@ Depends: R (>= 3.5.0)
 Imports: ade4, adehabitatHS, caret, dismo,  
          flexclust, foreach, gbm, glmnet, igraph, kernlab, 
          maxlike, maxnet, methods, mgcv, parallel, pgirmess, doParallel, dplyr, plyr, 
-         pracma, randomForest, 
-         raster, rgdal, rgeos, RStoolbox, sp, 
+         randomForest, raster, rgdal, rgeos, RStoolbox, sp, 
          spThin, tools, usdm
 URL: https://github.com/andrefaa/ENMTML
 BugReports: https://github.com/andrefaa/ENMTML/issues
 Encoding: UTF-8
 Language: en
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Suggests: 
     testthat
