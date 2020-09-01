@@ -22,25 +22,6 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   # evnVariables: Raster object. Variable set to be used in pseusoabsences
   # cellSize: numeric vector. a vector of values with different cell grid sizes
 
-
-
-  KM <- function(cell_coord, variable, NumAbsence) {
-    # cell_env = cell environmental data
-    # variable = a stack raster with variables
-    # NumAbsence = number of centroids sellected as absences
-    # This function will be return a list whith the centroids sellected
-    # for the clusters
-    var <- raster::extract(variable, cell_coord)
-    Km <- stats::kmeans(cbind(cell_coord, var), centers = NumAbsence)
-    return(list(
-      Centroids = Km$centers[, 1:2],
-      Clusters = Km$cluster
-    ))
-
-
-  }
-
-
   #Cellsize
   cellSize = seq(0.5, 10, by = .5)
 
@@ -76,9 +57,9 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
     foreach(
       s = 1:length(RecordsData),
       .packages = c("raster", "ape", "dismo"),
-      .export = c("inv_bio","MESS")
+      .export = c("inv_bio","MESS","inv_geo","KM_BLOCK","OptimRandomPoints")
     ) %dopar% {
-      # for(s in 1:length(RecordsData)){
+
       print(paste(s, SpNames[s]))
       # Extract coordinates----
       presences <- RecordsData[[s]]
@@ -184,6 +165,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       }
 
       # Imoran-----
+      pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T,nComp = 1)$map
       Imoran.Grid.P <- rep(NA, length(grid))
       for (p in 1:length(grid)) {
         part3 <- part2[[p]]
@@ -235,7 +217,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
             }
           }
 
-          euclida <- ldply(mineucli, data.frame)
+          euclida <- plyr::ldply(mineucli, data.frame)
           euclida$A <- as.character(euclida$A)
           euclida$B <- as.character(euclida$B)
           species2 <- presences[c(euclida$A, euclida$B), ]
@@ -260,7 +242,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
             dist[, i] <- ifelse(dist[, i] == mins[i], mins[i], 0)
           }
           species2 <-
-            cbind(presences, pc1 = raster::extract(evnVariables[[1]], presences))
+            cbind(presences, pc1 = raster::extract(pc1, presences))
         }
 
         if (nrow(species2) < 3) {
@@ -345,14 +327,19 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       #
       pseudo.mask <- raster::brick(pseudo.mask2)
       # rm(pseudo.mask2)
+            
+      ##%######################################################%##
       #                                                          #
-      #              Pseudoabsences allocation-                  ####
+      ####             Pseudoabsences allocation              ####
       #                                                          #
+      ##%######################################################%##
+
 
       # Pseudo-Absences with Random allocation-----
       if (pseudoabsencesMethod == "RND") {
         pseudo.mask_p <- pseudo.mask
         pseudo.mask <- sum(pseudo.mask_p)
+        pseudo.mask_p[pseudo.mask_p==0] <- NA
 
         raster::writeRaster(
           pseudo.mask,
@@ -374,14 +361,16 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
             # stop("Please try again with another restriction type or without restricting the extent")
             # }
           }
-          absences.0 <-
-            dismo::randomPoints(
-              pseudo.mask_p[[i]],
-              (1 / PrAbRatio) * sum(presences[, 1] == i),
-              ext = e,
-              prob = FALSE
-            )
-          colnames(absences.0) <- c("x", "y")
+          # absences.0 <-
+          #   dismo::randomPoints(
+          #     pseudo.mask_p[[i]],
+          #     (1 / PrAbRatio) * sum(presences[, 1] == i),
+          #     ext = e,
+          #     prob = FALSE
+          #   )
+          
+          absences.0 <- OptimRandomPoints(r=pseudo.mask_p[[i]], n=(1 / PrAbRatio)*sum((presences[, 1] == i)),p=presences[presences[, 1] == i, 2:3] )
+          colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
         }
         names(absences) <- 1:N
@@ -394,6 +383,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
+        pseudo.mask_p[pseudo.mask_p==0] <- NA
 
         raster::writeRaster(
           pseudo.mask,
@@ -419,13 +409,15 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               )
             }
           }
-          absences.0 <-
-            dismo::randomPoints(
-              pseudo.mask_p[[i]],
-              (1 / PrAbRatio) * sum(presences[, 1] == i),
-              ext = e,
-              prob = FALSE
-            )
+          # absences.0 <-
+          #   dismo::randomPoints(
+          #     pseudo.mask_p[[i]],
+          #     (1 / PrAbRatio) * sum(presences[, 1] == i),
+          #     ext = e,
+          #     prob = FALSE
+          #   )
+          absences.0 <- OptimRandomPoints(r=pseudo.mask_p[[i]], n=(1 / PrAbRatio)*sum((presences[, 1] == i)),p=presences[presences[, 1] == i, 2:3] )
+          
           colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
         }
@@ -441,6 +433,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
+        pseudo.mask_p[pseudo.mask_p==0] <- NA
 
         raster::writeRaster(
           pseudo.mask,
@@ -466,13 +459,15 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               )
             }
           }
-          absences.0 <-
-            dismo::randomPoints(
-              pseudo.mask_p[[i]],
-              (1 / PrAbRatio) * sum(presences[, 1] == i),
-              ext = e,
-              prob = FALSE
-            )
+          # absences.0 <-
+          #   dismo::randomPoints(
+          #     pseudo.mask_p[[i]],
+          #     (1 / PrAbRatio) * sum(presences[, 1] == i),
+          #     ext = e,
+          #     prob = FALSE
+          #   )
+          absences.0 <- OptimRandomPoints(r=pseudo.mask_p[[i]], n=(1 / PrAbRatio)*sum((presences[, 1] == i)),p=presences[presences[, 1] == i, 2:3] )
+          
           colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
         }
@@ -490,6 +485,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
+        pseudo.mask_p[pseudo.mask_p==0] <- NA
 
         raster::writeRaster(
           pseudo.mask,
@@ -515,10 +511,12 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               )
             }
           }
-          absences.0 <-
-            dismo::randomPoints(pseudo.mask_p[[i]],
-                                (1 / PrAbRatio) * sum(presences[, 1] == i),
-                                prob = FALSE)
+          # absences.0 <-
+          #   dismo::randomPoints(pseudo.mask_p[[i]],
+          #                       (1 / PrAbRatio) * sum(presences[, 1] == i),
+          #                       prob = FALSE)
+
+          absences.0 <- OptimRandomPoints(r=pseudo.mask_p[[i]], n=(1 / PrAbRatio)*sum((presences[, 1] == i)),p=presences[presences[, 1] == i, 2:3] )
           colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
         }
@@ -536,6 +534,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
+        pseudo.mask_p[pseudo.mask_p==0] <- NA
 
         raster::writeRaster(
           pseudo.mask,
@@ -562,7 +561,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           }
 
           absences.0 <-
-            KM(
+            KM_BLOCK(
               raster::rasterToPoints(pseudo.mask_p[[i]])[, -3],
               raster::mask(evnVariables, pseudo.mask_p[[i]]),
               (1 / PrAbRatio) * sum(presences[, 1] == i)
