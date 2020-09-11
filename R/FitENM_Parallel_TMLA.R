@@ -435,8 +435,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           #Save Partition Predictions
           if(Save=="Y"){
             #Partial Thresholds
+            RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
             if(N!=1){
-              RasT[["BIO"]] <- dismo::predict(Model[[i]], VariablesT)
               raster::writeRaster(RasT[["BIO"]],paste(grep("BIO",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -656,8 +656,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           pROC[[i]] <- 0
           #Save Partition Predictions
           if(Save=="Y"){
+            RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
             if(N!=1){
-              RasT[["DOM"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(
                 RasT[["DOM"]],
                 paste(grep("DOM", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
@@ -885,8 +885,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
           #Save Partition Predictions
           if(Save=="Y"){
+            RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
             if(N!=1){
-              RasT[["MAH"]] <- PREDICT_DomainMahal(mod = Model[[i]], variables = VariablesT)
               raster::writeRaster(
                 RasT[["MAH"]],
                 paste(grep("MAH", foldPart, value = T), "/", spN[s], "_", i, sep = ""),
@@ -1117,8 +1117,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           pROC[[i]] <- 0
           #Save Partition Predictions
           if(Save=="Y"){
+            RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
             if(N!=1){
-              RasT[["ENF"]] <- PREDICT_ENFA(Model[[i]],VariablesT,PAtrainM[[i]])
               raster::writeRaster(RasT[["ENF"]],paste(grep("ENF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1344,8 +1344,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
           #Save Partition Predictions
           if(Save=="Y"){
+            RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
             if(N!=1){
-              RasT[["MXD"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXD"]],paste(grep("MXD",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1568,8 +1568,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
           #Save Partition Predictions
           if(Save=="Y"){
+            RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
             if(N!=1){
-              RasT[["MXS"]] <- raster::predict(VariablesT,Model[[i]], clamp=F, type="cloglog")
               raster::writeRaster(RasT[["MXS"]],paste(grep("MXS",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -1824,8 +1824,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
             #Save Partition Predictions
             if(Save=="Y"){
+              RasT[["MLK"]] <- predict(Model[[i]])
               if(N!=1){
-                RasT[["MLK"]] <- predict(Model[[i]])
                 raster::writeRaster(RasT[["MLK"]],paste(grep("MLK",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -2087,10 +2087,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
           #Save Partition Predictions
           if(Save=="Y"){
+            FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            RasT[["SVM"]] <- VariablesT[[1]]
+            RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
             if(N!=1){
-              FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
-              RasT[["SVM"]] <- VariablesT[[1]]
-              RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
               raster::writeRaster(RasT[["SVM"]],paste(grep("SVM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -2329,8 +2329,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
           #Save Partition Predictions
           if(Save=="Y"){
+            RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
             if(N!=1){
-              RasT[["RDF"]] <- raster::predict(VariablesT,Model[[i]])
               raster::writeRaster(RasT[["RDF"]],paste(grep("RDF",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                   format='GTiff',
                                   overwrite=TRUE)
@@ -2580,8 +2580,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
             #Save Partition Predictions
             if(Save=="Y"){
+              RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
               if(N!=1){
-                RasT[["GAM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GAM"]],paste(grep("GAM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -2819,8 +2819,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
             #Save Partition Predictions
             if(Save=="Y"){
+              RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
               if(N!=1){
-                RasT[["GLM"]] <- raster::predict(VariablesT,Model[[i]],type="response")
                 raster::writeRaster(RasT[["GLM"]],paste(grep("GLM",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                     format='GTiff',
                                     overwrite=TRUE)
@@ -3048,9 +3048,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
         #Save Partition Predictions
         if(Save=="Y"){
+          RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
+                                               CI = NULL, maxn = NULL)$posterior.mode
           if(N!=1){
-            RasT[["GAU"]] <- predict.graf.raster(Model[[i]], VariablesT, type = "response",
-                                                                         CI = NULL, maxn = NULL)$posterior.mode
             raster::writeRaster(RasT[["GAU"]],paste(grep("GAU",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                 format='GTiff',
                                 overwrite=TRUE)
@@ -3318,9 +3318,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
               #Save Partition Predictions
               if(Save=="Y"){
+                RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
+                                                 n.trees=Model[[i]]$gbm.call$best.trees,type="response")
                 if(N!=1){
-                  RasT[["BRT"]] <- raster::predict(VariablesT,Model[[i]],
-                                                                   n.trees=Model[[i]]$gbm.call$best.trees,type="response")
                   raster::writeRaster(RasT[["BRT"]],paste(grep("BRT",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
                                       format='GTiff',
                                       overwrite=TRUE)
