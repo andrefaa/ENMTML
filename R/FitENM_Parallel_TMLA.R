@@ -149,7 +149,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
              var.0 <- data.frame(raster::extract(Variables,ab.0))
            }else{
              ab.0 <-
-               dismo::randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],abs(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
+               OptimRandomPoints(r=msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],n=abs(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
+             
+             # ab.0 <-
+             #   dismo::randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],abs(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
              var.0 <- data.frame(raster::extract(Variables, ab.0))
            }
            ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
@@ -199,11 +202,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           msk2[!msk[]==x] <- NA
           NCell <- sum(!is.na(msk2[]))
           if (NCell > 10000) {
-            ab.0 <- data.frame(dismo::randomPoints(msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],10000))
+            ab.0 <- data.frame(OptimRandomPoints(r=msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],n=10000))
+            # ab.0 <- data.frame(dismo::randomPoints(msk2,p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],10000))
             var.0 <- raster::extract(Variables,ab.0)
           }else{
             ab.0 <-
-              dismo::randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
+              OptimRandomPoints(r=msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],n=(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
+            
+            # ab.0 <-
+            #   dismo::randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
             var.0 <- raster::extract(Variables, ab.0)
           }
           ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
@@ -2153,7 +2160,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           if(is.null(repl) && N==1){
             Model <- kernlab::ksvm(Fmula,data = SpDataT[SpDataT$Partition==1, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
-            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=na.omit(raster::rasterToPoints(VariablesT)[,-c(1,2)]),type="probabilities"))[,2]
             FinalGrid <- Variables[[1]]
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
@@ -2166,7 +2173,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }else{
             Model <- kernlab::ksvm(Fmula,data = SpDataT[, c("PresAbse", VarColT)],type="C-svc",
                           kernel = "rbfdot",C = 1, prob.model=T)
-            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=na.omit(raster::rasterToPoints(VariablesT)[,-c(1,2)]),type="probabilities"))[,2]
             FinalGrid <- Variables[[1]]
             FinalGrid[!is.na(FinalGrid[])] <- FinalModel
             # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
@@ -2198,7 +2205,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           }
           if(is.null(Fut)==F){
             for(k in 1:length(VariablesP)){
-              FutureModel <- data.frame(kernlab::predict(object=Model,newdata=raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
+              FutureModel <- data.frame(kernlab::predict(object=Model,newdata=na.omit(raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)]),type="probabilities"))[,2]
               RasF <- VariablesP[[k]][[1]]
               RasF[!is.na(RasF[])] <- FutureModel
               ListFut[[ProjN[k]]][["SVM"]] <- STANDAR_FUT(RasF,FinalModelT)
@@ -2209,7 +2216,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         Eval <- list()
         Boyce <- list()
         for(k in 1:length(VariablesP)){
-          ProjectedModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)],type="probabilities"))[,2]
+          ProjectedModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=na.omit(raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)]),type="probabilities"))[,2]
           RasF <- VariablesP[[k]][[1]]
           RasF[!is.na(RasF[])] <- ProjectedModel
           ListFut[[ProjN[k]]][["SVM"]] <- RasF
@@ -2398,7 +2405,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             FinalModelT <- raster::predict(VariablesT,Model)
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataT[SpDataT$Partition==1, 2:3])
-            PredPoint <- data.frame(PresAbse = SpDataT[, "PresAbse"], PredPoint)
+            PredPoint <- data.frame(PresAbse = SpDataT[SpDataT$Partition==1, "PresAbse"], PredPoint)
           }else{
             # Model <- randomForest(as.factor(PresAbse)~.,data=SpDataT[,c("PresAbse",VarColT)],
             #                       importance=T, type="classification")
