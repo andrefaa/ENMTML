@@ -703,7 +703,7 @@ ENMTML <- function(pred_dir,
   if(is.null(result_dir)){
     DirR <- file.path(dirname(pred_dir),"Result")
     if (file.exists(DirR)){
-      warning("Result folder already exists,files may be overwritten!")
+      warning("Result folder already exists, files may be overwritten!")
     }else{
       dir.create(DirR)
     }
@@ -712,13 +712,13 @@ ENMTML <- function(pred_dir,
     if (!grepl('/', DirR)){
       message("Folder with results will be created at the same level of the predictors' folder")
       if (file.exists(file.path(dirname(pred_dir),DirR))){
-        message("Result folder already exists,files may be overwritten!")
+        message("Result folder already exists, files may be overwritten!")
       }
       DirR <- file.path(dirname(pred_dir),result_dir)
       dir.create(DirR)
     }else{
       if (file.exists(DirR)){
-        message("Result folder already exists,files may be overwritten!")
+        message("Result folder already exists, files may be overwritten!")
       }
       dir.create(DirR)
     }
@@ -741,7 +741,7 @@ ENMTML <- function(pred_dir,
   #4.1.Unique Occurrences----
   occA<-Occ_Unicas_TMLA(env=envT[[1]], occ.xy=occ_xy, DirO=DirR)
 
-  #4.2.Thining----
+  #4.2.Thinning----
   if(!is.null(thin_occ)){
     cat("Thinning occurrences...\n")
     if(thin_occ['method']%in%c('MORAN','CELLSIZE')){
