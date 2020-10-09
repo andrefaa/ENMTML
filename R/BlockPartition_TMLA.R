@@ -23,7 +23,8 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   # cellSize: numeric vector. a vector of values with different cell grid sizes
 
   #Cellsize
-  cellSize = seq(0.5, 10, by = .5)
+  cellSize = seq(res(evnVariables[[1]])[1]*2, 10, length.out = 30)
+  
 
   # Mask
   mask <- evnVariables[[1]]
