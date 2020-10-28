@@ -131,7 +131,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
        names(RecordsDataM) <- spN
        rm(RecordsDataMt)
 
-       ab.0 <- foreach (i= 1:length(names(RecordsDataM)),.packages=c("dismo","raster","plyr"))%dopar%{
+       ab.0 <- foreach (i= 1:length(names(RecordsDataM)),.packages=c("dismo","raster","plyr"), .export = 'OptimRandomPoints')%dopar%{
         msk <- raster(paste(DirMask,paste(spN[i],".tif",sep=""),sep="/"))
          if(Part=="BOOT"||Part=="KFOLD"){
            NM <- 1
