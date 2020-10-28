@@ -465,15 +465,24 @@ ENMTML <- function(pred_dir,
     if(!(msdm['method']%in%c('XY','MIN','CML','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
       stop("'msdm' Argument is not valid!(XY/MIN/CML/KER/OBR/LR/PRES/MCP/MCP-B)")
     }
-    if(length(msdm)==2){
-      msdm_width <- as.numeric(msdm['width'])
+    
+    if(length(msdm)>1){
+      if(any(names(msdm)=='width')){
+        msdm_width <- as.numeric(msdm['width'])
+      }else{
+        stop("More than one M-SDM method chosen: Please select a SINGLE M-SDM method")
+      }
     }else{
       msdm_width <- NULL
+    }
+    
+    if(any((msdm['method']%in%c('XY','MIN','CML','KER'))) & !is.null(proj_dir)){
+      stop("It is not yet possible to combine priori M-SDMs with Projections!\nPlease remove the priori M-SDM or set the projection argument to NULL")
     }
   }
 
   if(!is.null(sp_accessible_area)){
-    if(!(sp_accessible_area['method']%in%c('BUFFER','MASK','USER-DEFINED','KER', 'OBR', 'LR', 'PRES', 'MCP', 'MCP-B'))){
+    if(!(sp_accessible_area['method']%in%c('BUFFER','MASK','USER-DEFINED'))){
       stop("'sp_accessible_area' Argument is not valid!(BUFFER/MASK/USER-DEFINED)")
     }
     if(sp_accessible_area['method']=="USER-DEFINED"&length(sp_accessible_area)!=2){
