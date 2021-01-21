@@ -95,6 +95,9 @@ PCAFuturo <- function(Env,
       ProjT[[j]] <-
         utils::read.table(file.path(DirP[[j]], list.files(DirP[[j]], pattern = '.txt'), h =
                                T))
+      if(any(colnames(ProjT[[j]])%in%c("long","lat"))){
+        colnames(ProjT[[j]])[colnames(ProjT[[j]])%in%c("long","lat")] <- c("x","y")
+      }
       sp::gridded(ProjT[[j]]) <- ~ x + y
       ProjT[[j]] <- raster::brick(raster::stack(ProjT[[j]]))
     }
