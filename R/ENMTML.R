@@ -521,6 +521,9 @@ ENMTML <- function(pred_dir,
   }
   if(env == 'txt'){
     envT<-utils::read.table(list.files(pred_dir,pattern='\\.txt$',full.names = T),h=T)
+    if(any(colnames(envT)%in%c("long","lat"))){
+      colnames(envT)[colnames(envT)%in%c("long","lat")] <- c("x","y")
+    }
     sp::gridded(envT)<- ~x+y
     envT<-raster::stack(envT)
     try(envT <- raster::brick(envT))
