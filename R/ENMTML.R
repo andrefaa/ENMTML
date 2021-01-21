@@ -600,7 +600,10 @@ ENMTML <- function(pred_dir,
             EnvF[[i]]<-raster::brick(raster::stack(file.path(Pfol[i],list.files(Pfol[i],pattern=paste0('\\.',ProjT,'$')))))
           }
           if(ProjT == 'txt'){
-            ProjTT<-utils::read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
+            ProjTT<-utils::read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$')),h=T)
+            if(any(colnames(ProjTT)%in%c("long","lat"))){
+              colnames(ProjTT)[colnames(ProjTT)%in%c("long","lat")] <- c("x","y")
+            }
             sp::gridded(ProjTT)<- ~x+y
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
@@ -658,7 +661,10 @@ ENMTML <- function(pred_dir,
               )))
           }
           if(ProjT == 'txt'){
-            ProjTT<-utils::read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$'),h=T))
+            ProjTT<-utils::read.table(file.path(Pfol[i],list.files(Pfol[i],pattern='\\.txt$')),h=T)
+            if(any(colnames(ProjTT)%in%c("long","lat"))){
+              colnames(ProjTT)[colnames(ProjTT)%in%c("long","lat")] <- c("x","y")
+            }
             sp::gridded(ProjTT)<- ~x+y
             EnvF[[i]]<-raster::brick(raster::stack(ProjTT))
             rm(ProjTT)
@@ -690,8 +696,10 @@ ENMTML <- function(pred_dir,
         }
         if (ProjT == 'txt') {
           ProjTT <-
-            utils::read.table(file.path(Pfol[i], list.files(Pfol[i], pattern = '\\.txt$'), h =
-                                   T))
+            utils::read.table(file.path(Pfol[i], list.files(Pfol[i], pattern = '\\.txt$')),h = T)
+          if(any(colnames(ProjTT)%in%c("long","lat"))){
+            colnames(ProjTT)[colnames(ProjTT)%in%c("long","lat")] <- c("x","y")
+          }
           sp::gridded(ProjTT) <- ~ x + y
           EnvF[[i]] <- raster::brick(raster::stack(ProjTT))
           EnvF[[i]] <- synchroniseNA(EnvF[[i]])
