@@ -562,7 +562,11 @@ ENMTML <- function(pred_dir,
       ProjT <- unique(tools::file_ext(list.files(Pfol[[i]])))
       form <- c('bil','asc','txt','tif')
       ProjT <- ProjT[ProjT%in%form]
-      FutN[[i]] <- tools::file_path_sans_ext(list.files(Pfol[[i]],pattern=ProjT))
+      if(ProjT=="txt"){
+        FutN[[i]] <- colnames(read.table(list.files(Pfol[[i]],pattern=ProjT,full.names = T),sep="\t",h=T))[-c(1,2)]
+      }else{
+        FutN[[i]] <- tools::file_path_sans_ext(list.files(Pfol[[i]],pattern=ProjT))
+      }
     }
     if(any(unlist(lapply(FutN, function(x) (names(envT)!=x))))){
       stop("Present/Future Variables Do Not Match! Make sure Present/Future Variables have the same names")
