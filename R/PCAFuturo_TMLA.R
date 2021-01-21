@@ -93,8 +93,7 @@ PCAFuturo <- function(Env,
     ProjT <- list()
     for (j in DirP) {
       ProjT[[j]] <-
-        utils::read.table(file.path(DirP[[j]], list.files(DirP[[j]], pattern = '.txt'), h =
-                               T))
+        utils::read.table(file.path(DirP[[j]], list.files(DirP[[j]], pattern = '.txt')), h = T)
       if(any(colnames(ProjT[[j]])%in%c("long","lat"))){
         colnames(ProjT[[j]])[colnames(ProjT[[j]])%in%c("long","lat")] <- c("x","y")
       }
