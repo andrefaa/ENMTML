@@ -42,7 +42,7 @@ PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
     cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
     res <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
     return(res)
-  }else if(class(prediction_dataset)=="RasterBrick"){
+  }else if(class(prediction_dataset)=="RasterBrick" || class(prediction_dataset)=="RasterStack"){
     PredRas <- raster::values(prediction_dataset)
     POS <- which(is.na(PredRas[,1]))
     Zli <- as.matrix(stats::na.omit(raster::values(prediction_dataset)) %*% as.matrix(mod$co))
