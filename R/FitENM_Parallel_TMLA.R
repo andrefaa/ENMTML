@@ -2275,6 +2275,249 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
       }
     }
+    
+    #SUPPORT VECTOR MACHINE-BACKGROUND (SVM-B)-----
+    if (any(Algorithm == "SVM-B")) {
+      Model <- list()
+      Fmula <- stats::formula(paste("PresAbse", '~ .'))
+      
+      #SVM model
+      for (i in 1:N) {
+        dataPr <- PAtrainM[[i]][, c("PresAbse", VarColT)]
+        set.seed(0)
+        Model[[i]] <- kernlab::ksvm(Fmula,data = dataPr,type="C-svc",kernel = "rbfdot",C = 1, prob.model=T)
+      }
+      
+      #SVM evaluation
+      if((is.null(Fut)==F && !is.null(Tst))==F){
+        Eval <- list()
+        Eval_JS <- list()
+        Boyce <- list()
+        pROC <- list()
+        Area <- list()
+        for (i in 1:N) {
+          RastPart[["SVM-B"]][[i]] <- as.numeric(kernlab::predict(object=Model[[i]], newdata=PAtestM[[i]][, VarColT],type="probabilities")[,2])
+          PredPoint <- data.frame(PresAbse = PAtestM[[i]][, "PresAbse"], RastPart[["SVM-B"]][[i]])
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
+          Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
+          Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(RastPart[["SVM-B"]][[i]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          # #Percentae of Predicted Area
+          # FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+          # RasT[["SVM"]] <- VariablesT[[1]]
+          # RasT[["SVM"]][!is.na(RasT[["SVM"]][])] <- FinalModel
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- RasT[["SVM"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          #
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=RasT[["SVM"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
+          
+          #Save Partition Predictions
+          if(Save=="Y"){
+            FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+            RasT[["SVM-B"]] <- VariablesT[[1]]
+            RasT[["SVM-B"]][!is.na(RasT[["SVM-B"]][])] <- FinalModel
+            if(N!=1){
+              raster::writeRaster(RasT[["SVM-B"]],paste(grep("SVM-B",foldPart,value=T),"/",spN[s],"_",i,".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
+              foldCatAlg <- grep(pattern="SVM-B",x=PartCat,value=T)
+              for(t in 1:length(Thr_Alg)){
+                raster::writeRaster(RasT[["SVM-B"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
+              }
+            }
+            if(is.null(repl)==F){
+              raster::writeRaster(RasT[["SVM-B"]],paste(grep("SVM-B",foldPart,value=T),"/",spN[s],"_",repl,".tif", sep=""),format='GTiff',overwrite=TRUE)
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
+              foldCatAlg <- grep(pattern="SVM-B",x=PartCat,value=T)
+              for(t in 1:length(Thr_Alg)){
+                raster::writeRaster(RasT[["SVM-B"]]>=Thr_Alg[t],
+                                    paste(foldCatAlg[t], '/',spN[s],"_",i,".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
+              }
+            }else{
+              FinalModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=raster::rasterToPoints(VariablesT)[,-c(1,2)],type="probabilities"))[,2]
+              RasT[["SVM-B"]] <- VariablesT[[1]]
+              RasT[["SVM-B"]][!is.na(RasT[["SVM-B"]][])] <- FinalModel
+              raster::writeRaster(RasT[["SVM-B"]],paste(grep("SVM-B",foldPart,value=T),"/",spN[s],".tif", sep=""),
+                                  format='GTiff',
+                                  overwrite=TRUE)
+              Thr_Alg <- Thr2[Thr2$THR%in%Threshold,2]
+              foldCatAlg <- grep(pattern="SVM-B",x=PartCat,value=T)
+              for(t in 1:length(Thr_Alg)){
+                raster::writeRaster(RasT[["SVM-B"]]>=Thr_Alg[t],
+                                    paste(grep("SVM-B",foldCatAlg[t],value=T), '/',spN[s],".tif", sep=""),
+                                    format='GTiff',
+                                    overwrite=TRUE)
+              }
+            }
+          }
+        }
+        
+        #SVM Validation
+        pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+        pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+        pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+        pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+        BoyceSD <- stats::sd(unlist(Boyce))
+        Boyce <- mean(unlist(Boyce))
+        AreaSD <- apply(do.call("rbind",Area),2,sd)
+        Area <- colMeans(do.call("rbind",Area))
+        Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+        if(is.null(repl)){
+          ListValidation[["SVM-B"]] <- data.frame(Sp=spN[s], Algorithm="SVM-B",Partition=Part, Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }else{
+          ListValidation[["SVM-B"]] <- data.frame(Sp=spN[s],Replicate=repl,Algorithm="SVM-B",Partition=Part,Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+        }
+        
+        # Save final model
+        if(repl==1 || is.null(repl)){
+          if(is.null(repl) && N==1){
+            Model <- kernlab::ksvm(Fmula,data = SpDataTM[SpDataTM$Partition==1, c("PresAbse", VarColT)],type="C-svc",
+                                   kernel = "rbfdot",C = 1, prob.model=T)
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=na.omit(raster::rasterToPoints(VariablesT)[,-c(1,2)]),type="probabilities"))[,2]
+            FinalGrid <- Variables[[1]]
+            FinalGrid[!is.na(FinalGrid[])] <- FinalModel
+            # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
+            # sp::gridded(FinalModel) <- ~ x+y
+            # FinalModel <- (raster(FinalModel))
+            FinalModelT <- FinalGrid
+            FinalModel <- STANDAR(FinalModelT)
+            PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
+          }else{
+            Model <- kernlab::ksvm(Fmula,data = SpDataTM[, c("PresAbse", VarColT)],type="C-svc",
+                                   kernel = "rbfdot",C = 1, prob.model=T)
+            FinalModel <- data.frame(kernlab::predict(object=Model,newdata=na.omit(raster::rasterToPoints(VariablesT)[,-c(1,2)]),type="probabilities"))[,2]
+            FinalGrid <- Variables[[1]]
+            FinalGrid[!is.na(FinalGrid[])] <- FinalModel
+            # FinalModel <- data.frame(cbind(rasterToPoints(VariablesT)[,1:2],FinalModel))
+            # sp::gridded(FinalModel) <- ~ x+y
+            FinalModelT <- FinalGrid
+            FinalModel <- STANDAR(FinalModelT)
+            PredPoint <- raster::extract(FinalModel,SpDataTM[, 2:3])
+            PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
+          }
+          Eval <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                  PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS <- Eval_Jac_Sor_TMLA(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2])
+          #Final Thresholds
+          Thr <- Thresholds_TMLA(Eval,Eval_JS,sensV)
+          
+          #Variable Importance & Response Curves
+          if(VarImp==TRUE){
+            VarImp_RspCurv(Model=Model,Algorithm='SVM-B',folders=folders,spN=spN[s],SpDataTM = SpDataTM,
+                           VarColT=VarColT,Outcome=PredPoint$PredPoint)
+          }
+          
+          #Final Model Rasters
+          ListSummary[["SVM-B"]] <- data.frame(Sp=spN[s], Algorithm="SVM-B", Thr)
+          
+          if(SaveFinal=="Y"){
+            ListRaster[["SVM-B"]] <- FinalModel
+            names(ListRaster[["SVM-B"]]) <- spN[s]
+          }
+          if(is.null(Fut)==F){
+            for(k in 1:length(VariablesP)){
+              FutureModel <- data.frame(kernlab::predict(object=Model,newdata=na.omit(raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)]),type="probabilities"))[,2]
+              RasF <- VariablesP[[k]][[1]]
+              RasF[!is.na(RasF[])] <- FutureModel
+              ListFut[[ProjN[k]]][["SVM-B"]] <- STANDAR_FUT(RasF,FinalModelT)
+            }
+          }
+        }
+      }else{
+        Eval <- list()
+        Boyce <- list()
+        for(k in 1:length(VariablesP)){
+          ProjectedModel <- data.frame(kernlab::predict(object=Model[[i]],newdata=na.omit(raster::rasterToPoints(VariablesP[[k]])[,-c(1,2)]),type="probabilities"))[,2]
+          RasF <- VariablesP[[k]][[1]]
+          RasF[!is.na(RasF[])] <- ProjectedModel
+          ListFut[[ProjN[k]]][["SVM-B"]] <- RasF
+          
+          PredPoint <- raster::extract(ListFut[[ProjN[k]]][["SVM-B"]], PAtest[[i]][, c("x", "y")])
+          PredPoint <- data.frame(PresAbse = PAtest[[i]][, "PresAbse"], PredPoint)
+          Eval_T <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                    PredPoint[PredPoint$PresAbse == 0, 2])
+          Eval_JS_T <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                         a=PredPoint[PredPoint$PresAbse == 0, 2])
+          
+          #Thresholds and Final Evaluation
+          Thr <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
+          Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
+          Threshold <- Threshold[order(Thr)]
+          Thr <- sort(Thr)
+          Thr <- ifelse(Thr<0,0,Thr)
+          Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
+                                       PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
+          Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],
+                                            a=PredPoint[PredPoint$PresAbse == 0, 2],thr=Thr)
+          #Boyce Index
+          Boyce[[i]] <- ecospat.boyce(ListFut[[ProjN[k]]][["SVM-B"]],PredPoint[PredPoint$PresAbse==1,2],PEplot=F)$Spearman.cor
+          # #Percentae of Predicted Area
+          # ArT <- NULL
+          # for (j in Thr){
+          #   RasL <- ListFut[[ProjN[k]]][["SVM"]]>=j
+          #   ArT <- c(ArT,sum(na.omit(raster::values(RasL)))/length(na.omit(raster::values(RasL))))
+          # }
+          # Area[[i]] <- round(ArT*100,3)
+          #
+          # #PartialROC
+          # pROC[[i]] <- partial_roc(prediction=ListFut[[ProjN[k]]][["SVM"]],
+          #                                     test_data=PredPoint[PredPoint$PresAbse==1,2],
+          #                                     error=5,iterations=500,
+          #                                     percentage=50)$pROC_summary
+          Area[[i]] <- 0
+          pROC[[i]] <- 0
+          
+          
+          #SVM Validation
+          pvalROCSD <- stats::sd(unlist(lapply(pROC, `[`, 2)))
+          pvalROC <- mean(unlist(lapply(pROC, `[`, 2)))
+          pROCSD <- stats::sd(unlist(lapply(pROC, `[`, 1)))
+          pROC <- mean(unlist(lapply(pROC, `[`, 1)))
+          BoyceSD <- stats::sd(unlist(Boyce))
+          Boyce <- mean(unlist(Boyce))
+          AreaSD <- apply(do.call("rbind",Area),2,sd)
+          Area <- colMeans(do.call("rbind",Area))
+          Validation<-Validation_Table_TMLA(Eval=Eval,Eval_JS=Eval_JS,N=N,Thr=Threshold)
+          if(is.null(repl)){
+            ListValidation[["SVM-B"]] <- data.frame(Sp=spN[s],Projection=names(VariablesP)[k] ,Algorithm="SVM-B", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+          }else{
+            ListValidation[["SVM-B"]] <- data.frame(Sp=spN[s],Replicate=repl,Projection=names(VariablesP)[k] ,Algorithm="SVM-B", Validation,pROC=pROC,pROC_SD=pROCSD,p_value_pROC=pvalROC,p_value_pROC_SD=pvalROCSD,Percentage_predicted_area=Area,Percentage_predicted_area_SD=Area,Boyce=Boyce,Boyce_SD=BoyceSD)
+          }
+        }
+      }
+    }
 
     #RANDOM FOREST (RDF)----
     if (any(Algorithm == "RDF")) {

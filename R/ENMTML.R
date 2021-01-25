@@ -79,6 +79,7 @@
 #'   \item MXS: Maxent Simple (only linear and quadratic features, based on MaxNet package)
 #'   \item MXD: Maxent Default (all features, based on MaxNet package)
 #'   \item SVM: Support Vector Machine
+#'   \item SVM-B: Support Vector Machine (using Background instead of Pseudo-Absences)
 #'   \item GLM: Generalized Linear Model
 #'   \item GAM: Generalizes Additive Model
 #'   \item BRT: Boosted Regression Tree
@@ -452,8 +453,8 @@ ENMTML <- function(pred_dir,
   if(!(part['method']%in%c("BOOT","KFOLD","BANDS","BLOCK"))){
     stop("'part' Argument is not valid!(BOOT/KFOLD/BANDS/BLOCK)")
   }
-  if(any(!algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"))){
-    stop(paste("Algorithm", algorithm[!(algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","BRT","RDF","MXS","MXD","MLK","GAU"))],"is not valid"))
+  if(any(!algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","SVM-B","BRT","RDF","MXS","MXD","MLK","GAU"))){
+    stop(paste("Algorithm", algorithm[!(algorithm%in%c("BIO","MAH","DOM","ENF","GLM","GAM","SVM","SVM-B","BRT","RDF","MXS","MXD","MLK","GAU"))],"is not valid"))
   }
   if(any(!thr[grep('type', names(thr))]%in%c("LPT","MAX_TSS","MAX_KAPPA","SENSITIVITY","JACCARD","SORENSEN"))){
     stop("'thr' Argument is not valid!")
@@ -494,7 +495,7 @@ ENMTML <- function(pred_dir,
   }
 
   #2.Adjust Names----
-  Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","RDF","GAM","GLM","GAU","BRT")
+  Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","SVM-B","RDF","GAM","GLM","GAU","BRT")
   algorithm <- Ord[Ord%in%algorithm]
 
   #3.Predictors ----
