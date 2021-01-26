@@ -118,7 +118,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
 
   # Backqround points----
   if (!is.null(DirMask)) {
-    if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
+    if (any(c("MXD","MXS","MLK","ENF","SVM-B") %in% Algorithm)) {
        RecordsDataM <- split(RecordsData,f=RecordsData$sp)
        RecordsDataMt <- list()
 
@@ -172,7 +172,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
        RecordsDataM[,cols] <-  apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
      }
    }else{
-     if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
+     if (any(c("MXD","MXS","MLK","ENF","SVM-B") %in% Algorithm)) {
       RecordsDataM <- split(RecordsData,f=RecordsData$sp)
       RecordsDataMt <- list()
 
@@ -370,7 +370,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     }
 
     #Maxent Input
-    if (any(c("MXD","MXS","MLK","ENF") %in% Algorithm)) {
+    if (any(c("MXD","MXS","MLK","ENF","SVM-B") %in% Algorithm)) {
       PAtrainM <- list()
       PAtestM <- list()
       for (i in 1:N) {
