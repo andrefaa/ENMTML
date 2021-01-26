@@ -54,7 +54,7 @@ Ensemble_TMLA <- function(DirR,
         dir.create(x, recursive = T))
     }
     DirENSFCat <-
-      file.path(sort(rep(ModFut, length(PredictType))), PredictType, Threshold)
+      file.path(sort(rep(ModFut, length(PredictType)*length(Threshold))), PredictType, rep(Threshold, length(ModFut)))
   }
 
   #Load Rasters----
