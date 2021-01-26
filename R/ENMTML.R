@@ -497,6 +497,10 @@ ENMTML <- function(pred_dir,
   #2.Adjust Names----
   Ord <- c("BIO","DOM","MAH","ENF","MXD","MXS","MLK","SVM","SVM-B","RDF","GAM","GLM","GAU","BRT")
   algorithm <- Ord[Ord%in%algorithm]
+  
+  Ord_Thr <- c("MAX_KAPPA","MAX_TSS","LPT","SENSITIVITY","JACCARD","SORENSEN")
+  thr <- Ord_Thr[Ord_Thr%in%thr]
+  names(thr) <- rep("type", length(thr))
 
   #3.Predictors ----
   cat("Loading environmental variables ...\n")
