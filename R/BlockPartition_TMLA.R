@@ -43,15 +43,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   # BestGridList <- rep(list(NULL),length(RecordsData))
 
   #Start Cluster
-  if (Sys.getenv("RSTUDIO") == "1" &&
-      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-      Sys.info()["sysname"] == "Darwin" &&
-      as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-        cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-      }else{
-        cl <- parallel::makeCluster(cores,outfile="")
-      }
-      doParallel::registerDoParallel(cl)
+  cl <- start_cluster(cores)
 
   # LOOP----
   results <-
@@ -599,7 +591,8 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       return(out)
     }
 
-  parallel::stopCluster(cl)
+  stop_cluster(cl)
+
   FinalResult <- dplyr::bind_rows(lapply(results, function(x) x[[1]]))
   FinalInfoGrid <- dplyr::bind_rows(lapply(results, function(x) x[[2]]))
 

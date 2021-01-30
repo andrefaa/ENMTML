@@ -18,16 +18,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
 
   #Development
   #Start Cluster
-  if (Sys.getenv("RSTUDIO") == "1" &&
-      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-      Sys.info()["sysname"] == "Darwin" &&
-      as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-    cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-  }else{
-    cl <- parallel::makeCluster(cores,outfile="")
-  }
-  doParallel::registerDoParallel(cl)
-
+  cl <- start_cluster(cores)
 
   #Separate data by groups
   RecordsData <-
@@ -583,6 +574,6 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
     sep = "\t",
     row.names = F
   )
-  parallel::stopCluster(cl)
+  stop_cluster(cl)
   return(FinalResult)
 }

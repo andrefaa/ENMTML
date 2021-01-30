@@ -26,17 +26,8 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   Ti <- Sys.time()
   options(warn = -1)
 
-  #Start Cluster
-  # temporary parallel package debug for macOS systems
-  if (Sys.getenv("RSTUDIO") == "1" &&
-      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-      Sys.info()["sysname"] == "Darwin" &&
-      as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-        cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-      }else{
-        cl <- parallel::makeCluster(cores,outfile="")
-      }
-  doParallel::registerDoParallel(cl)
+  #Start Cluster if necessary
+  cl <- start_cluster(cores)
 
   # Directory to save----
   folders <- paste(DirSave,"Algorithm",Algorithm,sep="/")
@@ -4308,5 +4299,5 @@ InfoModeling <- list(c("########################################################
   lapply(InfoModeling, write,
          paste(DirSave, "/InfoModeling.txt", sep=""), append=TRUE,
          ncolumns=20, sep='\t')
-  parallel::stopCluster(cl)
+  stop_cluster(cl)
 }

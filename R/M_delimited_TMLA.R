@@ -76,15 +76,7 @@ M_delimited <- function(var,
       return(x)
     })
 
-    if (Sys.getenv("RSTUDIO") == "1" &&
-        !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-        Sys.info()["sysname"] == "Darwin" &&
-        as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-          cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-        }else{
-          cl <- parallel::makeCluster(cores,outfile="")
-        }
-    doParallel::registerDoParallel(cl)
+    cl <- start_cluster(cores)
     foreach(i = 1:length(M_list),
             .packages = c("raster")) %dopar% {
               if (Buffer_Opt == 2) {
@@ -105,7 +97,7 @@ M_delimited <- function(var,
                                   format = "GTiff",
                                   overwrite = T)
             }
-    parallel::stopCluster(cl)
+    stop_cluster(cl)
   }
 
   if (method == 'MASK') {
@@ -136,15 +128,7 @@ M_delimited <- function(var,
       x <- x[x != 0]
     })
 
-    if (Sys.getenv("RSTUDIO") == "1" &&
-        !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-        Sys.info()["sysname"] == "Darwin" &&
-        as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-          cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-        }else{
-          cl <- parallel::makeCluster(cores,outfile="")
-        }
-    doParallel::registerDoParallel(cl)
+    cl <- start_cluster(cores)
     foreach(i = 1:length(sp.Ecoregions),
             .packages = c("raster")) %dopar% {
               EcoregionSp <- EcoregionsFile
@@ -159,7 +143,7 @@ M_delimited <- function(var,
                 overwrite = T
               )
             }
-    parallel::stopCluster(cl)
+    stop_cluster(cl)
   }
 
   if (method == 'USER-DEFINED') {
