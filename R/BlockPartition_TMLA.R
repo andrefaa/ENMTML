@@ -21,11 +21,11 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   # PrAbRatio: numeric. value of PrAbRatio to be computed.
   # evnVariables: Raster object. Variable set to be used in pseusoabsences
   # cellSize: numeric vector. a vector of values with different cell grid sizes
-
+  
   #Cellsize
   cellSize = seq(res(evnVariables[[1]])[1]*2, 10, length.out = 30)
   
-
+  
   # Mask
   mask <- evnVariables[[1]]
   if (class(mask) != "brick") {
@@ -33,26 +33,26 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   }
   names(mask) <- "Group"
   mask[!is.na(mask[, ])] <- 1
-
+  
   #Extent
   e <- raster::extent(mask)
-
+  
   # Loop for each species-----
   # ResultList <- rep(list(NULL),length(RecordsData))
   SpNames <- names(RecordsData)
   # BestGridList <- rep(list(NULL),length(RecordsData))
-
+  
   #Start Cluster
   if (Sys.getenv("RSTUDIO") == "1" &&
       !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
       Sys.info()["sysname"] == "Darwin" &&
       as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-        cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-      }else{
-        cl <- parallel::makeCluster(cores,outfile="")
-      }
-      doParallel::registerDoParallel(cl)
-
+    cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
+  }else{
+    cl <- parallel::makeCluster(cores,outfile="")
+  }
+  doParallel::registerDoParallel(cl)
+  
   # LOOP----
   results <-
     foreach(
@@ -60,28 +60,28 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       .packages = c("raster", "ape", "dismo"),
       .export = c("inv_bio","MESS","inv_geo","KM_BLOCK","OptimRandomPoints")
     ) %dopar% {
-
+      
       print(paste(s, SpNames[s]))
       # Extract coordinates----
       presences <- RecordsData[[s]]
       mask2 <- mask
       mask2[] <- 0
       presences2 <- data.frame(pa = c(rep(1, nrow(presences))), presences)
-
+      
       # Transform the presences points in a DataFrameSpatialPoints
       sp::coordinates(presences2) = presences2[, c("x", "y")]
       raster::crs(presences2) <- raster::projection(mask)
-
+      
       #### Data partitioning using a grid approach ####
-
-      # Create a list of grids based on different raster resolution
-      grid <- list() #List of grids
-
+      
       # raster resolution
       DIM <-
         matrix(0, length(cellSize), 2) # the number of rows and columns of each grid
       colnames(DIM) <- c("R", "C")
-
+      
+      part <- data.frame(matrix(0, nrow(presences2@data), length(grid)))
+      part2 <- list()
+      
       for (i in 1:length(cellSize)) {
         mask3 <- mask2
         res(mask3) <- cellSize[i]
@@ -98,35 +98,24 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
             NAS <- raster::extract(mask3, presences2)
           }
         }
-        grid[[i]] <- raster::rasterToPolygons(mask3)
-      }
-      rm(mask3)
-
-      # In this section is assigned the group of each cell
-      for (i in 1:length(grid)) {
-        if (any(N == c(2, 4, 6, 8, 10))) {
-          # odds number of partition
-          group <- rep(c(rep(1:N, DIM[i, 2])[1:DIM[i, 2]],
-                         rep(c((N / 2 + 1):N, 1:(N / 2)
-                         ), DIM[i, 2])[1:DIM[i, 2]])
-                       , nrow(grid[[i]]@data) / DIM[i, 2])[1:nrow(grid[[i]]@data)]
-          grid[[i]]@data <-
-            data.frame(group, expand.grid(C = 1:DIM[i, 2], R = 1:DIM[i, 1]))
-        }
-      }
-
-      # Matrix within each columns represent the partitions of points
-      # for each grid resolution
-      part <- data.frame(matrix(0, nrow(presences2@data), length(grid)))
-      for (i in 1:length(grid)) {
-        part[, i] <- sp::over(presences2, grid[[i]][, 1])
-      }
-
-      part2 <- list()
-      for (i in 1:length(grid)) {
-        part2[[i]] <- data.frame(sp::over(presences2, grid[[i]]), presences)
-      }
-
+        
+        # In this section is assigned the group of each cell
+        group <- rep(c(rep(1:N, DIM[i, 2])[1:DIM[i, 2]],
+                       rep(c((N / 2 + 1):N, 1:(N / 2)
+                       ), DIM[i, 2])[1:DIM[i, 2]])
+                     , ncell(mask3) / DIM[i, 2])[1:ncell(mask3)]
+        
+        mask3[] <-
+          data.frame(group, expand.grid(C = 1:DIM[i, 2], R = 1:DIM[i, 1]))$group
+        
+        # Matrix within each columns represent the partitions of points
+        # for each grid resolution
+        
+        part[, i] <- raster::extract(mask3, presences2)
+        part2[[i]] <- data.frame(raster::extract(mask3, presences2,), presences)
+        
+      }#Fecha cellsize
+      
       # Here will be deleted grids that assigned partitions less than the number
       # of groups
       pp <- sapply(part[1:nrow(presences), ], function(x)
@@ -140,11 +129,11 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         pf <- which(apply(pf, 2, min) == 1)
       }
       pp[pf] <- FALSE
-      grid <- grid[pp]
+      # grid <- grid[pp]
       part <- data.frame(part[, pp])
       names(part) <- names(which(pp == T))
       part2 <- part2[pp]
-
+      
       # Performace of cells ----
       # SD of number of records per cell size-----
       pa <- presences2@data[, 1] # Vector wiht presences and absences
@@ -153,7 +142,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         Sd.Grid.P[i] <- stats::sd(table(part[pa == 1, i])) /
           mean(table(part[pa == 1, i]))
       }
-
+      
       # MESS -----
       Mess.Grid.P <- rep(NA, length(grid))
       Env.P <- raster::extract(evnVariables, presences)
@@ -164,11 +153,15 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         Mess.Grid.P[i] <- mean(mess1$TOTAL, na.rm = TRUE)
         rm(Env.P1)
       }
-
+      
       # Imoran-----
-      pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T,nComp = 1)$map
-      Imoran.Grid.P <- rep(NA, length(grid))
-      for (p in 1:length(grid)) {
+      if(grepl("PC",names(evnVariables)[1])){
+        pc1 <- evnVariables[[1]]
+      } else{
+        pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T,nComp = 1)$map
+      }
+      Imoran.Grid.P <- rep(NA, length(part2))
+      for (p in 1:length(part2)) {
         part3 <- part2[[p]]
         # rownames(part3) <-
         #   paste(part3$group, part3$C, part3$R, part3$lon, part3$lat)
@@ -217,7 +210,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               }
             }
           }
-
+          
           euclida <- plyr::ldply(mineucli, data.frame)
           euclida$A <- as.character(euclida$A)
           euclida$B <- as.character(euclida$B)
@@ -228,10 +221,10 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           dist[which(dist == Inf)] <- 0
           species2$pc1 <- raster::extract(evnVariables[[1]], species2)
         }
-
+        
         if (type == "all") {
-          odd <- which((part3$group == 1))
-          even <- which((part3$group == 2))
+          odd <- which((part3$Group == 1))
+          even <- which((part3$Group == 2))
           dist <- as.matrix(dist(presences))
           dist <- 1 / dist
           diag(dist) <- 0
@@ -245,35 +238,35 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           species2 <-
             cbind(presences, pc1 = raster::extract(pc1, presences))
         }
-
+        
         if (nrow(species2) < 3) {
           Imoran.Grid.P[p] <- NA
         } else{
           Imoran.Grid.P[p] <-
             Moran.I(species2$pc1,
-                         dist,
-                         na.rm = T,
-                         scaled = T)$observed
+                    dist,
+                    na.rm = T,
+                    scaled = T)$observed
         }
       }
-
+      
       Imoran.Grid.P <-
         abs(Imoran.Grid.P) # OJO estamos dejando todos los valores positivos
       N.grid <- 1:length(cellSize[pp])
-
+      
       Opt <-
         data.frame(N.grid, cellSize[pp], round(data.frame(
           Imoran.Grid.P, Mess.Grid.P, Sd.Grid.P
         ), 3))
       # Cleaning those variances based in data divided in a number of partition less than
       # the number of groups
-
+      
       # SELLECTION OF THE BEST CELL SIZE----
       Opt2 <- Opt
       Dup <-
         !duplicated(Opt2[c("Imoran.Grid.P", "Mess.Grid.P", "Sd.Grid.P")])
       Opt2 <- Opt2[Dup, ]
-
+      
       while (nrow(Opt2) > 1) {
         # I MORAN
         if (nrow(Opt2) == 1)
@@ -292,30 +285,39 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           Opt2[which(Opt2$Sd.Grid.P <= summary(Opt2$Sd.Grid.P)[2]), ]
         if (nrow(Opt2) == 2)
           break
-
+        
         if (unique(Opt2$Imoran.Grid.P) &&
             unique(Opt2$Mess.Grid.P) && unique(Opt2$Sd.Grid.P)) {
           Opt2 <- Opt2[nrow(Opt2), ]
         }
       }
-
+      
       if (nrow(Opt2) > 1) {
         Opt2 <- Opt2[nrow(Opt2), ]
       }
-
+      
       # Optimum size for presences
       print(Opt2)
-      Optimum.Grid <- grid[[Opt2$N.grid]]
-      Optimum.Grid@data[, c("C", "R")] <- NULL
-      presences <- data.frame(Partition = part[, Opt2$N.grid], presences)
-
+      presences <- data.frame(Partition = as.numeric(part[, Opt2$N.grid]), presences)
+      
       #Save blocks raster
+      mask3 <- mask2
+      res(mask3) <- Opt2$cellSize.pp.
+      DIM <- dim(mask3)[1:2]
+      raster::values(mask3) <- 1
+      group <- rep(c(rep(1:N, DIM[2])[1:DIM[2]],
+                     rep(c((N / 2 + 1):N, 1:(N / 2)
+                     ), DIM[2])[1:DIM[2]])
+                   , ncell(mask3) / DIM[2])[1:ncell(mask3)]
+      mask3[] <-
+        data.frame(group, expand.grid(C = 1:DIM[2], R = 1:DIM[1]))$group
+      
       pseudo.mask <- mask
       pseudo.mask2 <- list()
       RtoP <- data.frame(raster::rasterToPoints(mask)[, -3])
       sp::coordinates(RtoP) = c("x", "y")
       raster::crs(RtoP) <- raster::projection(mask)
-      FILTER <- sp::over(RtoP, Optimum.Grid)
+      FILTER <- raster::extract(mask3,RtoP)
       pseudo.mask[which(pseudo.mask[] == 1)] <- as.matrix(FILTER)
       # writeRaster(pseudo.mask, paste(DirSave, paste(SpNames[s],'.tif',sep=""),sep='/'),
       #             format = 'GTiff', NAflag = -9999, overwrite = TRUE)
@@ -328,20 +330,20 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       #
       pseudo.mask <- raster::brick(pseudo.mask2)
       # rm(pseudo.mask2)
-            
+      
       ##%######################################################%##
       #                                                          #
       ####             Pseudoabsences allocation              ####
       #                                                          #
       ##%######################################################%##
-
-
+      
+      
       # Pseudo-Absences with Random allocation-----
       if (pseudoabsencesMethod == "RND") {
         pseudo.mask_p <- pseudo.mask
         pseudo.mask <- sum(pseudo.mask_p)
         pseudo.mask_p[pseudo.mask_p==0] <- NA
-
+        
         raster::writeRaster(
           pseudo.mask,
           paste(DirSave, paste(SpNames[s], '.tif', sep = ""), sep = '/'),
@@ -349,7 +351,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           NAflag = -9999,
           overwrite = TRUE
         )
-
+        
         # Random allocation of Pseudo-Absences
         absences <- list()
         for (i in 1:N) {
@@ -376,16 +378,16 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         }
         names(absences) <- 1:N
       }
-
+      
       # Pseudo-Absences allocation with Environmental constrain ----
       if (pseudoabsencesMethod == "ENV_CONST") {
         pseudo.mask_p <- inv_bio(evnVariables, presences[, -1])
-
+        
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
         pseudo.mask_p[pseudo.mask_p==0] <- NA
-
+        
         raster::writeRaster(
           pseudo.mask,
           paste(DirSave, paste(SpNames[s], '.tif', sep = ""), sep = '/'),
@@ -393,7 +395,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           NAflag = -9999,
           overwrite = TRUE
         )
-
+        
         absences <- list()
         for (i in 1:N) {
           set.seed(s)
@@ -422,20 +424,20 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
         }
-
+        
         names(absences) <- 1:N
       }
-
+      
       # Pseudo-Absences allocation with Geographical constrain-----
       if (pseudoabsencesMethod == "GEO_CONST") {
         pseudo.mask_p <-
           inv_geo(e = evnVariables, p = presences[, -1], d = Geo_Buf)
-
+        
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
         pseudo.mask_p[pseudo.mask_p==0] <- NA
-
+        
         raster::writeRaster(
           pseudo.mask,
           paste(DirSave, paste(SpNames[s], '.tif', sep = ""), sep = '/'),
@@ -443,7 +445,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           NAflag = -9999,
           overwrite = TRUE
         )
-
+        
         absences <- list()
         for (i in 1:N) {
           set.seed(s)
@@ -472,22 +474,22 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
         }
-
+        
         names(absences) <- 1:N
       }
-
+      
       # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
       if (pseudoabsencesMethod == "GEO_ENV_CONST") {
         pseudo.mask_p <- inv_bio(evnVariables, presences[, -1])
         pseudo.mask_pg <-
           inv_geo(e = evnVariables, p = presences[, -1], d = Geo_Buf)
         pseudo.mask_p <- pseudo.mask_p * pseudo.mask_pg
-
+        
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
         pseudo.mask_p[pseudo.mask_p==0] <- NA
-
+        
         raster::writeRaster(
           pseudo.mask,
           paste(DirSave, paste(SpNames[s], '.tif', sep = ""), sep = '/'),
@@ -495,7 +497,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           NAflag = -9999,
           overwrite = TRUE
         )
-
+        
         absences <- list()
         for (i in 1:N) {
           set.seed(s)
@@ -516,27 +518,27 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           #   dismo::randomPoints(pseudo.mask_p[[i]],
           #                       (1 / PrAbRatio) * sum(presences[, 1] == i),
           #                       prob = FALSE)
-
+          
           absences.0 <- OptimRandomPoints(r=pseudo.mask_p[[i]], n=(1 / PrAbRatio)*sum((presences[, 1] == i)),p=presences[presences[, 1] == i, 2:3] )
           colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
         }
-
+        
         names(absences) <- 1:N
       }
-
+      
       # Pseudo-Absences allocation with Environmentla and Geographical and k-mean constrain-----
       if (pseudoabsencesMethod == "GEO_ENV_KM_CONST") {
         pseudo.mask_p <- inv_bio(evnVariables, presences[, -1])
         pseudo.mask_pg <-
           inv_geo(e = evnVariables, p = presences[, -1], d = Geo_Buf)
         pseudo.mask_p <- pseudo.mask_p * pseudo.mask_pg
-
+        
         # Split the raster of environmental layer with grids
         pseudo.mask_p <- raster::mask(pseudo.mask, pseudo.mask_p)
         pseudo.mask <- sum(pseudo.mask_p)
         pseudo.mask_p[pseudo.mask_p==0] <- NA
-
+        
         raster::writeRaster(
           pseudo.mask,
           paste(DirSave, paste(SpNames[s], '.tif', sep = ""), sep = '/'),
@@ -544,7 +546,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           NAflag = -9999,
           overwrite = TRUE
         )
-
+        
         absences <- list()
         for (i in 1:N) {
           set.seed(s)
@@ -560,7 +562,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               )
             }
           }
-
+          
           absences.0 <-
             KM_BLOCK(
               raster::rasterToPoints(pseudo.mask_p[[i]])[, -3],
@@ -568,12 +570,12 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               (1 / PrAbRatio) * sum(presences[, 1] == i)
             )
           colnames(absences.0) <- c("lon", "lat")
-
+          
           absences[[i]] <- as.data.frame(absences.0)
         }
         names(absences) <- 1:N
       }
-
+      
       absences <- plyr::ldply(absences, data.frame)
       names(absences) <- c("Partition", "x", "y")
       absences[, c("x", "y")] <- round(absences[, c("x", "y")], 4)
@@ -589,20 +591,20 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           stringsAsFactors = F
         )
       result <- result[, c("Sp", "x", "y", "Partition", "PresAbse")]
-
+      
       Opt2 <- data.frame(Sp = SpNames[s], Opt2)
-
+      
       # Final data.frame result2----
       out <- list(ResultList = result,
                   BestGridList = Opt2)
       # utils::write.table(result,paste(DirSave, paste0(SpNames[s],".txt"), sep="\\"), sep="\t",row.names=F)
       return(out)
     }
-
+  
   parallel::stopCluster(cl)
   FinalResult <- dplyr::bind_rows(lapply(results, function(x) x[[1]]))
   FinalInfoGrid <- dplyr::bind_rows(lapply(results, function(x) x[[2]]))
-
+  
   colnames(FinalResult) <- c("sp", "x", "y", "Partition", "PresAbse")
   utils::write.table(
     FinalResult,
@@ -617,6 +619,6 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
     col.names = T,
     row.names = F
   )
-
+  
   return(FinalResult)
 }
