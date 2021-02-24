@@ -30,15 +30,11 @@ In order to simulate the files and folders needed for an standard **ENMTML** run
 
 For this we will use the *raster* package:
 
-```{r include=F}
-load("C:/Users/decoa/OneDrive/Trabajos/22 - ENM_Package/ENMTML/Data/occ.RData")
-load("C:/Users/decoa/OneDrive/Trabajos/22 - ENM_Package/ENMTML/Data/env.RData")
-```
 
 ```{r}
 if (!"raster"%in%installed.packages()){install.packages("raster")}  
 require(raster)  
-
+require(ENMTML)
 
 # First we will create a folder (ENMTML_example) within the working directory
 getwd() #' Working directory of R session
