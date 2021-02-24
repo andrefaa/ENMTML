@@ -111,6 +111,7 @@ ENMTML(
   \item MXS: Maxent Simple (only linear and quadratic features, based on MaxNet package)
   \item MXD: Maxent Default (all features, based on MaxNet package)
   \item SVM: Support Vector Machine
+  \item SVM-B: Support Vector Machine (using Background instead of Pseudo-Absences)
   \item GLM: Generalized Linear Model
   \item GAM: Generalizes Additive Model
   \item BRT: Boosted Regression Tree
@@ -252,6 +253,7 @@ d_eco # file path with shapefile used to constrain models
 ENMTML(
  pred_dir = d_env,
  proj_dir = NULL,
+ result_dir = NULL,
  occ_file = d_occ,
  sp = 'species',
  x = 'x',
