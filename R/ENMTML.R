@@ -218,6 +218,7 @@
 #'ENMTML(
 #'  pred_dir = d_env,
 #'  proj_dir = NULL,
+#'  result_dir = NULL,
 #'  occ_file = d_occ,
 #'  sp = 'species',
 #'  x = 'x',
