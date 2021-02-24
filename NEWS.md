@@ -1,6 +1,6 @@
 # ENMTML 1.0.0
 
-## Block cross-validation improved
+## Block cross-validation improved (24-02-2021)
 
 -   Codes to perform block cross-validation (**part** argument of the **ENMTML** function) were improved to
     speed up the process.
