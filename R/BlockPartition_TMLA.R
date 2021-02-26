@@ -23,7 +23,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   # cellSize: numeric vector. a vector of values with different cell grid sizes
   
   #Cellsize
-  cellSize = seq(res(evnVariables[[1]])[1]*2, 10, length.out = 30)
+  cellSize = seq(res(evnVariables[[1]])[1]*2, res(evnVariables[[1]])[1]*100, length.out = 30)
   
   
   # Mask
@@ -114,7 +114,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         part[, i] <- raster::extract(mask3, presences2)
         part2[[i]] <- data.frame(raster::extract(mask3, presences2,), presences)
         
-      }#Fecha cellsize
+      }#
       
       # Here will be deleted grids that assigned partitions less than the number
       # of groups

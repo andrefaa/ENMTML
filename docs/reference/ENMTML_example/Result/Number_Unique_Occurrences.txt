@@ -1,0 +1,6 @@
+"Species"	"UniqueOcc"
+"Sp_14"	42
+"Sp_17"	38
+"Sp_18"	34
+"Sp_34"	47
+"Sp_39"	49

@@ -68,7 +68,8 @@ They can be named to your preference as those will be inputted in the arguments 
 
 Here's an example of an occurrence table for four sample species. 
 ```{r echo=F}
-load("C:/Users/decoa/OneDrive/Trabajos/22 - ENM_Package/ENMTML/Data/occ.RData")
+require(ENMTML)
+data(occ)
 knitr::kable(occ[c(1:3,43:45,90:92,127:129),],row.names=F)
 ```
 

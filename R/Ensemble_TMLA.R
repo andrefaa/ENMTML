@@ -392,7 +392,7 @@ Ensemble_TMLA <- function(DirR,
         data.frame(Sp = spN[s], Algorithm = "PCA", Thr)
 
       #Save Final Maps
-      DirPCA <- grep(pattern = "Ensemble/PCA",
+      DirPCA <- grep(pattern = "Ensemble/PCA$",
                         x = ensF,
                         value = T)
       raster::writeRaster(

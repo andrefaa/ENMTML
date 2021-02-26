@@ -129,7 +129,7 @@
 #'   \item PCA_THR: PCA performed only with those cells with suitability values above the selected threshold. Usage ensemble=c(method='PCA_THR').
 #'   }
 #'
-#'  In the case of use more than one ensemble method it is necessary concatenate the names of ensemble methods within the argument, e.g., ensemble=c(type=c('MEAN', 'PCA')), ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')
+#'  In the case of use more than one ensemble method it is necessary concatenate the names of ensemble methods within the argument, e.g., ensemble=c(method=c('MEAN', 'PCA')), ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')
 #'
 #' @param extrapolation logical. If TRUE the function will calculate extrapolation based on Mobility-Oriented Parity analysis (MOP) for current conditions. If the argument proj_dir is used, the extrapolation layers for other regions or time periods will also be calculated.
 #' @param cores numeric. Define the number of CPU cores to run modeling procedures in parallel (default 1).
@@ -218,6 +218,7 @@
 #'ENMTML(
 #'  pred_dir = d_env,
 #'  proj_dir = NULL,
+#'  result_dir = NULL,
 #'  occ_file = d_occ,
 #'  sp = 'species',
 #'  x = 'x',
