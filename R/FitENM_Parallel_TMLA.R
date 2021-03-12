@@ -284,7 +284,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                  "kernlab", "randomForest", "maxnet", "maxlike",
                                  "plyr", "mgcv", "RStoolbox", "adehabitatHS",
                                  "caret", "glmnet", "gbm"),
-                     .export = c( "Validation2_0", "maxnet2",
+                     .export = c( "Validation2_0", "maxnet2","madifa2",
                                   "PCA_ENS_TMLA", "predict.maxnet", "boycei"
                                   ,"STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA",
                                   "Validation_Table_TMLA",
@@ -1075,7 +1075,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
       for (i in 1:N) {
         dataPr <- PAtrainM[[i]][, c("PresAbse", VarColT)]
         dudi <- ade4::dudi.pca(dataPr[, VarColT],scannf = FALSE)
-        Model[[i]] <- adehabitatHS::madifa(dudi,dataPr$PresAbse,scannf = FALSE)
+        Model[[i]] <- madifa2(dudi,dataPr$PresAbse,scannf = FALSE)
       }
 
       #ENF evaluation
@@ -1183,14 +1183,14 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if(repl==1 || is.null(repl)){
           if(is.null(repl)){
             dudi <- ade4::dudi.pca(SpDataTM[SpDataTM[,"Partition"]==1, VarColT],scannf = FALSE)
-            Model <- adehabitatHS::madifa(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
+            Model <- madifa2(dudi,SpDataTM[SpDataTM[,"Partition"]==1, "PresAbse"],scannf = FALSE)
             FinalModelT <- PREDICT_ENFA(Model,VariablesT,PAtrainM[[1]])
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataTM[,c("x","y")])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }else{
             dudi <- ade4::dudi.pca(SpDataT[, VarColT],scannf = FALSE)
-            Model <- adehabitatHS::madifa(dudi,SpDataT$PresAbse,scannf = FALSE)
+            Model <- madifa2(dudi,SpDataT$PresAbse,scannf = FALSE)
             FinalModelT <- PREDICT_ENFA(Model,VariablesT,PAtrainM[[1]])
             FinalModel <- STANDAR(FinalModelT)
             PredPoint <- raster::extract(FinalModel,SpDataTM[,c("x","y")])
@@ -2411,6 +2411,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             # FinalModel <- (raster(FinalModel))
             FinalModelT <- FinalGrid
             FinalModel <- STANDAR(FinalModelT)
+            if(all(is.na(values(FinalModel)))){
+              FinalModel <- Variables[[1]]
+              FinalModel[!is.na(FinalModel[])] <- 0
+            }
             PredPoint <- raster::extract(FinalModel,SpDataTM[SpDataTM$Partition==1, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[SpDataTM$Partition==1, "PresAbse"], PredPoint)
           }else{
@@ -2423,6 +2427,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
             # sp::gridded(FinalModel) <- ~ x+y
             FinalModelT <- FinalGrid
             FinalModel <- STANDAR(FinalModelT)
+            if(all(is.na(values(FinalModel)))){
+              FinalModel <- Variables[[1]]
+              FinalModel[!is.na(FinalModel[])] <- 0
+            }
             PredPoint <- raster::extract(FinalModel,SpDataTM[, 2:3])
             PredPoint <- data.frame(PresAbse = SpDataTM[, "PresAbse"], PredPoint)
           }

@@ -71,6 +71,68 @@ PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
   }
 }
 
+madifa2 <- function (dudi, pr, scannf = TRUE, nf = 2) 
+{
+  if (!inherits(dudi, "dudi")) 
+    stop("object of class dudi expected")
+  call <- match.call()
+  if (any(is.na(dudi$tab))) 
+    stop("na entries in table")
+  if (!is.vector(pr)) 
+    stop("pr should be a vector")
+  prb <- pr
+  pr <- pr/sum(pr)
+  row.w <- dudi$lw
+  col.w <- dudi$cw
+  Z <- as.matrix(dudi$tab)
+  n <- nrow(Z)
+  f1 <- function(v) sum(v * pr)
+  center <- apply(Z, 2, f1)
+  Z <- sweep(Z, 2, center)
+  f2 <- function(v) sum((v^2) * pr)
+  Ze <- sweep(Z, 2, sqrt(col.w), "*")
+  DpZ <- apply(Ze, 2, function(x) x * pr)
+  Se <- crossprod(Ze, DpZ)
+  Ge <- crossprod(Ze, apply(Ze, 2, function(x) x * row.w))
+  eS <- eigen(Se)
+  b <- ifelse(is.nan(eS$values^(-0.5)),0,eS$values)
+  S12 <- eS$vectors %*% diag(b) %*% t(eS$vectors)
+  W <- S12 %*% Ge %*% S12
+  s <- eigen(W)$values
+  if (scannf) {
+    barplot(s)
+    cat("Select the number of axes: ")
+    nf <- as.integer(readLines(n = 1))
+  }
+  if (nf <= 0 | nf > ncol(Ze)) 
+    nf <- 1
+  tt <- as.data.frame((S12 %*% eigen(W)$vectors))
+  ww <- apply(tt, 2, function(x) x/sqrt(col.w))
+  norw <- sqrt(diag(t(as.matrix(tt)) %*% as.matrix(tt)))
+  co <- sweep(ww, 2, norw, "/")
+  li <- Z %*% apply(co, 2, function(x) x * col.w)
+  co <- as.data.frame(co)
+  li <- as.data.frame(li)
+  varus <- apply(li, 2, function(x) sum((x^2) * pr))
+  l1 <- sweep(li, 2, sqrt(unlist(varus)), "/")
+  mahasu <- apply(l1, 1, function(x) sqrt(sum(x^2)))
+  co <- data.frame(co[, 1:nf])
+  li <- data.frame(li[, 1:nf])
+  l1 <- data.frame(l1[, 1:nf])
+  names(co) <- paste("Axis", (1:nf), sep = "")
+  row.names(co) <- dimnames(dudi$tab)[[2]]
+  names(li) <- paste("Comp.", (1:nf), sep = "")
+  names(l1) <- paste("Comp.", (1:nf), sep = "")
+  row.names(li) <- dimnames(dudi$tab)[[1]]
+  row.names(l1) <- dimnames(dudi$tab)[[1]]
+  corav <- cor(dudi$tab, li)
+  madifa <- list(call = call, tab = data.frame(Z), pr = prb, 
+                 cw = col.w, nf = nf, eig = s, lw = row.w, li = li, l1 = l1, 
+                 co = co, mahasu = mahasu, cor = corav)
+  class(madifa) <- "madifa"
+  return(madifa)
+}
+
 
 # Prediction of different algorithm------
 PREDICT <- function(Variables, Models_List) {
