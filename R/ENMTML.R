@@ -735,7 +735,7 @@ ENMTML <- function(pred_dir,
     if (file.exists(DirR)){
       warning("Result folder already exists, files may be overwritten!")
     }else{
-      dir.create(DirR)
+      dir.create(DirR, recursive = T)
     }
   }else{
     DirR <- result_dir
@@ -745,12 +745,12 @@ ENMTML <- function(pred_dir,
         message("Result folder already exists, files may be overwritten!")
       }
       DirR <- file.path(dirname(pred_dir),result_dir)
-      dir.create(DirR)
+      dir.create(DirR, recursive = T)
     }else{
       if (file.exists(DirR)){
         message("Result folder already exists, files may be overwritten!")
       }
-      dir.create(DirR)
+      dir.create(DirR, recursive = T)
     }
   }
   cat(paste0("Results can be found at:  ","\n",DirR,"\n"))
