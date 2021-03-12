@@ -448,10 +448,10 @@ Ensemble_TMLA <- function(DirR,
     # With PCA over the Mean(Superior) Ensemble----
     if (any(PredictType == 'PCA_SUP')) {
       Best <-
-        SpVal[which(unlist(SpVal[ensemble_metric]) >= mean(unlist(SpVal[ensemble_metric]))), "Algorithm"]
+        as.character(SpVal[which(unlist(SpVal[ensemble_metric]) >= mean(unlist(SpVal[ensemble_metric]))), "Algorithm"])
       W <- names(ListRaster)[names(ListRaster) %in% Best]
       nom <- names(ListRaster)
-
+      
       ListRaster2 <- raster::brick(raster::stack(ListRaster))
       names(ListRaster2) <- nom
       Final <- raster::subset(ListRaster2, subset = W)

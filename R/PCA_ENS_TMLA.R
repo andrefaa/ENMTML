@@ -4,7 +4,7 @@ PCA_ENS_TMLA<-function(BRICK){
   if(raster::nlayers(BRICK)==1){
     ens <- BRICK[[1]]
   }else{
-    ens <- rasterPCA(BRICK,spca=T,nComp=1,maskCheck=T)
+    ens <- RStoolbox::rasterPCA(BRICK,spca=T,nComp=1,maskCheck=T)
     ens <- ens$map
     enmean <- calc(BRICK,fun=mean,na.rm=T)
     # enmean <- raster::mean(BRICK)
