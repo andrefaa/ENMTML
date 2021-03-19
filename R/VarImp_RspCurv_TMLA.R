@@ -132,7 +132,7 @@ VarImp_RspCurv <- function(Model,
   
   #Random Forests----
   if (Algorithm %in% "RDF") {
-    V_IMP <- randomForest::importance(Model, type=1)
+    V_IMP <- randomForest::importance(Model)
     V_IMP <- round(V_IMP / sum(V_IMP), 3)
     V_IMP <-
       cbind(
