@@ -1098,9 +1098,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
           Thr <- Thr[match(Threshold,Thr$THR),"THR_VALUE"]
           Threshold <- Threshold[order(Thr)]
           Thr <- sort(Thr)
-          Thr <- ifelse(Thr<0,0,Thr)
+          # Thr <- ifelse(Thr<0,0,Thr)
           Thr2 <- Thresholds_TMLA(Eval_T,Eval_JS_T,sensV)
-          Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
+          # Thr2$THR_VALUE <- ifelse(Thr2$THR_VALUE<0,0,Thr2$THR_VALUE)
           Eval[[i]] <- dismo::evaluate(PredPoint[PredPoint$PresAbse == 1, 2],
                                        PredPoint[PredPoint$PresAbse == 0, 2],tr=Thr)
           Eval_JS[[i]] <- Eval_Jac_Sor_TMLA(p=PredPoint[PredPoint$PresAbse == 1, 2],

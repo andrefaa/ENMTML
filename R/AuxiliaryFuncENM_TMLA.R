@@ -54,7 +54,11 @@ PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
     }
     f1 <- function(x) rep(x, ZER)
     Sli <- apply(Zli, 2, f1)
-    m <- apply(Sli, 2, mean)
+    if(class(Sli)=="numeric"){
+      m <- Sli
+    } else{
+      m <- apply(Sli, 2, mean)
+    }
     cov <- t(as.matrix(Zli)) %*% as.matrix(Zli)/nrow(Zli)
     PredRas <- (data.frame(MD = stats::mahalanobis(Zli, center = m, cov = cov,inverted = F)))*-1
     XY <- raster::xyFromCell(prediction_dataset[[1]],1:raster::ncell(prediction_dataset[[1]]))
