@@ -16,6 +16,7 @@ MOP <- function(Variables,
     m2 <- g <- m0[, -c(1:2)] # G region
     m0 <- m0[, c(1:2)]
     m1 <- m_occ # data (pres-abs-backgrou) from M region
+    m2 <- data.frame(m2)
     set <- c(seq(1, nrow(m2), round(nrow(m2) / 2000)), nrow(m2) + 1)
     mop1 <- lapply(seq_len((length(set) - 1)), function(x) {
       seq_rdist <- set[x]:(set[x + 1] - 1)
