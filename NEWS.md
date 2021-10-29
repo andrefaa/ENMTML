@@ -1,5 +1,9 @@
 # ENMTML 1.0.0
 
+## Block and band cross-validation improved (28-10-2021)
+
+-   BLOCK and BAND cross-validation now measure similarity between partition based on Euclidean distance.
+
 ## Block cross-validation improved (24-02-2021)
 
 -   Codes to perform block cross-validation (**part** argument of the **ENMTML** function) were improved to

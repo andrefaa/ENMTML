@@ -48,7 +48,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
   results <- foreach(
     x = 1:length(RecordsData),
     .packages = c("raster", "ape", "dismo", "plyr"),
-    .export = c("Moran_for_Quadrants_Pair_TMLA","MESS","inv_bio","inv_geo",
+    .export = c("Moran_for_Quadrants_Pair_TMLA","inv_bio","inv_geo",
                 "KM","OptimRandomPoints")
   ) %dopar% {
 
@@ -78,7 +78,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       colnames(RecordsData.st) <- c("x", "y", "Seg", "Partition")
 
       #Moran's I----
-      pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T,nComp = 1)$map
+      pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T, nComp = 1)$map
       Moran <-
         Moran_for_Quadrants_Pair_TMLA(
           occ = RecordsData.st,
@@ -88,32 +88,32 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
         )
       Moran <- data.frame(cbind(quad, Moran), stringsAsFactors = F)
 
-      #MESS----
+      #Euclidean Distance----
       RecordsData_e <-
         cbind(RecordsData.st, extract(evnVariables, RecordsData.st[, 1:2]))
       RecordsData_e <-
         split(RecordsData_e, f = RecordsData_e$Partition)
 
-      mess <-
-        MESS(RecordsData_e[[1]][, -c(1:4)], RecordsData_e[[2]][, -c(1:4)])
-      mess <- mean(mess$TOTAL, na.rm = TRUE)
+      eucl <-
+        flexclust::dist2(RecordsData_e[[1]][, -c(1:4)], RecordsData_e[[2]][, -c(1:4)], method = "euclidean")
+      eucl <- mean(eucl, na.rm = TRUE)
 
       #SD of number of records per Band----
       pa <-
-        RecordsData.st$Partition # Vector wiht presences and absences
+        RecordsData.st$Partition # Vector with presences and absences
       Sd <- stats::sd(table(pa)) /
         mean(table(pa))
 
       #Combine calculations in a data frame
-      res.t <- data.frame(cbind(Moran, mess, Sd), stringsAsFactors = F)
-      colnames(res.t) <- c("Partition", "Moran", "MESS", "SD")
+      res.t <- data.frame(cbind(Moran, eucl, Sd), stringsAsFactors = F)
+      colnames(res.t) <- c("Partition", "Moran", "Euclidean", "SD")
       opt <- rbind(opt, res.t)
     }
     names(opt) <- names(res.t)
 
     # SELLECTION OF THE BEST NUMBER OF BANDS----
     Opt2 <- opt
-    Dup <- !duplicated(Opt2[c("Moran", "MESS", "SD")])
+    Dup <- !duplicated(Opt2[c("Moran", "Euclidean", "SD")])
     Opt2 <- Opt2[Dup, ]
 
     while (nrow(Opt2) > 1) {
@@ -124,7 +124,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       if (nrow(Opt2) == 1)
         break
       # MESS
-      Opt2 <- Opt2[which(Opt2$MESS >= summary(Opt2$MESS)[5]), ]
+      Opt2 <- Opt2[which(Opt2$Euclidean >= summary(Opt2$Euclidean)[5]), ]
       if (nrow(Opt2) == 1)
         break
       # SD
@@ -143,7 +143,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       Opt2 <- Opt2[nrow(Opt2), ]
     }
 
-    resOpt <- cbind(names(RecordsData)[x], Opt2)
+    resOpt <- data.frame(Sp=names(RecordsData)[x], Opt2)
 
     #Create Bands Mask
 

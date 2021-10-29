@@ -58,7 +58,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
     foreach(
       s = 1:length(RecordsData),
       .packages = c("raster", "ape", "dismo"),
-      .export = c("inv_bio","MESS","inv_geo","KM_BLOCK","OptimRandomPoints")
+      .export = c("inv_bio", "inv_geo", "KM_BLOCK", "OptimRandomPoints")
     ) %dopar% {
       
       print(paste(s, SpNames[s]))
@@ -78,8 +78,8 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       DIM <-
         matrix(0, length(cellSize), 2) # the number of rows and columns of each grid
       colnames(DIM) <- c("R", "C")
-      
-      part <- data.frame(matrix(0, nrow(presences2@data), length(grid)))
+      DIM
+      part <- data.frame(matrix(0, nrow(presences2@data), nrow(DIM)))
       part2 <- list()
       
       for (i in 1:length(cellSize)) {
@@ -137,20 +137,19 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       # Performace of cells ----
       # SD of number of records per cell size-----
       pa <- presences2@data[, 1] # Vector wiht presences and absences
-      Sd.Grid.P <- rep(NA, length(grid))
+      Sd.Grid.P <- rep(NA, ncol(part))
       for (i in 1:ncol(part)) {
         Sd.Grid.P[i] <- stats::sd(table(part[pa == 1, i])) /
           mean(table(part[pa == 1, i]))
       }
       
-      # MESS -----
-      Mess.Grid.P <- rep(NA, length(grid))
+      # Euclidean distance -----
+      Eucl.Grid.P <- rep(NA, ncol(part))
       Env.P <- raster::extract(evnVariables, presences)
       for (i in 1:ncol(part)) {
         Env.P1 <- cbind(part[i], Env.P)
         Env.P2 <- split(Env.P1[, -1], Env.P1[, 1])
-        mess1 <- MESS(Env.P2[[1]], Env.P2[[2]])
-        Mess.Grid.P[i] <- mean(mess1$TOTAL, na.rm = TRUE)
+        Eucl.Grid.P[i] <- mean(flexclust::dist2(Env.P2[[1]], Env.P2[[2]]), method = "euclidean")
         rm(Env.P1)
       }
       
@@ -251,12 +250,12 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       }
       
       Imoran.Grid.P <-
-        abs(Imoran.Grid.P) # OJO estamos dejando todos los valores positivos
+        abs(Imoran.Grid.P) 
       N.grid <- 1:length(cellSize[pp])
       
       Opt <-
         data.frame(N.grid, cellSize[pp], round(data.frame(
-          Imoran.Grid.P, Mess.Grid.P, Sd.Grid.P
+          Imoran.Grid.P, Eucl.Grid.P, Sd.Grid.P
         ), 3))
       # Cleaning those variances based in data divided in a number of partition less than
       # the number of groups
@@ -264,7 +263,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       # SELLECTION OF THE BEST CELL SIZE----
       Opt2 <- Opt
       Dup <-
-        !duplicated(Opt2[c("Imoran.Grid.P", "Mess.Grid.P", "Sd.Grid.P")])
+        !duplicated(Opt2[c("Imoran.Grid.P", "Eucl.Grid.P", "Sd.Grid.P")])
       Opt2 <- Opt2[Dup, ]
       
       while (nrow(Opt2) > 1) {
@@ -275,9 +274,9 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           Opt2[which(Opt2$Imoran.Grid.P <= summary(Opt2$Imoran.Grid.P)[2]), ]
         if (nrow(Opt2) == 1)
           break
-        # MESS
+        # Euclidean distance
         Opt2 <-
-          Opt2[which(Opt2$Mess.Grid.P >= summary(Opt2$Mess.Grid.P)[5]), ]
+          Opt2[which(Opt2$Eucl.Grid.P >= summary(Opt2$Eucl.Grid.P)[5]), ]
         if (nrow(Opt2) == 1)
           break
         # SD
@@ -287,7 +286,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           break
         
         if (unique(Opt2$Imoran.Grid.P) &&
-            unique(Opt2$Mess.Grid.P) && unique(Opt2$Sd.Grid.P)) {
+            unique(Opt2$Eucl.Grid.P) && unique(Opt2$Sd.Grid.P)) {
           Opt2 <- Opt2[nrow(Opt2), ]
         }
       }
@@ -462,14 +461,11 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               )
             }
           }
-          # absences.0 <-
-          #   dismo::randomPoints(
-          #     pseudo.mask_p[[i]],
-          #     (1 / PrAbRatio) * sum(presences[, 1] == i),
-          #     ext = e,
-          #     prob = FALSE
-          #   )
-          absences.0 <- OptimRandomPoints(r=pseudo.mask_p[[i]], n=(1 / PrAbRatio)*sum((presences[, 1] == i)),p=presences[presences[, 1] == i, 2:3] )
+          
+          absences.0 <-
+            OptimRandomPoints(r = pseudo.mask_p[[i]],
+                              n = (1 / PrAbRatio) * sum((presences[, 1] == i)),
+                              p = presences[presences[, 1] == i, 2:3])
           
           colnames(absences.0) <- c("lon", "lat")
           absences[[i]] <- as.data.frame(absences.0)
@@ -478,7 +474,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         names(absences) <- 1:N
       }
       
-      # Pseudo-Absences allocation with Environmentla and Geographical  constrain-----
+      # Pseudo-Absences allocation with Environmental and Geographical  constrain-----
       if (pseudoabsencesMethod == "GEO_ENV_CONST") {
         pseudo.mask_p <- inv_bio(evnVariables, presences[, -1])
         pseudo.mask_pg <-
@@ -514,10 +510,6 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
               )
             }
           }
-          # absences.0 <-
-          #   dismo::randomPoints(pseudo.mask_p[[i]],
-          #                       (1 / PrAbRatio) * sum(presences[, 1] == i),
-          #                       prob = FALSE)
           
           absences.0 <- OptimRandomPoints(r=pseudo.mask_p[[i]], n=(1 / PrAbRatio)*sum((presences[, 1] == i)),p=presences[presences[, 1] == i, 2:3] )
           colnames(absences.0) <- c("lon", "lat")
@@ -527,7 +519,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
         names(absences) <- 1:N
       }
       
-      # Pseudo-Absences allocation with Environmentla and Geographical and k-mean constrain-----
+      # Pseudo-Absences allocation with Environmental and Geographical and k-mean constrain-----
       if (pseudoabsencesMethod == "GEO_ENV_KM_CONST") {
         pseudo.mask_p <- inv_bio(evnVariables, presences[, -1])
         pseudo.mask_pg <-
