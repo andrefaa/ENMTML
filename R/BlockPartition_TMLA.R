@@ -302,8 +302,21 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       #Save blocks raster
       mask3 <- mask2
       res(mask3) <- Opt2$cellSize.pp.
-      DIM <- dim(mask3)[1:2]
       raster::values(mask3) <- 1
+      
+      NAS <-
+        c(raster::extract(mask3, presences2)) # Extract values to test if exist NAs
+      if (any(is.na(NAS))) {
+        while (any(is.na(NAS))) {
+          raster::extent(mask3) <- raster::extent(mask3) + Opt2$cellSize.pp.
+          raster::res(mask3) <- Opt2$cellSize.pp. # Give to cells a size
+          raster::values(mask3) <- 1
+          NAS <- raster::extract(mask3, presences2)
+        }
+      }
+      
+      DIM <- dim(mask3)[1:2]
+      
       group <- rep(c(rep(1:N, DIM[2])[1:DIM[2]],
                      rep(c((N / 2 + 1):N, 1:(N / 2)
                      ), DIM[2])[1:DIM[2]])
