@@ -1012,7 +1012,7 @@ ENMTML <- function(pred_dir,
     #6.5.Adjust Checkerboard when using Geographical Restrictions----
     if (!is.null(sp_accessible_area)) {
       if(length(file.path(DirM, list.files(DirM)))>1){
-        Ms <- raster::stack(file.path(DirM, list.files(DirM)))
+        Ms <- raster::stack(file.path(DirM, list.files(DirM, pattern = ".tif$")))
         Ms <- Ms[[spN]]
         Cs <-
           raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
@@ -1242,7 +1242,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Environmental constrain already exists! Using already-created masks!\n")
           EnvMsk <- "Y"
         }
@@ -1327,7 +1327,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Geographical constrain already exists! Using already-created masks!\n")
           EnvMsk <- "Y"
         }
@@ -1411,7 +1411,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Geographical constrain already exists! Using already-created masks! \n")
           EnvMsk <- "Y"
         }
@@ -1496,7 +1496,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Geographical constrain already exists! Using already-created masks! \n")
           EnvMsk <- "Y"
         }
