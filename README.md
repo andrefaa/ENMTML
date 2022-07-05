@@ -12,7 +12,7 @@ devtools::install_github("andrefaa/ENMTML")
 ```
 ## <i class="far fa-question-circle"></i> Why **ENMTML**?
 [ENMTML](https://andrefaa.github.io/ENMTML/) stands for **E**cological **N**iche **M**odelling at **T**he **M**eta**L**and EcologyLab.  
-It is a product from the [Prof. Paulo De Marco's lab in Ubiversidade Federal de Goiás, Brasil](https://themetaland.wixsite.com/themetaland).
+It is a product from the [Prof. Paulo De Marco's lab in Universidade Federal de Goiás, Brasil](https://themetaland.wixsite.com/themetaland).
 
 It puts together a lot of our work with ENM's in the past years in a single package, with the objective of making it easy to use but also covering the complex methodological development that exists in the field.
 

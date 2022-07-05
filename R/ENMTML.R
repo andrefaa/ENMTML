@@ -564,17 +564,26 @@ ENMTML <- function(pred_dir,
 
     #Check Present/Future Names Consistency
     FutN <- list()
+    
+    #Present Names 
+    if(env=="txt"){
+      env_names <- colnames(read.table(list.files(pred_dir,pattern=env,full.names = T), sep="\t",h=T))[-c(1,2)]
+    }else{
+      env_names <- tools::file_path_sans_ext(list.files(pred_dir, pattern=env))
+    }
+    
+    #Future Names
     for(i in 1:length(Pfol)){
       ProjT <- unique(tools::file_ext(list.files(Pfol[[i]])))
       form <- c('bil','asc','txt','tif')
       ProjT <- ProjT[ProjT%in%form]
       if(ProjT=="txt"){
-        FutN[[i]] <- colnames(read.table(list.files(Pfol[[i]],pattern=ProjT,full.names = T),sep="\t",h=T))[-c(1,2)]
+        FutN[[i]] <- colnames(read.table(list.files(Pfol[[i]],pattern=ProjT,full.names = T), sep="\t",h=T))[-c(1,2)]
       }else{
-        FutN[[i]] <- tools::file_path_sans_ext(list.files(Pfol[[i]],pattern=ProjT))
+        FutN[[i]] <- tools::file_path_sans_ext(list.files(Pfol[[i]], pattern=ProjT))
       }
     }
-    if(any(unlist(lapply(FutN, function(x) (names(envT)!=x))))){
+    if(any(unlist(lapply(FutN, function(x) (names(env_names)!=x))))){
       stop("Present/Future Variables Do Not Match! Make sure Present/Future Variables have the same names")
     }
   }
@@ -1012,7 +1021,7 @@ ENMTML <- function(pred_dir,
     #6.5.Adjust Checkerboard when using Geographical Restrictions----
     if (!is.null(sp_accessible_area)) {
       if(length(file.path(DirM, list.files(DirM)))>1){
-        Ms <- raster::stack(file.path(DirM, list.files(DirM)))
+        Ms <- raster::stack(file.path(DirM, list.files(DirM, pattern = ".tif$")))
         Ms <- Ms[[spN]]
         Cs <-
           raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
@@ -1242,7 +1251,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Environmental constrain already exists! Using already-created masks!\n")
           EnvMsk <- "Y"
         }
@@ -1327,7 +1336,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Geographical constrain already exists! Using already-created masks!\n")
           EnvMsk <- "Y"
         }
@@ -1411,7 +1420,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Geographical constrain already exists! Using already-created masks! \n")
           EnvMsk <- "Y"
         }
@@ -1496,7 +1505,7 @@ ENMTML <- function(pred_dir,
 
         #Check for Environmental Constrain Existence
         EnvMsk <- "N"
-        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif"))){
+        if(all(paste0(spN,".tif")%in%list.files(DirCons,pattern=".tif$"))){
           cat("Geographical constrain already exists! Using already-created masks! \n")
           EnvMsk <- "Y"
         }
