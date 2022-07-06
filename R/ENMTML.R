@@ -505,6 +505,9 @@ ENMTML <- function(pred_dir,
 
   #3.Predictors ----
   cat("Loading environmental variables ...\n")
+  
+  #Prevent Auxiliary files from rgdal
+  rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
 
   options(warn = 1)
   # setwd(pred_dir)
