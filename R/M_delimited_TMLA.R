@@ -9,6 +9,8 @@ M_delimited <- function(var,
                         SaveM = TRUE,
                         Mfolder = NULL,
                         cores=1) {
+  
+
   var <- var[[1]]
   var <- !is.na(var)
   var[var[] == 0] <- NA
@@ -86,7 +88,11 @@ M_delimited <- function(var,
         }
     doParallel::registerDoParallel(cl)
     foreach(i = 1:length(M_list),
-            .packages = c("raster")) %dopar% {
+            .packages = c("raster",'rgdal')) %dopar% {
+              
+              #Prevent Auxiliary files from rgdal
+              rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
+              
               if (Buffer_Opt == 2) {
                 M <- dismo::circles(M_list[[i]], d = BufferDistanceKm, lonlat = T)
               } else{
@@ -146,7 +152,11 @@ M_delimited <- function(var,
         }
     doParallel::registerDoParallel(cl)
     foreach(i = 1:length(sp.Ecoregions),
-            .packages = c("raster")) %dopar% {
+            .packages = c("raster",'rgdal')) %dopar% {
+              
+              #Prevent Auxiliary files from rgdal
+              rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
+              
               EcoregionSp <- EcoregionsFile
               EcoregionSp[!EcoregionSp[] %in% sp.Ecoregions[[i]]] <- NA
               EcoregionSp <- EcoregionSp > 0

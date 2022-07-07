@@ -22,6 +22,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    ensemble_metric,
                    sensV,
                    cores) {
+  
 
   Ti <- Sys.time()
   options(warn = -1)
@@ -283,7 +284,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                    .packages = c("raster", "dismo",
                                  "kernlab", "randomForest", "maxnet", "maxlike",
                                  "plyr", "mgcv", "RStoolbox", "adehabitatHS",
-                                 "caret", "glmnet", "gbm"),
+                                 "caret", "glmnet", "gbm",'rgdal'),
                      .export = c( "Validation2_0", "maxnet2","madifa2",
                                   "PCA_ENS_TMLA", "predict.maxnet", "boycei"
                                   ,"STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA",
@@ -295,6 +296,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   "cov.SE","d0","d1","d2","d3","psiline","psi",
                                   "cov.SE.d1","predict.graf.raster","predict.graf","pred")) %dopar% {
 
+    #Prevent Auxiliary files from rgdal
+    rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")                                    
+                                    
     #Results Lists
     ListRaster <- as.list(Algorithm)
     names(ListRaster) <- Algorithm
