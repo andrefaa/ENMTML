@@ -57,7 +57,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   results <-
     foreach(
       s = 1:length(RecordsData),
-      .packages = c("raster", "ape", "dismo"),
+      .packages = c("raster", "dismo"),
       .export = c("inv_bio", "inv_geo", "KM_BLOCK", "OptimRandomPoints")
     ) %dopar% {
       

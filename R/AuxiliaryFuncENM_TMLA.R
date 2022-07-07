@@ -54,7 +54,7 @@ PREDICT_ENFA <- function(mod,prediction_dataset,train_dataset=NULL){
     }
     f1 <- function(x) rep(x, ZER)
     Sli <- apply(Zli, 2, f1)
-    if(class(Sli)=="numeric"){
+    if(class(Sli)[1]=="numeric"){
       m <- Sli
     } else{
       m <- apply(Sli, 2, mean)

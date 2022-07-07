@@ -47,7 +47,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
   #Start species loop----
   results <- foreach(
     x = 1:length(RecordsData),
-    .packages = c("raster", "ape", "dismo", "plyr"),
+    .packages = c("raster", "dismo", "plyr"),
     .export = c("Moran_for_Quadrants_Pair_TMLA","inv_bio","inv_geo",
                 "KM","OptimRandomPoints")
   ) %dopar% {
