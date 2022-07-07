@@ -57,7 +57,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   results <-
     foreach(
       s = 1:length(RecordsData),
-      .packages = c("raster", "dismo",'rgdal','ape'),
+      .packages = c("raster", "dismo",'rgdal'),
       .export = c("inv_bio", "inv_geo", "KM_BLOCK", "OptimRandomPoints")
     ) %dopar% {
       
@@ -245,7 +245,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           Imoran.Grid.P[p] <- NA
         } else{
           Imoran.Grid.P[p] <-
-            ape::Moran.I(species2$pc1,
+            Moran.I(species2$pc1,
                     dist,
                     na.rm = T,
                     scaled = T)$observed
