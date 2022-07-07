@@ -21,7 +21,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   # PrAbRatio: numeric. value of PrAbRatio to be computed.
   # evnVariables: Raster object. Variable set to be used in pseusoabsences
   # cellSize: numeric vector. a vector of values with different cell grid sizes
-  
+
   #Cellsize
   cellSize = seq(res(evnVariables[[1]])[1]*2, res(evnVariables[[1]])[1]*100, length.out = 30)
   
@@ -57,9 +57,12 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   results <-
     foreach(
       s = 1:length(RecordsData),
-      .packages = c("raster", "dismo"),
+      .packages = c("raster", "dismo",'rgdal','ape'),
       .export = c("inv_bio", "inv_geo", "KM_BLOCK", "OptimRandomPoints")
     ) %dopar% {
+      
+      #Prevent Auxiliary files from rgdal
+      rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
       
       print(paste(s, SpNames[s]))
       # Extract coordinates----
@@ -242,7 +245,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
           Imoran.Grid.P[p] <- NA
         } else{
           Imoran.Grid.P[p] <-
-            Moran.I(species2$pc1,
+            ape::Moran.I(species2$pc1,
                     dist,
                     na.rm = T,
                     scaled = T)$observed

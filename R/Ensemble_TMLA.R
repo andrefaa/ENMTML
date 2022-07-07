@@ -10,6 +10,7 @@ Ensemble_TMLA <- function(DirR,
                           Proj,
                           cores,
                           ensemble_metric = NULL) {
+  
   #Start Cluster----
   if (Sys.getenv("RSTUDIO") == "1" &&
       !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
@@ -84,7 +85,7 @@ Ensemble_TMLA <- function(DirR,
   result <- foreach(
     s = 1:length(spN),
     .packages = c("raster", "dismo",
-                  "plyr", "RStoolbox"),
+                  "plyr", "RStoolbox",'rgdal'),
     .export = c(
       "PCA_ENS_TMLA",
       "STANDAR",
@@ -93,6 +94,10 @@ Ensemble_TMLA <- function(DirR,
       "Thresholds_TMLA"
     )
   ) %dopar% {
+    
+    #Prevent Auxiliary files from rgdal
+    rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
+    
     #Species Occurrence Data & Evaluation Table----
     SpData <- RecordsData[RecordsData["sp"] == spN[s],]
     SpVal <- ValTable[ValTable["Sp"] == spN[s],]

@@ -42,7 +42,7 @@ Moran_for_Quadrants_Pair_TMLA <- function(occ, pc1, quad, type = "") {
   if (sum(sp.dists) == 0) {
     Moran <- NA
   } else{
-    Moran <- abs(as.numeric(Moran.I(occ$Env, sp.dists, scaled = T)$observed))
+    Moran <- abs(as.numeric(ape::Moran.I(occ$Env, sp.dists, scaled = T)$observed))
   }
 
   return(Moran)

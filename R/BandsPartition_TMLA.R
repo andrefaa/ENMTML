@@ -47,10 +47,13 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
   #Start species loop----
   results <- foreach(
     x = 1:length(RecordsData),
-    .packages = c("raster", "dismo", "plyr"),
+    .packages = c("raster", "dismo", "plyr", 'rgdal','ape'),
     .export = c("Moran_for_Quadrants_Pair_TMLA","inv_bio","inv_geo",
                 "KM","OptimRandomPoints")
   ) %dopar% {
+    
+    #Prevent Auxiliary files from rgdal
+    rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
 
     opt <- NULL
     print(names(RecordsData)[x])
