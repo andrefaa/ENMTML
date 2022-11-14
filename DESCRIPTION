@@ -29,6 +29,6 @@ BugReports: https://github.com/andrefaa/ENMTML/issues
 Encoding: UTF-8
 Language: en
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Suggests: 
     testthat

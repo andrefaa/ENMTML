@@ -1025,7 +1025,8 @@ ENMTML <- function(pred_dir,
     if (!is.null(sp_accessible_area)) {
       if(length(file.path(DirM, list.files(DirM)))>1){
         Ms <- raster::stack(file.path(DirM, list.files(DirM, pattern = ".tif$")))
-        Ms <- Ms[[spN]]
+        flt <- gsub(".tif$", "", list.files(DirM, pattern = ".tif$"))
+        Ms <- Ms[[flt%in%spN]]
         Cs <-
           raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
       }else{
