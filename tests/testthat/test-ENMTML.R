@@ -1,7 +1,6 @@
 # test ENMTML function
 
 # Prepare data
-require(ENMTML)
 require(raster)
 
 d_ex <- file.path(tempdir(), 'ENMTML_example')
@@ -10,6 +9,7 @@ dir.create(d_ex)
 
 # Virtual species occurrences
 data("occ")
+occ <- occ[occ$species!="Sp_18",]
 d_occ <- file.path(d_ex, 'occ.txt')
 utils::write.table(occ, d_occ, sep = '\t', row.names = FALSE)
 # Five bioclimatic variables for current conditions
@@ -78,7 +78,7 @@ test_that('ENMTML: basic test works', {
   #Check if algorithms produced valid predictions
   d <- list.dirs(file.path(d_rslt, "Algorithm"), recursive = FALSE, full.names = TRUE)
   d <- sapply(d, function(x) length(list.files(x, pattern = '.tif')))
-  expect_true(all(d==5) == TRUE)
+  expect_true(all(d==4) == TRUE)
 
   #Check if PCA folder was correctly created
   expect_true(any(grepl("PCA",list.files(d_env)) == TRUE))
@@ -93,7 +93,7 @@ test_that('ENMTML: basic test works', {
 
   #Check if masks and blocks were created for all species
   m <- length(list.files(file.path(d_rslt, "Extent_Masks")))
-  expect_true(m==5)
+  expect_true(m==4)
 
   b <- length(list.files(file.path(d_rslt, "BLOCK"),pattern = ".tif$"))
   expect_true(b==5)
@@ -142,7 +142,7 @@ test_that('ENMTML: test with future projection', {
   #Check if algorithms produced valid predictions
   d <- list.dirs(file.path(d_rslt, "Algorithm"), recursive = FALSE, full.names = TRUE)
   d <- sapply(d, function(x) length(list.files(x, pattern = '.tif')))
-  expect_true(all(d==5) == TRUE)
+  expect_true(all(d==4) == TRUE)
   
   #Check if PCA folder was correctly created
   expect_true(any(grepl("PCA",list.files(d_env)) == TRUE))
@@ -157,7 +157,7 @@ test_that('ENMTML: test with future projection', {
   
   #Check if masks and blocks were created for all species
   m <- length(list.files(file.path(d_rslt, "Extent_Masks")))
-  expect_true(m==5)
+  expect_true(m==4)
   
   b <- length(list.files(file.path(d_rslt, "BLOCK"),pattern = ".tif$"))
   expect_true(b==5)

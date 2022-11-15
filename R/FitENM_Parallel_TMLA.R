@@ -102,6 +102,9 @@ FitENM_TMLA_Parallel <- function(RecordsData,
     VariablesP <- Fut
   }
 
+  for(ff in 1:length(VariablesP)){
+    names(VariablesP[[ff]]) <- names(Variables)
+  }
   # Species names
   message(paste("Total species to be modeled", length(spN)))
 
