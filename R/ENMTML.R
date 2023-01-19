@@ -357,7 +357,7 @@ ENMTML <- function(pred_dir,
 
   #1.Check Function Arguments----
   cat("Checking for function arguments ...\n")
-
+  {
   er <- NULL
   if(missing(pred_dir)){
     er <- c(er,paste("'pred_dir' unspecified argument, specify the directory of environmental variables | "))
@@ -493,6 +493,7 @@ ENMTML <- function(pred_dir,
     if(sp_accessible_area['method']=="MASK"&length(sp_accessible_area)!=2){
       stop("'sp_accessible_area' Argument is not valid for method=MASK! A filepath containing the file used to generate the species-specific masks must be provided e.g., sp_accessible_area=c(method='USER-DEFINED', filepath='C:/Users/mycomputer/ecoregion/olson.shp')")
     }
+  }
   }
 
   #2.Adjust Names----
@@ -769,10 +770,18 @@ ENMTML <- function(pred_dir,
 
   # Read txt with occurences data
   occ <- utils::read.table(occ_file,
-                    h = T,
+                    h = TRUE,
                     sep = '\t',
-                    stringsAsFactors = F)
+                    stringsAsFactors = FALSE)
   occ<-occ[,c(sp,x,y)]
+  suppressWarnings(occ[[x]] <- as.numeric(occ[[x]]))
+  suppressWarnings(occ[[y]] <- as.numeric(occ[[y]]))
+  
+  if(any(is.na(occ[,x]) | is.na(occ[,y]))){
+    message("Some records were removed because data are no numeric in latitude or longitude")
+    message(paste("Number of records removed:", sum(is.na(occ[,x]) | is.na(occ[,y]))))
+  }
+  
   colnames(occ) <- c("sp","x","y")
   #Correct issues caused by species name separated by space
   occ$sp <- gsub(" ","_",occ$sp)
