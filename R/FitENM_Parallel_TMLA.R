@@ -298,7 +298,6 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   "graf","capture.all","graf.fit.laplace","graf.fit.ep",
                                   "cov.SE","d0","d1","d2","d3","psiline","psi",
                                   "cov.SE.d1","predict.graf.raster","predict.graf","pred")) %dopar% {
-
     #Prevent Auxiliary files from rgdal
     rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")                                    
                                     
@@ -3792,7 +3791,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         if((is.null(Fut)==F && !is.null(Tst))==F){
           Thr <- lapply(ListSummary, '[', c('THR','THR_VALUE'))
           for(i in 1:length(ListRaster)){
-            foldAlg <- grep(pattern=names(Thr)[i],x=folders,value=T)
+            foldAlg <- grep(pattern=names(Thr)[i],x=folders[i],value=T)
             raster::writeRaster(round(ListRaster[[i]], 4),
                         paste(foldAlg, '/',spN[s],".tif", sep=""),
                         format='GTiff',
@@ -3809,20 +3808,31 @@ FitENM_TMLA_Parallel <- function(RecordsData,
         }
       }
       #Save Projections
-      if(is.null(Fut)==F){
-        Thr <- lapply(ListSummary, '[', c('THR','THR_VALUE'))
-        for(p in 1:length(ListFut)){
-          ListFut[[p]] <- ListFut[[p]][unlist(lapply(ListFut[[p]],function(x) class(x)=="RasterLayer"))]
-          for(o in 1:length(ListFut[[p]])){
-            raster::writeRaster(ListFut[[p]][[o]],file.path(ModFut[p],names(Thr)[o],spN[s]),
-                        format='GTiff',overwrite=TRUE)
-            Thr_Alg <- Thr[[o]][Thr[[o]]$THR%in%Threshold,2]
-            foldCatAlg <- grep(pattern=Algorithm[o],x=foldCat,value=T)
-            for(t in 1:length(Thr_Alg)){
-              raster::writeRaster(ListFut[[p]][[o]]>=Thr_Alg[t],
-                          file.path(ModFut[p],names(Thr)[o],Threshold[t],paste0(spN[s],".tif")),
-                          format='GTiff',
-                          overwrite=TRUE)
+      if(is.null(Fut)==F) {
+        Thr <- lapply(ListSummary, '[', c('THR', 'THR_VALUE'))
+        for (p in 1:length(ListFut)) {
+          ListFut[[p]] <-
+            ListFut[[p]][unlist(lapply(ListFut[[p]], function(x)
+              class(x) == "RasterLayer"))]
+          for (o in 1:length(ListFut[[p]])) {
+            raster::writeRaster(
+              ListFut[[p]][[o]],
+              file.path(ModFut[p], names(Thr)[o], spN[s]),
+              format = 'GTiff',
+              overwrite = TRUE
+            )
+            Thr_Alg <- Thr[[o]][Thr[[o]]$THR %in% Threshold, 2]
+            foldCatAlg <-
+              grep(pattern = Algorithm[o],
+                   x = foldCat,
+                   value = T)
+            for (t in 1:length(Thr_Alg)) {
+              raster::writeRaster(
+                ListFut[[p]][[o]] >= Thr_Alg[t],
+                file.path(ModFut[p], names(Thr)[o], Threshold[t], paste0(spN[s], ".tif")),
+                format = 'GTiff',
+                overwrite = TRUE
+              )
             }
           }
         }
