@@ -389,22 +389,17 @@ MESS <- function(V, P, id.col = NULL) {
   return(results)
 }
 
-## %######################################################%##
+##%######################################################%##
 #                                                          #
-####        RasterLayer NA CHECK By Boris Leroy         ####
+####            Homogeneize NA in SpatRaster            ####
 #                                                          #
-## %######################################################%##
-synchroniseNA <- function(x) {
-  if (raster::canProcessInMemory(x, n = 2)) {
-    val <- raster::getValues(x)
-    NA.pos <- unique(which(is.na(val), arr.ind = T)[, 1])
-    val[NA.pos, ] <- NA
-    x <- raster::setValues(x, val)
-    return(x)
-  } else {
-    x <- raster::mask(x, calc(x, fun = sum))
-    return(x)
-  }
+##%######################################################%##
+
+.syncNA <- function(x) {
+  x2 <- sum(is.na(x)) == 0
+  x <- terra::mask(x, x2, maskvalues = 0)
+  rm(x2)
+  return(x)
 }
 
 ## %######################################################%##
