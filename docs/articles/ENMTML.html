@@ -26,6 +26,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -38,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ENMTML</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
       </span>
     </div>
 
@@ -53,7 +55,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     <span class="fas fa-book"></span>
      
     Articles
@@ -91,7 +93,7 @@
   </a>
 </li>
 <li>
-  <a href="https://github.com/andrefaa/ENMTML">
+  <a href="https://github.com/andrefaa/ENMTML" class="external-link">
     <span class="fa fa-github fa-lg"></span>
      
   </a>
@@ -106,145 +108,263 @@
 
       
 
-      </header><script src="ENMTML_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>ENMTML</h1>
             
-            <h4 class="date">2021-10-29</h4>
+            <h4 data-toc-skip class="date">2023-09-05</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/andrefaa/ENMTML/blob/master/vignettes/ENMTML.Rmd"><code>vignettes/ENMTML.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/andrefaa/ENMTML/blob/HEAD/vignettes/ENMTML.Rmd" class="external-link"><code>vignettes/ENMTML.Rmd</code></a></small>
       <div class="hidden name"><code>ENMTML.Rmd</code></div>
 
     </div>
 
     
     
-<div id="the-logic-behind-enmtml" class="section level2">
-<h2 class="hasAnchor">
-<a href="#the-logic-behind-enmtml" class="anchor"></a><i class="fas fa-mask"></i> The logic behind <strong>ENMTML</strong>
+<div class="section level2">
+<h2 id="the-logic-behind-enmtml">
+<i class="fas fa-mask"></i> The logic behind
+<strong>ENMTML</strong><a class="anchor" aria-label="anchor" href="#the-logic-behind-enmtml"></a>
 </h2>
-<p>We structured <strong>ENMTML</strong> as a single function with multiple arguments, which, once filled, require a single Ctrl+R to fit, project, evaluate models and present them to users in a clear and simple way.</p>
-<p>The main function (<strong>ENMTML</strong>) has several arguments, which user’s need to specify according to their modeling needs.</p>
-<p>As we know this is not an simple task, we indicate the papers which proposed those methods in our <a href="https://www.sciencedirect.com/science/article/abs/pii/S1364815219310424">paper</a>. Coupled with a better (but brief) explanation on those.</p>
+<p>We structured <strong>ENMTML</strong> as a single function with
+multiple arguments, which, once filled, require a single Ctrl+R to fit,
+project, evaluate models and present them to users in a clear and simple
+way.</p>
+<p>The main function (<strong>ENMTML</strong>) has several arguments,
+which user’s need to specify according to their modeling needs.</p>
+<p>As we know this is not an simple task, we indicate the papers which
+proposed those methods in our <a href="https://www.sciencedirect.com/science/article/abs/pii/S1364815219310424" class="external-link">paper</a>.
+Coupled with a better (but brief) explanation on those.</p>
 </div>
-<div id="how-to-run" class="section level2">
-<h2 class="hasAnchor">
-<a href="#how-to-run" class="anchor"></a><i class="fas fa-terminal"></i> How to run?</h2>
+<div class="section level2">
+<h2 id="how-to-run">
+<i class="fas fa-terminal"></i> How to run?<a class="anchor" aria-label="anchor" href="#how-to-run"></a>
+</h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/ENMTML.html">ENMTML</a></span><span class="op">(</span><span class="va">pred_dir</span>, 
-       proj_dir <span class="op">=</span> <span class="cn">NULL</span>, 
-       result_dir <span class="op">=</span> <span class="cn">NULL</span>,
-       <span class="va">occ_file</span>, 
-       <span class="va">sp</span>, 
-       <span class="va">x</span>, 
-       <span class="va">y</span>, 
-       min_occ <span class="op">=</span> <span class="fl">10</span>,
-       thin_occ <span class="op">=</span> <span class="cn">NULL</span>, 
-       eval_occ <span class="op">=</span> <span class="cn">NULL</span>, 
-       colin_var <span class="op">=</span> <span class="cn">NULL</span>,
-       imp_var <span class="op">=</span> <span class="cn">FALSE</span>, 
-       sp_accessible_area <span class="op">=</span> <span class="cn">NULL</span>, 
-       <span class="va">pseudoabs_method</span>,
-       pres_abs_ratio <span class="op">=</span> <span class="fl">1</span>, 
-       <span class="va">part</span>, save_part <span class="op">=</span> <span class="cn">FALSE</span>, 
-       save_final <span class="op">=</span> <span class="cn">TRUE</span>,
-       <span class="va">algorithm</span>, 
-       <span class="va">thr</span>, 
-       msdm <span class="op">=</span> <span class="cn">NULL</span>, 
-       ensemble <span class="op">=</span> <span class="cn">NULL</span>,
-       extrapolation <span class="op">=</span> <span class="cn">FALSE</span>, 
-       cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ENMTML.html">ENMTML</a></span><span class="op">(</span><span class="va">pred_dir</span>, </span>
+<span>       proj_dir <span class="op">=</span> <span class="cn">NULL</span>, </span>
+<span>       result_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>       <span class="va">occ_file</span>, </span>
+<span>       <span class="va">sp</span>, </span>
+<span>       <span class="va">x</span>, </span>
+<span>       <span class="va">y</span>, </span>
+<span>       min_occ <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>       thin_occ <span class="op">=</span> <span class="cn">NULL</span>, </span>
+<span>       eval_occ <span class="op">=</span> <span class="cn">NULL</span>, </span>
+<span>       colin_var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>       imp_var <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>       sp_accessible_area <span class="op">=</span> <span class="cn">NULL</span>, </span>
+<span>       <span class="va">pseudoabs_method</span>,</span>
+<span>       pres_abs_ratio <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>       <span class="va">part</span>, save_part <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>       save_final <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>       <span class="va">algorithm</span>, </span>
+<span>       <span class="va">thr</span>, </span>
+<span>       msdm <span class="op">=</span> <span class="cn">NULL</span>, </span>
+<span>       ensemble <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>       extrapolation <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>       cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><strong>See possible input options below</strong></p>
 </div>
-<div id="function-arguments" class="section level2">
-<h2 class="hasAnchor">
-<a href="#function-arguments" class="anchor"></a><i class="fas fa-puzzle-piece"></i> Function Arguments</h2>
+<div class="section level2">
+<h2 id="function-arguments">
+<i class="fas fa-puzzle-piece"></i> Function Arguments<a class="anchor" aria-label="anchor" href="#function-arguments"></a>
+</h2>
 <ul>
-<li><p><strong>pred_dir</strong>: character. Directory path with predictors (file formats supported are ASC, BILL, TIFF or TXT)</p></li>
-<li><p><strong>proj_dir</strong>: character. Directory path containing folders with predictors for different regions or time periods used to project models (file formats supported are ASC, BILL, TIFF, or TXT).</p></li>
+<li><p><strong>pred_dir</strong>: character. Directory path with
+predictors (file formats supported are ASC, BILL, TIFF or TXT)</p></li>
+<li><p><strong>proj_dir</strong>: character. Directory path containing
+folders with predictors for different regions or time periods used to
+project models (file formats supported are ASC, BILL, TIFF, or
+TXT).</p></li>
 <li>
-<p><strong>result_dir</strong>: character. Directory path with the folder in which model results will be recorded:</p>
+<p><strong>result_dir</strong>: character. Directory path with the
+folder in which model results will be recorded:</p>
 <ul>
-<li>NULL: Results will be recorded in a default Result folder, at the same level as the pred_dir folder (usage  <b style="color:red"><code>result_dir=NULL</code></b>).</li>
-<li>Simple name: A folder with the specified name will be created at the same level as the pred_dir folder (e.g. usage  <b style="color:red"><code>result_dir="MyFolderName"</code></b>)</li>
-<li>Complete path: A folder will be created at the specified path (e.g.  <b style="color:red"><code>result_dir="C:/Users/mypc/Documents/MyFolderName"</code></b>).</li>
+<li>NULL: Results will be recorded in a default Result folder, at the
+same level as the pred_dir folder (usage 
+<b style="color:red"><code>result_dir=NULL</code></b>).</li>
+<li>Simple name: A folder with the specified name will be created at the
+same level as the pred_dir folder (e.g. usage 
+<b style="color:red"><code>result_dir="MyFolderName"</code></b>)</li>
+<li>Complete path: A folder will be created at the specified path
+(e.g. 
+<b style="color:red"><code>result_dir="C:/Users/mypc/Documents/MyFolderName"</code></b>).</li>
 </ul>
 </li>
-<li><p><strong>occ_file</strong>: character. Directory path with the tab-delimited TXT file, which will contain at least three columns with information about species names, and the latitude and longitude of species occurrences.</p></li>
-<li><p><strong>sp</strong>: character. Name of the column with information about species names.</p></li>
-<li><p><strong>x</strong>: character. Name of the column with information about longitude.</p></li>
-<li><p><strong>y</strong>: character. Name of the column with information about latitude.</p></li>
-<li><p><strong>min_occ</strong>: integer. Minimum number of unique occurrences (species with less than this number will be excluded).</p></li>
+<li><p><strong>occ_file</strong>: character. Directory path with the
+tab-delimited TXT file, which will contain at least three columns with
+information about species names, and the latitude and longitude of
+species occurrences.</p></li>
+<li><p><strong>sp</strong>: character. Name of the column with
+information about species names.</p></li>
+<li><p><strong>x</strong>: character. Name of the column with
+information about longitude.</p></li>
+<li><p><strong>y</strong>: character. Name of the column with
+information about latitude.</p></li>
+<li><p><strong>min_occ</strong>: integer. Minimum number of unique
+occurrences (species with less than this number will be
+excluded).</p></li>
 <li>
-<p><strong>thin_occ</strong>: character. Perform spatial filtering (Thinning, based on spThin package) on the presences. For this augment it is necessary provide a vector in which its elements need to have the names ‘method’ or ‘method’ and ‘distance’ (more information below). Three thinning methods are available (default <code>NULL</code>):</p>
+<p><strong>thin_occ</strong>: character. Perform spatial filtering
+(Thinning, based on spThin package) on the presences. For this augment
+it is necessary provide a vector in which its elements need to have the
+names ‘method’ or ‘method’ and ‘distance’ (more information below).
+Three thinning methods are available (default <code>NULL</code>):</p>
 <ul>
 <li>
-<strong>MORAN</strong> Distance defined by Moran Variogram. Usage  <b style="color:red"><code>thin_occ=c(method='MORAN')</code></b>.</li>
+<strong>MORAN</strong> Distance defined by Moran Variogram. Usage
+
+<b style="color:red"><code>thin_occ=c(method='MORAN')</code></b>.</li>
 <li>
-<strong>CELLSIZE</strong> Distance defined by 2x cellsize (Haversine Transformation). Usage  <b style="color:red"><code>thin_occ=c(method='CELLSIZE')</code></b>.</li>
+<strong>CELLSIZE</strong> Distance defined by 2x cellsize (Haversine
+Transformation). Usage 
+<b style="color:red"><code>thin_occ=c(method='CELLSIZE')</code></b>.</li>
 <li>
-<strong>USER-DEFINED</strong> User defined distance. For this option it is necessary to provide a vector with two values. Usage  <b style="color:red"><code>thin_occ=c(method='USER-DEFINED', ditance='300')</code></b>. The second numeric value refers to the distance in km that will be used for thinning. So distance=300 means that all records within a radius of 300 km will be deleted.</li>
+<strong>USER-DEFINED</strong> User defined distance. For this option
+it is necessary to provide a vector with two values. Usage 
+<b style="color:red"><code>thin_occ=c(method='USER-DEFINED', ditance='300')</code></b>.
+The second numeric value refers to the distance in km that will be used
+for thinning. So distance=300 means that all records within a radius of
+300 km will be deleted.</li>
 </ul>
 </li>
-<li><p><strong>eval_occ:</strong> character. Directory path with tab-delimited TXT file with species names, latitude and longitude, these three columns must have the same columns names than the database used in the <code>occ_file</code> argument. This external occurrence database will be used to external models validation (i.e., it will no be use to model fitting). (default <code>NULL</code>).</p></li>
+<li><p><strong>eval_occ:</strong> character. Directory path with
+tab-delimited TXT file with species names, latitude and longitude, these
+three columns must have the same columns names than the database used in
+the <code>occ_file</code> argument. This external occurrence database
+will be used to external models validation (i.e., it will no be use to
+model fitting). (default <code>NULL</code>).</p></li>
 <li>
-<p><strong>colin_var:</strong> character. Method to reduce variable collinearity:</p>
+<p><strong>colin_var:</strong> character. Method to reduce variable
+collinearity:</p>
 <ul>
 <li>
-<strong>PCA:</strong> Perform a Principal Component Analysis on predictors and use Principal Components as environmental variables. Usage  <b style="color:red"><code>colin_var=c(method='PCA')</code></b>.</li>
+<strong>PCA:</strong> Perform a Principal Component Analysis on
+predictors and use Principal Components as environmental variables.
+Usage 
+<b style="color:red"><code>colin_var=c(method='PCA')</code></b>.</li>
 <li>
-<strong>VIF:</strong> Variance Inflation Factor. Usage <b style="color:red"><code>colin_var=c(method='VIF')</code></b>.</li>
+<strong>VIF:</strong> Variance Inflation Factor. Usage
+<b style="color:red"><code>colin_var=c(method='VIF')</code></b>.</li>
 <li>
-<strong>PEARSON</strong>: Select variables by Pearson correlation, a threshold of maximum correlation must be specified by user. Usage <b style="color:red"><code>colin_var=c(method='PEARSON', threshold='0.7')</code></b>.</li>
+<strong>PEARSON</strong>: Select variables by Pearson correlation, a
+threshold of maximum correlation must be specified by user. Usage
+<b style="color:red"><code>colin_var=c(method='PEARSON', threshold='0.7')</code></b>.</li>
 </ul>
 </li>
-<li><p><strong>imp_var:</strong> logical. Perform variable importance and data for curves response for selected algorithms? (default FALSE)</p></li>
+<li><p><strong>imp_var:</strong> logical. Perform variable importance
+and data for curves response for selected algorithms? (default
+FALSE)</p></li>
 <li>
-<p><strong>sp_accessible_area:</strong> character. Restrict for each species the accessible area, i.e., the area used to model fitting. It is necessary to provide a vector for this argument. Three methods were implemented</p>
+<p><strong>sp_accessible_area:</strong> character. Restrict for each
+species the accessible area, i.e., the area used to model fitting. It is
+necessary to provide a vector for this argument. Three methods were
+implemented</p>
 <ul>
 <li>
-<strong>BUFFER</strong> area used to model fitting delimited by a buffer with a width size equal to the maximum distance among pair of occurrences for each species. Usage <b style="color:red"><code>sp_accessible_area=c(method='BUFFER', type='1')</code></b>.</li>
+<strong>BUFFER</strong> area used to model fitting delimited by a
+buffer with a width size equal to the maximum distance among pair of
+occurrences for each species. Usage
+<b style="color:red"><code>sp_accessible_area=c(method='BUFFER', type='1')</code></b>.</li>
 <li>
-<strong>BUFFER</strong> area used to model fitting delimted by a buffer with a width size defined by the user in km. Note this width size of buffer will be used for all species. Usage <b style="color:red"><code>sp_accessible_area=c(method='BUFFER', type='2', width='300')</code></b>.</li>
+<strong>BUFFER</strong> area used to model fitting delimted by a
+buffer with a width size defined by the user in km. Note this width size
+of buffer will be used for all species. Usage
+<b style="color:red"><code>sp_accessible_area=c(method='BUFFER', type='2', width='300')</code></b>.</li>
 <li>
-<strong>MASK</strong> this method consists in delimit the area used to model fitting based on the polygon where a species occurrences fall. For instance, it is possible delimit the calibration area based on ecoregion shapefile. For this option it is necessary inform the path to the file that will be used as mask. Next file format can be loaded ‘.bil’, ‘.asc’, ‘.tif’, ‘.shp’, and ‘.txt’. Usage <b style="color:red"><code>sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp')</code></b>..</li>
+<strong>MASK</strong> this method consists in delimit the area used
+to model fitting based on the polygon where a species occurrences fall.
+For instance, it is possible delimit the calibration area based on
+ecoregion shapefile. For this option it is necessary inform the path to
+the file that will be used as mask. Next file format can be loaded
+‘.bil’, ‘.asc’, ‘.tif’, ‘.shp’, and ‘.txt’. Usage
+<b style="color:red"><code>sp_accessible_area=c(method='MASK', filepath='C:/Users/mycomputer/ecoregion/olson.shp')</code></b>..</li>
 </ul>
 </li>
 <li>
-<p><strong>pseudoabs_method:</strong> character. Pseudo-absence allocation method. It is necessary to provide a vector for this argument. Only one method can be chosen. The next methods are implemented:</p>
+<p><strong>pseudoabs_method:</strong> character. Pseudo-absence
+allocation method. It is necessary to provide a vector for this
+argument. Only one method can be chosen. The next methods are
+implemented:</p>
 <ul>
 <li>
-<strong>RND:</strong> Random allocation of pseudo-absences throughout the area used for model fitting. Usage <b style="color:red"><code>pseudoabs_method=c(method='RND')</code></b>.</li>
+<strong>RND:</strong> Random allocation of pseudo-absences
+throughout the area used for model fitting. Usage
+<b style="color:red"><code>pseudoabs_method=c(method='RND')</code></b>.</li>
 <li>
-<strong>ENV_CONST:</strong> Pseudo-absences are environmentally constrained to a region with lower suitability values predicted by a Bioclim model. Usage pseudoabs_method=c(method=‘ENV_CONST’). Usage <b style="color:red"><code>pseudoabs_method=c(method='ENV_CONST')</code></b>.</li>
+<strong>ENV_CONST:</strong> Pseudo-absences are environmentally
+constrained to a region with lower suitability values predicted by a
+Bioclim model. Usage pseudoabs_method=c(method=‘ENV_CONST’). Usage
+<b style="color:red"><code>pseudoabs_method=c(method='ENV_CONST')</code></b>.</li>
 <li>
-<strong>GEO_CONST:</strong> Pseudo-absences are allocated far from occurrences based on a geographical buffer. For this method it is necessary provie a second value wich express the buffer width in km. Usage <b style="color:red"><code>pseudoabs_method=c(method='GEO_CONST', width='50')</code></b>.</li>
+<strong>GEO_CONST:</strong> Pseudo-absences are allocated far from
+occurrences based on a geographical buffer. For this method it is
+necessary provie a second value wich express the buffer width in km.
+Usage
+<b style="color:red"><code>pseudoabs_method=c(method='GEO_CONST', width='50')</code></b>.</li>
 <li>
-<strong>GEO_ENV_CONST:</strong> Pseudo-absences are constrained environmentally (based on Bioclim model) but distributed geographically far from occurrences based on a geographical buffer. For this method it is necessary provide a second value which express the buffer width in km. Usage <b style="color:red"> <code>pseudoabs_method=c(method='GEO_ENV_CONST', width='50')</code></b>
+<strong>GEO_ENV_CONST:</strong> Pseudo-absences are constrained
+environmentally (based on Bioclim model) but distributed geographically
+far from occurrences based on a geographical buffer. For this method it
+is necessary provide a second value which express the buffer width in
+km. Usage <b style="color:red">
+<code>pseudoabs_method=c(method='GEO_ENV_CONST', width='50')</code></b>
 </li>
 <li>
-<strong>GEO_ENV_KM_CONST:</strong> Pseudo-absences are constrained on a three-level procedure; it is similar to the GEO_ENV_CONST with an additional step which distributes the pseudo-absences in the environmental space using k-means cluster analysis. For this method it is necessary provide a second value which express the buffer width in km. Usage <b style="color:red"><code>pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')</code></b>.</li>
+<strong>GEO_ENV_KM_CONST:</strong> Pseudo-absences are constrained
+on a three-level procedure; it is similar to the GEO_ENV_CONST with an
+additional step which distributes the pseudo-absences in the
+environmental space using k-means cluster analysis. For this method it
+is necessary provide a second value which express the buffer width in
+km. Usage
+<b style="color:red"><code>pseudoabs_method=c(method='GEO_ENV_KM_CONST', width='50')</code></b>.</li>
 </ul>
 </li>
-<li><p><strong>pres_abs_ratio:</strong> numeric. Presence-Absence ratio (values between 0 and 1).</p></li>
+<li><p><strong>pres_abs_ratio:</strong> numeric. Presence-Absence ratio
+(values between 0 and 1).</p></li>
 <li>
-<p><strong>part:</strong> character. Partition method for model’s validation. Only one method can be chosen. It is necessary to provide a vector for this argument. The next methods are implemented:</p>
+<p><strong>part:</strong> character. Partition method for model’s
+validation. Only one method can be chosen. It is necessary to provide a
+vector for this argument. The next methods are implemented:</p>
 <ul>
 <li>
-<strong>BOOT:</strong> Random bootstrap partition. Usage <b style="color:red"><code>part=c(method='BOOT', replicates='2',  proportion='0.7')</code></b>. <code>replicate</code> refers to the number of replicates, it assumes a value &gt;=1. <code>proportion</code> refers to the proportion of occurrences used for model fitting, it assumes a value &gt;0 and &lt;=1. In this example <code>proportion='0.7'</code> mean that 70% of data will be used for model training, while 30% for model testing.</li>
+<strong>BOOT:</strong> Random bootstrap partition. Usage
+<b style="color:red"><code>part=c(method='BOOT', replicates='2',  proportion='0.7')</code></b>.
+<code>replicate</code> refers to the number of replicates, it assumes a
+value &gt;=1. <code>proportion</code> refers to the proportion of
+occurrences used for model fitting, it assumes a value &gt;0 and &lt;=1.
+In this example <code>proportion='0.7'</code> mean that 70% of data will
+be used for model training, while 30% for model testing.</li>
 <li>
-<strong>KFOLD:</strong> Random partition in k-fold cross-validation. Usage <b style="color:red"><code>part=c(method= 'KFOLD', folds='5')</code></b>. <code>folds</code> refers to the number of folds for data partitioning, it assumes value &gt;=1.</li>
+<strong>KFOLD:</strong> Random partition in k-fold cross-validation.
+Usage
+<b style="color:red"><code>part=c(method= 'KFOLD', folds='5')</code></b>.
+<code>folds</code> refers to the number of folds for data partitioning,
+it assumes value &gt;=1.</li>
 <li>
-<strong>BANDS:</strong> Geographic partition structured as bands arranged in a latitudinal way (type 1) or longitudinal way (type 2). Usage <b style="color:red"><code>part=c(method= 'BANDS', type='1')</code></b>. <code>type</code> refers to the bands disposition.</li>
+<strong>BANDS:</strong> Geographic partition structured as bands
+arranged in a latitudinal way (type 1) or longitudinal way (type 2).
+Usage
+<b style="color:red"><code>part=c(method= 'BANDS', type='1')</code></b>.
+<code>type</code> refers to the bands disposition.</li>
 <li>
-<strong>BLOCK:</strong> Geographic partition structured as a checkerboard (a.k.a. block cross-validation). Usage <b style="color:red"><code>part=c(method= 'BLOCK')</code></b>.</li>
+<strong>BLOCK:</strong> Geographic partition structured as a
+checkerboard (a.k.a. block cross-validation). Usage
+<b style="color:red"><code>part=c(method= 'BLOCK')</code></b>.</li>
 </ul>
 </li>
-<li><p><strong>save_part:</strong> logical. If <code>TRUE</code>, function will save .tif files of partial models, i.e. model created by each occurrence partitions. (default <code>FALSE</code>).</p></li>
-<li><p><strong>save_final:</strong> logical. If <code>TRUE</code>, function will save .tif files of the final model, i.e. fitted with all occurrences data. (default <code>TRUE</code>)</p></li>
+<li><p><strong>save_part:</strong> logical. If <code>TRUE</code>,
+function will save .tif files of partial models, i.e. model created by
+each occurrence partitions. (default <code>FALSE</code>).</p></li>
+<li><p><strong>save_final:</strong> logical. If <code>TRUE</code>,
+function will save .tif files of the final model, i.e. fitted with all
+occurrences data. (default <code>TRUE</code>)</p></li>
 <li>
-<p><strong>algorithm:</strong> character. Algorithm to construct ecological niche models (it is possible to use more than one method):</p>
+<p><strong>algorithm:</strong> character. Algorithm to construct
+ecological niche models (it is possible to use more than one
+method):</p>
 <ul>
 <li>
 <strong>BIO:</strong> Bioclim<br>
@@ -259,9 +379,11 @@
 <strong>ENF:</strong> Ecological-Niche Factor Analysis<br>
 </li>
 <li>
-<strong>MXS:</strong> Maxent simple (only linear and quadratic features, based on MaxNet package)</li>
+<strong>MXS:</strong> Maxent simple (only linear and quadratic
+features, based on MaxNet package)</li>
 <li>
-<strong>MXD:</strong> Maxent default features (all features, based on MaxNet package)</li>
+<strong>MXD:</strong> Maxent default features (all features, based
+on MaxNet package)</li>
 <li>
 <strong>SVM:</strong> Support Vector Machine<br>
 </li>
@@ -279,92 +401,196 @@
 <strong>MLK:</strong> Maximum Likelihood<br>
 </li>
 <li>
-<strong>GAU:</strong> Gaussian Process Usage <b style="color:red"> algorithm=c(‘BIO’, ‘SVM’, ‘GLM’, ‘GAM’, ‘GAU’).</b>
+<strong>GAU:</strong> Gaussian Process Usage
+<b style="color:red"> algorithm=c(‘BIO’, ‘SVM’, ‘GLM’, ‘GAM’,
+‘GAU’).</b>
 </li>
 </ul>
 </li>
 <li>
-<p><strong>thr:</strong> character. Threshold used for presence-absence predictions. It is possible to use more than one threshold type. It is necessary to provide a vector for this argument:</p>
+<p><strong>thr:</strong> character. Threshold used for
+presence-absence predictions. It is possible to use more than one
+threshold type. It is necessary to provide a vector for this
+argument:</p>
 <ul>
 <li>
-<strong>LPT:</strong> The highest threshold at which there is no omission. Usage <b style="color:red"><code>thr=c(type='LPT')</code></b>.</li>
+<strong>LPT:</strong> The highest threshold at which there is no
+omission. Usage
+<b style="color:red"><code>thr=c(type='LPT')</code></b>.</li>
 <li>
-<strong>MAX_TSS:</strong> Threshold at which the sum of the sensitivity and specificity is the highest. Usage <b style="color:red"> <code>thr=c(type='MAX_TSS')</code></b>.</li>
+<strong>MAX_TSS:</strong> Threshold at which the sum of the
+sensitivity and specificity is the highest. Usage
+<b style="color:red"> <code>thr=c(type='MAX_TSS')</code></b>.</li>
 <li>
-<strong>MAX_KAPPA:</strong> The threshold at which kappa is the highest (“max kappa”). Usage <b style="color:red"><code>thr=c(type='MAX_KAPPA')</code></b>.</li>
+<strong>MAX_KAPPA:</strong> The threshold at which kappa is the
+highest (“max kappa”). Usage
+<b style="color:red"><code>thr=c(type='MAX_KAPPA')</code></b>.</li>
 <li>
-<strong>SENSITIVITY:</strong> A threshold value specified by user. Usage <b style="color:red"><code>thr=c(type='SENSITIVITY', sens='0.6')</code></b>. ‘sens’ refers to models will be binarized using this suitability value. Note that this method assumes ‘sens’ value for all algorithm and species.</li>
+<strong>SENSITIVITY:</strong> A threshold value specified by user.
+Usage
+<b style="color:red"><code>thr=c(type='SENSITIVITY', sens='0.6')</code></b>.
+‘sens’ refers to models will be binarized using this suitability value.
+Note that this method assumes ‘sens’ value for all algorithm and
+species.</li>
 <li>
-<strong>JACCARD:</strong> The threshold at which Jaccard is the highest. Usage <b style="color:red"><code>thr=c(type='JACCARD')</code></b>.</li>
+<strong>JACCARD:</strong> The threshold at which Jaccard is the
+highest. Usage
+<b style="color:red"><code>thr=c(type='JACCARD')</code></b>.</li>
 <li>
-<strong>SORENSEN:</strong> The threshold at which Sorensen is highest. Usage <b style="color:red"><code>thr=c(type='SORENSEN')</code></b>.</li>
+<strong>SORENSEN:</strong> The threshold at which Sorensen is
+highest. Usage
+<b style="color:red"><code>thr=c(type='SORENSEN')</code></b>.</li>
 </ul>
-<p>In the case of use more than one threshold type it is necessary concatenate the names of threshold types, e.g., <b style="color:red"><code>thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD'))</code></b>. When <code>SENSITIVITY</code> threshold is used in combination with other it is necessary specify the desired sensitivity value, e.g., <b style="color:red"><code>thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')</code></b>.</p>
+<p>In the case of use more than one threshold type it is necessary
+concatenate the names of threshold types, e.g.,
+<b style="color:red"><code>thr=c(type=c('LPT', 'MAX_TSS', 'JACCARD'))</code></b>.
+When <code>SENSITIVITY</code> threshold is used in combination with
+other it is necessary specify the desired sensitivity value, e.g.,
+<b style="color:red"><code>thr=c(type=c('LPT', 'MAX_TSS', 'SENSITIVITY'), sens='0.8')</code></b>.</p>
 </li>
 <li>
-<p><strong>msdm:</strong> character. Include spatial restrictions to model projection. These methods restrict ecological niche models in order to have less potential prediction and turn models closer to species distribution models. They are classified in ‘a Priori’ and ‘a Posteriori’ methods. The first one encompasses method that include geographical layers as predictor of models’ fitting, whereas a Posteriori constrain models based on occurrence and suitability patterns. This argument is filled only with a method, in the case of use MCP-B method msdm is filled in a different way se below (default <code>NULL</code>):</p>
-<p><em>a Priori</em> methods (layer created area added as a predictor at moment of model fitting):</p>
+<p><strong>msdm:</strong> character. Include spatial restrictions to
+model projection. These methods restrict ecological niche models in
+order to have less potential prediction and turn models closer to
+species distribution models. They are classified in ‘a Priori’ and ‘a
+Posteriori’ methods. The first one encompasses method that include
+geographical layers as predictor of models’ fitting, whereas a
+Posteriori constrain models based on occurrence and suitability
+patterns. This argument is filled only with a method, in the case of use
+MCP-B method msdm is filled in a different way se below (default
+<code>NULL</code>):</p>
+<p><em>a Priori</em> methods (layer created area added as a predictor at
+moment of model fitting):</p>
 <ul>
 <li>
-<strong>XY:</strong> Create two layers latitude and longitude layer. Usage <b style="color:red"><code>msdm=c(method='XY')</code></b>.</li>
+<strong>XY:</strong> Create two layers latitude and longitude layer.
+Usage
+<b style="color:red"><code>msdm=c(method='XY')</code></b>.</li>
 <li>
-<strong>MIN:</strong> Create a layer with information of the distance from each cell to the closest occurrence. Usage <b style="color:red"><code>msdm=c(method='MIN')</code></b>.</li>
+<strong>MIN:</strong> Create a layer with information of the
+distance from each cell to the closest occurrence. Usage
+<b style="color:red"><code>msdm=c(method='MIN')</code></b>.</li>
 <li>
-<strong>CML:</strong> Create a layer with information of the summed distance from each cell to all occurrences. Usage<b style="color:red"><code>msdm=c(method='CML')</code></b>.</li>
+<strong>CML:</strong> Create a layer with information of the summed
+distance from each cell to all occurrences.
+Usage<b style="color:red"><code>msdm=c(method='CML')</code></b>.</li>
 <li>
-<strong>KER:</strong> Create a layer with a Gaussian-Kernel on the occurrence data. Usage <b style="color:red"><code>msdm=c(method='KER')</code>.</b>
+<strong>KER:</strong> Create a layer with a Gaussian-Kernel on the
+occurrence data. Usage
+<b style="color:red"><code>msdm=c(method='KER')</code>.</b>
 </li>
 </ul>
 <p><em>a Posteriori</em> methods:</p>
 <ul>
 <li>
-<strong>OBR:</strong> Occurrence based restriction, uses the distance between points to exclude far suitable patches (Mendes et al., in prep). Usage <b style="color:red"><code>msdm=c(method='OBR')</code></b>.</li>
+<strong>OBR:</strong> Occurrence based restriction, uses the
+distance between points to exclude far suitable patches (Mendes et al.,
+in prep). Usage
+<b style="color:red"><code>msdm=c(method='OBR')</code></b>.</li>
 <li>
-<strong>LR:</strong> Lower Quantile, select the nearest 25% patches (Mendes et al., in prep). Usage <b style="color:red"><code>msdm=c(method='LR')</code></b>.</li>
+<strong>LR:</strong> Lower Quantile, select the nearest 25% patches
+(Mendes et al., in prep). Usage
+<b style="color:red"><code>msdm=c(method='LR')</code></b>.</li>
 <li>
-<strong>PRES:</strong> Select only the patches with confirmed occurrence data (Mendes et al, in prep). Usage <b style="color:red"><code>msdm=c(method='PRES')</code></b>.</li>
+<strong>PRES:</strong> Select only the patches with confirmed
+occurrence data (Mendes et al, in prep). Usage
+<b style="color:red"><code>msdm=c(method='PRES')</code></b>.</li>
 <li>
-<strong>MCP:</strong> Excludes suitable cells outside the Minimum Convex Polygon (MCP) built based on occurrences data. Usage <b style="color:red"><code>msdm=c(method='MCP')</code></b>.</li>
+<strong>MCP:</strong> Excludes suitable cells outside the Minimum
+Convex Polygon (MCP) built based on occurrences data. Usage
+<b style="color:red"><code>msdm=c(method='MCP')</code></b>.</li>
 <li>
-<strong>MCP-B:</strong> Creates a buffer (with a width size defined by user in km) around the MCP. Usage <b style="color:red"><code>msdm=c(method='MCP-B', width=100)</code></b>. In this case <code>width=100</code> means that a buffer with 100km of width will be created around the MCP.</li>
+<strong>MCP-B:</strong> Creates a buffer (with a width size defined
+by user in km) around the MCP. Usage
+<b style="color:red"><code>msdm=c(method='MCP-B', width=100)</code></b>.
+In this case <code>width=100</code> means that a buffer with 100km of
+width will be created around the MCP.</li>
 </ul>
 </li>
 <li>
-<p><strong>ensemble:</strong> character. Method used to ensemble different algorithms. It is possible to use more than one method. A vector must be provided for this argument. For SUP, W_MEAN or PCA_SUP method it is necessary provide an evaluation metric to ensemble arguments (i.e., AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below. (default NULL):</p>
+<p><strong>ensemble:</strong> character. Method used to ensemble
+different algorithms. It is possible to use more than one method. A
+vector must be provided for this argument. For SUP, W_MEAN or PCA_SUP
+method it is necessary provide an evaluation metric to ensemble
+arguments (i.e., AUC, Kappa, TSS, Jaccard, Sorensen or Fpb) see below.
+(default NULL):</p>
 <ul>
 <li>
-<strong>MEAN:</strong> Simple average of the different models. Usage <b style="color:red"><code>ensemble=c(method='MEAN')</code>.</b>
+<strong>MEAN:</strong> Simple average of the different models. Usage
+<b style="color:red"><code>ensemble=c(method='MEAN')</code>.</b>
 </li>
 <li>
-<strong>W_MEAN:</strong> Weighted average of models based on their performance. An evaluation metric must be provided. Usage <b style="color:red"><code>ensemble=c(method='W_MEAN', metric='TSS')</code></b>.</li>
+<strong>W_MEAN:</strong> Weighted average of models based on their
+performance. An evaluation metric must be provided. Usage
+<b style="color:red"><code>ensemble=c(method='W_MEAN', metric='TSS')</code></b>.</li>
 <li>
-<strong>SUP:</strong> Average of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage <b style="color:red"><code>ensemble=c(method='SUP', metric='TSS')</code></b>.</li>
+<strong>SUP:</strong> Average of the best models (e.g., TSS over the
+average). An evaluation metric must be provided. Usage
+<b style="color:red"><code>ensemble=c(method='SUP', metric='TSS')</code></b>.</li>
 <li>
-<strong>PCA:</strong> Performs a Principal Component Analysis (PCA) and returns the first axis. Usage <b style="color:red"><code>ensemble=c(method='PCA')</code></b>.</li>
+<strong>PCA:</strong> Performs a Principal Component Analysis (PCA)
+and returns the first axis. Usage
+<b style="color:red"><code>ensemble=c(method='PCA')</code></b>.</li>
 <li>
-<strong>PCA_SUP:</strong> PCA of the best models (e.g., TSS over the average). An evaluation metric must be provided. Usage <b style="color:red"><code>ensemble=c(method='PCA_SUP', metric='Fpb')</code></b>.</li>
+<strong>PCA_SUP:</strong> PCA of the best models (e.g., TSS over the
+average). An evaluation metric must be provided. Usage
+<b style="color:red"><code>ensemble=c(method='PCA_SUP', metric='Fpb')</code></b>.</li>
 <li>
-<strong>PCA_THR:</strong> PCA performed only with those cells with suitability values above the selected threshold. Usage <b style="color:red"><code>ensemble=c(method='PCA_THR')</code></b>.</li>
+<strong>PCA_THR:</strong> PCA performed only with those cells with
+suitability values above the selected threshold. Usage
+<b style="color:red"><code>ensemble=c(method='PCA_THR')</code></b>.</li>
 </ul>
-<p>In the case of use more than one ensemble method it is necessary concatenate the names of ensemble methods within the argument, e.g., <b style="color:red"><code>ensemble=c(method=c('MEAN', 'PCA'))</code></b>, <b style="color:red"><code>ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')</code></b>.</p>
+<p>In the case of use more than one ensemble method it is necessary
+concatenate the names of ensemble methods within the argument, e.g.,
+<b style="color:red"><code>ensemble=c(method=c('MEAN', 'PCA'))</code></b>,
+<b style="color:red"><code>ensemble=c(method=c('MEAN, 'W_MEAN', 'PCA_SUP'), metric='Fpb')</code></b>.</p>
 </li>
-<li><p><strong>extrapolation</strong> logical. If TRUE the function will calculate extrapolation based on Mobility-Oriented Parity analysis (MOP) for current conditions. If the argument proj_dir is used, the extrapolation layers for other regions or time periods will also be calculated (default <code>FALSE</code>).</p></li>
-<li><p><strong>cores</strong> numeric. Define the number of CPU cores to run modeling procedures in parallel (default <code>1</code>).</p></li>
+<li><p><strong>extrapolation</strong> logical. If TRUE the function will
+calculate extrapolation based on Mobility-Oriented Parity analysis (MOP)
+for current conditions. If the argument proj_dir is used, the
+extrapolation layers for other regions or time periods will also be
+calculated (default <code>FALSE</code>).</p></li>
+<li><p><strong>cores</strong> numeric. Define the number of CPU cores to
+run modeling procedures in parallel (default <code>1</code>).</p></li>
 </ul>
 <p></p>
 </div>
-<div id="what-are-my-results" class="section level2">
-<h2 class="hasAnchor">
-<a href="#what-are-my-results" class="anchor"></a><i class="fas fa-clipboard-list"></i> What are my results?</h2>
-<p>Within the <strong><em>result_dir</em></strong> folder you will find several sub-folders: <em>Algorithm</em>, <em>Ensemble</em>(decision-based), <em>Projection</em>(decision-based), <em>Extrapolation</em>(decision-based), <em>BLOCK</em>(decision-based), <em>Extent Masks</em>(decision-based).</p>
-<p>There are also some <em>.txt</em> files (some txt will only be created under ceratin modeling settings):<br><strong>Evaluation_Table.txt</strong> Contains the results for model evaluation, with several metrics<br><strong>InfoModeling.txt</strong> Information of the chosen modeling parameters<br><strong>Number_Unique_Occurrences.txt</strong> Number of unique occurrences for each species<br><strong>Occurrences_Cleaned.txt</strong> Dataset produced after selecting a single occurrence per grid-cell(<em>unique occurrences</em>)<br><strong>Occurrences_Filtered.txt</strong> Datasets produced after occurrences were corrected for sampling spatial bias (thinned occurrences)<br><strong>Thresholds_Algorithm.txt</strong> Information about the thresholds used to create the presence-absence maps for each algorithm (Presence-absence maps are created from the Threshold of complete models)<br><strong>Thresholds_Ensemble.txt</strong> Information about the thresholds used to create the presence-absence maps for ensembled models<br>
-**Moran_&amp;_Mess** Contains information about autocorrelation and environmental similatiry between the datasets used to fit and evaluate the model</p>
-<div id="citation" class="section level3">
-<h3 class="hasAnchor">
-<a href="#citation" class="anchor"></a>CITATION:</h3>
-<p><strong>Andrade, A.F.A., Velazco, S.J.E., De Marco Jr, P., 2020. ENMTML: An R package for a straightforward construction of complex ecological niche models. Environmental Modelling &amp; Software 125, 104615. <a href="https://doi.org/10.1016/j.envsoft.2019.104615" class="uri">https://doi.org/10.1016/j.envsoft.2019.104615</a></strong></p>
+<div class="section level2">
+<h2 id="what-are-my-results">
+<i class="fas fa-clipboard-list"></i> What are my results?<a class="anchor" aria-label="anchor" href="#what-are-my-results"></a>
+</h2>
+<p>Within the <strong><em>result_dir</em></strong> folder you will find
+several sub-folders: <em>Algorithm</em>,
+<em>Ensemble</em>(decision-based), <em>Projection</em>(decision-based),
+<em>Extrapolation</em>(decision-based), <em>BLOCK</em>(decision-based),
+<em>Extent Masks</em>(decision-based).</p>
+<p>There are also some <em>.txt</em> files (some txt will only be
+created under ceratin modeling settings):<br><strong>Evaluation_Table.txt</strong> Contains the results for model
+evaluation, with several metrics<br><strong>InfoModeling.txt</strong> Information of the chosen modeling
+parameters<br><strong>Number_Unique_Occurrences.txt</strong> Number of unique
+occurrences for each species<br><strong>Occurrences_Cleaned.txt</strong> Dataset produced after
+selecting a single occurrence per grid-cell(<em>unique
+occurrences</em>)<br><strong>Occurrences_Filtered.txt</strong> Datasets produced after
+occurrences were corrected for sampling spatial bias (thinned
+occurrences)<br><strong>Thresholds_Algorithm.txt</strong> Information about the
+thresholds used to create the presence-absence maps for each algorithm
+(Presence-absence maps are created from the Threshold of complete
+models)<br><strong>Thresholds_Ensemble.txt</strong> Information about the
+thresholds used to create the presence-absence maps for ensembled
+models<br>
+**Moran_&amp;_Mess** Contains information about autocorrelation and
+environmental similatiry between the datasets used to fit and evaluate
+the model</p>
+<div class="section level3">
+<h3 id="citation">CITATION:<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h3>
+<p><strong>Andrade, A.F.A., Velazco, S.J.E., De Marco Jr, P., 2020.
+ENMTML: An R package for a straightforward construction of complex
+ecological niche models. Environmental Modelling &amp; Software 125,
+104615. <a href="https://doi.org/10.1016/j.envsoft.2019.104615" class="external-link uri">https://doi.org/10.1016/j.envsoft.2019.104615</a></strong></p>
 <blockquote>
-<p>Test the package and give us feedback <a href="https://github.com/andrefaa/ENMTML/issues">here</a> or send an e-mail to <a href="mailto:andrefaandrade@gmail.com" class="email">andrefaandrade@gmail.com</a> or <a href="mailto:sjevelazco@gmail.com" class="email">sjevelazco@gmail.com</a>!</p>
+<p>Test the package and give us feedback <a href="https://github.com/andrefaa/ENMTML/issues" class="external-link">here</a> or send an
+e-mail to <a href="mailto:andrefaandrade@gmail.com" class="email">andrefaandrade@gmail.com</a> or <a href="mailto:sjevelazco@gmail.com" class="email">sjevelazco@gmail.com</a>!</p>
 </blockquote>
 </div>
 </div>
@@ -381,11 +607,13 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
+  <p></p>
+<p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>
@@ -393,6 +621,8 @@
 
   
 
+
+  
 
   </body>
 </html>

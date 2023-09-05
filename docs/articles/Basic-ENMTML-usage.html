@@ -26,6 +26,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -38,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ENMTML</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
       </span>
     </div>
 
@@ -53,7 +55,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     <span class="fas fa-book"></span>
      
     Articles
@@ -91,7 +93,7 @@
   </a>
 </li>
 <li>
-  <a href="https://github.com/andrefaa/ENMTML">
+  <a href="https://github.com/andrefaa/ENMTML" class="external-link">
     <span class="fa fa-github fa-lg"></span>
      
   </a>
@@ -106,64 +108,103 @@
 
       
 
-      </header><script src="Basic-ENMTML-usage_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Basic ENMTML usage</h1>
             
-            <h4 class="date">2021-10-29</h4>
+            <h4 data-toc-skip class="date">2023-09-05</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/andrefaa/ENMTML/blob/master/vignettes/Basic-ENMTML-usage.Rmd"><code>vignettes/Basic-ENMTML-usage.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/andrefaa/ENMTML/blob/HEAD/vignettes/Basic-ENMTML-usage.Rmd" class="external-link"><code>vignettes/Basic-ENMTML-usage.Rmd</code></a></small>
       <div class="hidden name"><code>Basic-ENMTML-usage.Rmd</code></div>
 
     </div>
 
     
     
-<div id="basic-enmtml-run" class="section level2">
-<h2 class="hasAnchor">
-<a href="#basic-enmtml-run" class="anchor"></a>Basic <em>ENMTML</em> Run</h2>
-<p>We present here a simple model, with the simplest parameters and decisions.<br>
-The main objective of this run is to introduce the main arguments and help with some details which are required to run the function.<br><strong>We will use the files available at the package example, so that everyone can easily reproduce those steps!</strong></p>
+<div class="section level2">
+<h2 id="basic-enmtml-run">Basic <em>ENMTML</em> Run<a class="anchor" aria-label="anchor" href="#basic-enmtml-run"></a>
+</h2>
+<p>We present here a simple model, with the simplest parameters and
+decisions.<br>
+The main objective of this run is to introduce the main arguments and
+help with some details which are required to run the function.<br><strong>We will use the files available at the package example, so that
+everyone can easily reproduce those steps!</strong></p>
 </div>
-<div id="creating-the-folder-structure-from-the-example-files" class="section level2">
-<h2 class="hasAnchor">
-<a href="#creating-the-folder-structure-from-the-example-files" class="anchor"></a>Creating the folder structure from the example files</h2>
-<p><strong>ENMTML</strong> example data set consists of five bioclimantic variables for the current period and five different virtual species.</p>
-<p>In order to simulate the files and folders needed for an standard <strong>ENMTML</strong> run we will create different folders containing the example data.</p>
+<div class="section level2">
+<h2 id="creating-the-folder-structure-from-the-example-files">Creating the folder structure from the example files<a class="anchor" aria-label="anchor" href="#creating-the-folder-structure-from-the-example-files"></a>
+</h2>
+<p><strong>ENMTML</strong> example data set consists of five
+bioclimantic variables for the current period and five different virtual
+species.</p>
+<p>In order to simulate the files and folders needed for an standard
+<strong>ENMTML</strong> run we will create different folders containing
+the example data.</p>
 <p>For this we will use the <em>raster</em> package:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="st">"raster"</span><span class="op">%in%</span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"raster"</span><span class="op">)</span><span class="op">}</span>  
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster">raster</a></span><span class="op">)</span>  
-<span class="co">#&gt; Loading required package: raster</span>
-<span class="co">#&gt; Loading required package: sp</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/andrefaa/ENMTML">ENMTML</a></span><span class="op">)</span>
-<span class="co">#&gt; Loading required package: ENMTML</span>
-<span class="co">#&gt; Registered S3 methods overwritten by 'adehabitatMA':</span>
-<span class="co">#&gt;   method                       from</span>
-<span class="co">#&gt;   print.SpatialPixelsDataFrame sp  </span>
-<span class="co">#&gt;   print.SpatialPixels          sp</span>
-
-<span class="co"># First we will create a folder (ENMTML_example) within the working directory</span>
-<span class="fu"><a href="https://rdrr.io/r/base/getwd.html">getwd</a></span><span class="op">(</span><span class="op">)</span> <span class="co">#' Working directory of R session</span>
-<span class="co">#&gt; [1] "C:/Users/santi/Documents/GitHub/ENMTML_RStudio/vignettes"</span>
-<span class="va">d_ex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html">getwd</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">'ENMTML_example'</span><span class="op">)</span>
-<span class="va">d_ex</span>
-<span class="co">#&gt; [1] "C:/Users/santi/Documents/GitHub/ENMTML_RStudio/vignettes/ENMTML_example"</span>
-<span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.create</a></span><span class="op">(</span><span class="va">d_ex</span><span class="op">)</span>
-
-<span class="co"># We will now save ENMTML data set within the ENMTML_example folder</span>
-
-<span class="co"># Virtual species occurrences</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"occ"</span><span class="op">)</span>
-
-<span class="co"># See the format of the .TXT file(tab-separated)! </span>
-<span class="co"># We only need three columns:</span>
-  <span class="co"># one containing species name</span>
-  <span class="co"># one containing longitude information </span>
-  <span class="co"># one containing latitude information</span>
-
-<span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="va">occ</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,<span class="fl">43</span><span class="op">:</span><span class="fl">46</span>,<span class="fl">90</span><span class="op">:</span><span class="fl">94</span>,<span class="fl">127</span><span class="op">:</span><span class="fl">130</span><span class="op">)</span>,<span class="op">]</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="st">"raster"</span><span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"raster"</span><span class="op">)</span><span class="op">}</span>  </span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster" class="external-link">raster</a></span><span class="op">)</span>  </span>
+<span><span class="co">#&gt; Loading required package: raster</span></span>
+<span><span class="co">#&gt; Loading required package: sp</span></span>
+<span><span class="co">#&gt; The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span></span>
+<span><span class="co">#&gt; which was just loaded, will retire in October 2023.</span></span>
+<span><span class="co">#&gt; Please refer to R-spatial evolution reports for details, especially</span></span>
+<span><span class="co">#&gt; https://r-spatial.org/r/2023/05/15/evolution4.html.</span></span>
+<span><span class="co">#&gt; It may be desirable to make the sf package available;</span></span>
+<span><span class="co">#&gt; package maintainers should consider adding sf to Suggests:.</span></span>
+<span><span class="co">#&gt; The sp package is now running under evolution status 2</span></span>
+<span><span class="co">#&gt;      (status 2 uses the sf package in place of rgdal)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/andrefaa/ENMTML" class="external-link">ENMTML</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: ENMTML</span></span>
+<span><span class="co">#&gt; Please note that rgdal will be retired during October 2023,</span></span>
+<span><span class="co">#&gt; plan transition to sf/stars/terra functions using GDAL and PROJ</span></span>
+<span><span class="co">#&gt; at your earliest convenience.</span></span>
+<span><span class="co">#&gt; See https://r-spatial.org/r/2023/05/15/evolution4.html and https://github.com/r-spatial/evolution</span></span>
+<span><span class="co">#&gt; rgdal: version: 1.6-7, (SVN revision 1203)</span></span>
+<span><span class="co">#&gt; Geospatial Data Abstraction Library extensions to R successfully loaded</span></span>
+<span><span class="co">#&gt; Loaded GDAL runtime: GDAL 3.6.2, released 2023/01/02</span></span>
+<span><span class="co">#&gt; Path to GDAL shared files: C:/Users/santi/AppData/Local/R/win-library/4.3/rgdal/gdal</span></span>
+<span><span class="co">#&gt;  GDAL does not use iconv for recoding strings.</span></span>
+<span><span class="co">#&gt; GDAL binary built with GEOS: TRUE </span></span>
+<span><span class="co">#&gt; Loaded PROJ runtime: Rel. 9.2.0, March 1st, 2023, [PJ_VERSION: 920]</span></span>
+<span><span class="co">#&gt; Path to PROJ shared files: C:/Users/santi/AppData/Local/R/win-library/4.3/rgdal/proj</span></span>
+<span><span class="co">#&gt; PROJ CDN enabled: FALSE</span></span>
+<span><span class="co">#&gt; Linking to sp version:1.6-1</span></span>
+<span><span class="co">#&gt; To mute warnings of possible GDAL/OSR exportToProj4() degradation,</span></span>
+<span><span class="co">#&gt; use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.</span></span>
+<span><span class="co">#&gt; Registered S3 methods overwritten by 'adehabitatMA':</span></span>
+<span><span class="co">#&gt;   method                       from</span></span>
+<span><span class="co">#&gt;   print.SpatialPixelsDataFrame sp  </span></span>
+<span><span class="co">#&gt;   print.SpatialPixels          sp</span></span>
+<span><span class="co">#&gt; rgeos version: 0.6-4, (SVN revision 699)</span></span>
+<span><span class="co">#&gt;  GEOS runtime version: 3.11.2-CAPI-1.17.2 </span></span>
+<span><span class="co">#&gt;  Please note that rgeos will be retired during October 2023,</span></span>
+<span><span class="co">#&gt; plan transition to sf or terra functions using GEOS at your earliest convenience.</span></span>
+<span><span class="co">#&gt; See https://r-spatial.org/r/2023/05/15/evolution4.html for details.</span></span>
+<span><span class="co">#&gt;  GEOS using OverlayNG</span></span>
+<span><span class="co">#&gt;  Linking to sp version: 2.0-0 </span></span>
+<span><span class="co">#&gt;  Polygon checking: TRUE</span></span>
+<span></span>
+<span><span class="co"># First we will create a folder (ENMTML_example) within the working directory</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">getwd</a></span><span class="op">(</span><span class="op">)</span> <span class="co">#' Working directory of R session</span></span>
+<span><span class="co">#&gt; [1] "C:/Users/santi/Documents/GitHub/ENMTML_RStudio/vignettes"</span></span>
+<span><span class="va">d_ex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">getwd</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">'ENMTML_example'</span><span class="op">)</span></span>
+<span><span class="va">d_ex</span></span>
+<span><span class="co">#&gt; [1] "C:/Users/santi/Documents/GitHub/ENMTML_RStudio/vignettes/ENMTML_example"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">d_ex</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># We will now save ENMTML data set within the ENMTML_example folder</span></span>
+<span></span>
+<span><span class="co"># Virtual species occurrences</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"occ"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># See the format of the .TXT file(tab-separated)! </span></span>
+<span><span class="co"># We only need three columns:</span></span>
+<span>  <span class="co"># one containing species name</span></span>
+<span>  <span class="co"># one containing longitude information </span></span>
+<span>  <span class="co"># one containing latitude information</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">occ</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,<span class="fl">43</span><span class="op">:</span><span class="fl">46</span>,<span class="fl">90</span><span class="op">:</span><span class="fl">94</span>,<span class="fl">127</span><span class="op">:</span><span class="fl">130</span><span class="op">)</span>,<span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left"></th>
@@ -277,36 +318,40 @@ The main objective of this run is to introduce the main arguments and help with 
 </tbody>
 </table>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">d_occ</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">d_ex</span>, <span class="st">'occ.txt'</span><span class="op">)</span>
-<span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span><span class="op">(</span><span class="va">occ</span>, <span class="va">d_occ</span>, sep <span class="op">=</span> <span class="st">'\t'</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-
-<span class="co"># Five bioclimatic variables for current conditions</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"env"</span><span class="op">)</span>
-<span class="va">d_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">d_ex</span>, <span class="st">'current_env_var'</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.create</a></span><span class="op">(</span><span class="va">d_env</span><span class="op">)</span>
-<span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/writeRaster.html">writeRaster</a></span><span class="op">(</span><span class="va">env</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">d_env</span>, <span class="fu"><a href="https://rdrr.io/pkg/raster/man/names.html">names</a></span><span class="op">(</span><span class="va">env</span><span class="op">)</span><span class="op">)</span>, bylayer<span class="op">=</span><span class="cn">TRUE</span>, 
-                    overwrite<span class="op">=</span><span class="cn">T</span>, format<span class="op">=</span><span class="st">'GTiff'</span><span class="op">)</span>
-
-<span class="co"># shell.exec(d_ex) # open the directory and folders created</span>
-<span class="fu"><a href="https://rdrr.io/r/base/rm.html">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'env'</span>,<span class="st">'occ'</span><span class="op">)</span><span class="op">)</span>
-
-<span class="co"># We now we have the minimum data required to create models with ENMTML package!</span>
-<span class="co"># A directory with environmental rasters and a .txt file with occurrence.</span></code></pre></div>
-<p><strong>The following objects contains the path to the folder with predictors and the path to the occurrence file (TXT)</strong></p>
+<code class="sourceCode R"><span><span class="va">d_occ</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">d_ex</span>, <span class="st">'occ.txt'</span><span class="op">)</span></span>
+<span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.table</a></span><span class="op">(</span><span class="va">occ</span>, <span class="va">d_occ</span>, sep <span class="op">=</span> <span class="st">'\t'</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Five bioclimatic variables for current conditions</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"env"</span><span class="op">)</span></span>
+<span><span class="va">d_env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">d_ex</span>, <span class="st">'current_env_var'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">d_env</span><span class="op">)</span></span>
+<span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">env</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">d_env</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">env</span><span class="op">)</span><span class="op">)</span>, bylayer<span class="op">=</span><span class="cn">TRUE</span>, </span>
+<span>                    overwrite<span class="op">=</span><span class="cn">TRUE</span>, format<span class="op">=</span><span class="st">'GTiff'</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># shell.exec(d_ex) # open the directory and folders created</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span>list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'env'</span>,<span class="st">'occ'</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># We now we have the minimum data required to create models with ENMTML package!</span></span>
+<span><span class="co"># A directory with environmental rasters and a .txt file with occurrence.</span></span></code></pre></div>
+<p><strong>The following objects contains the path to the folder with
+predictors and the path to the occurrence file (TXT)</strong></p>
 <ul>
 <li>
-<strong>d_occ</strong> : File path to species occurrence file (.txt; tab-separated)</li>
+<strong>d_occ</strong> : File path to species occurrence file (.txt;
+tab-separated)</li>
 <li>
-<strong>d_env</strong> : Directory path with current environmental conditions (here in .tiff)</li>
+<strong>d_env</strong> : Directory path with current environmental
+conditions (here in .tiff)</li>
 </ul>
 </div>
-<div id="model-design" class="section level2">
-<h2 class="hasAnchor">
-<a href="#model-design" class="anchor"></a>Model design</h2>
+<div class="section level2">
+<h2 id="model-design">Model design<a class="anchor" aria-label="anchor" href="#model-design"></a>
+</h2>
 <p>We will now fit models for with the following specifications:</p>
 <ul>
 <li>
-<strong>Five</strong> different algorithms: Bioclim, Generalized Linear Model, Random Forests, Support Vector Machine and Maxent<br>
+<strong>Five</strong> different algorithms: Bioclim, Generalized
+Linear Model, Random Forests, Support Vector Machine and Maxent<br>
 </li>
 <li>
 <strong>Random</strong> pseudo-absence allocation<br>
@@ -315,7 +360,8 @@ The main objective of this run is to introduce the main arguments and help with 
 <strong>No</strong> accessible area restriction<br>
 </li>
 <li>
-<strong>Random</strong> partition between training-test datasets<br>
+<strong>Random</strong> partition between training-test
+datasets<br>
 </li>
 <li>
 <strong>No</strong> Ensemble<br>
@@ -327,71 +373,89 @@ The main objective of this run is to introduce the main arguments and help with 
 <strong>No</strong> Collinearity control in the predictors<br>
 </li>
 <li>
-<strong>Binary maps</strong> will be produced using the <em>Maximum Specificity and Sensitivity Threshold</em>
+<strong>Binary maps</strong> will be produced using the <em>Maximum
+Specificity and Sensitivity Threshold</em>
 </li>
 </ul>
-<pre><code><a href="https://github.com/andrefaa/ENMTML">require(ENMTML)
-
-ENMTML(
- pred_dir = d_env,
- proj_dir = NULL,
- result_dir = file.path(d_ex,"Result"),
- occ_file = d_occ,
- sp = 'species',
- x = 'x',
- y = 'y',
- min_occ = 10,
- thin_occ = NULL,
- eval_occ = NULL,
- colin_var = NULL,
- imp_var = FALSE,
- sp_accessible_area = NULL,
- pseudoabs_method = c(method = 'RND'),
- pres_abs_ratio = 1,
- part=c(method= 'KFOLD', folds='2'),
- save_part = FALSE,
- save_final = TRUE,
- algorithm = c('BIO','GLM', 'RDF', 'SVM', 'MXD'),
- thr = c(type='MAX_TSS'),
- msdm = NULL,
- ensemble = NULL,
- extrapolation = FALSE,
- cores = 1
-)</a></code></pre>
-<div id="results" class="section level3">
-<h3 class="hasAnchor">
-<a href="#results" class="anchor"></a>Results</h3>
-<p><strong>ENMTML</strong> function will create a folder named <strong>Result</strong> within the <em>ENMTML_example</em> folder containing the <em>Algorithms</em> sub-folder and several <em>.txt</em> files:</p>
+<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/andrefaa/ENMTML" class="external-link">ENMTML</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/ENMTML.html">ENMTML</a></span><span class="op">(</span></span>
+<span> pred_dir <span class="op">=</span> <span class="va">d_env</span>,</span>
+<span> proj_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span> result_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">d_ex</span>,<span class="st">"Result"</span><span class="op">)</span>,</span>
+<span> occ_file <span class="op">=</span> <span class="va">d_occ</span>,</span>
+<span> sp <span class="op">=</span> <span class="st">'species'</span>,</span>
+<span> x <span class="op">=</span> <span class="st">'x'</span>,</span>
+<span> y <span class="op">=</span> <span class="st">'y'</span>,</span>
+<span> min_occ <span class="op">=</span> <span class="fl">10</span>,</span>
+<span> thin_occ <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span> eval_occ <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span> colin_var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span> imp_var <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span> sp_accessible_area <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span> pseudoabs_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">'RND'</span><span class="op">)</span>,</span>
+<span> pres_abs_ratio <span class="op">=</span> <span class="fl">1</span>,</span>
+<span> part<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>method<span class="op">=</span> <span class="st">'KFOLD'</span>, folds<span class="op">=</span><span class="st">'2'</span><span class="op">)</span>,</span>
+<span> save_part <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span> save_final <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span> algorithm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'BIO'</span>,<span class="st">'GLM'</span>, <span class="st">'RDF'</span>, <span class="st">'SVM'</span>, <span class="st">'MXD'</span><span class="op">)</span>,</span>
+<span> thr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>type<span class="op">=</span><span class="st">'MAX_TSS'</span><span class="op">)</span>,</span>
+<span> msdm <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span> ensemble <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span> extrapolation <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span> cores <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre>
+<div class="section level3">
+<h3 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
+</h3>
+<p><strong>ENMTML</strong> function will create a folder named
+<strong>Result</strong> within the <em>ENMTML_example</em> folder
+containing the <em>Algorithms</em> sub-folder and several <em>.txt</em>
+files:</p>
 <ul>
 <li>
-<strong>Evaluation_Table.txt</strong> Contains the results for model evaluation, with several metrics<br>
+<strong>Evaluation_Table.txt</strong> Contains the results for model
+evaluation, with several metrics<br>
 </li>
 <li>
-<strong>InfoModeling.txt</strong> Information of the chosen modeling parameters<br>
+<strong>InfoModeling.txt</strong> Information of the chosen modeling
+parameters<br>
 </li>
 <li>
-<strong>Number_Unique_Occurrences.txt</strong> Number of unique occurrences for each species<br>
+<strong>Number_Unique_Occurrences.txt</strong> Number of unique
+occurrences for each species<br>
 </li>
 <li>
-<strong>Occurrences_Cleaned.txt</strong> Dataset produced after selecting a single occurrence per grid-cell(<em>unique occurrences</em>)<br>
+<strong>Occurrences_Cleaned.txt</strong> Dataset produced after
+selecting a single occurrence per grid-cell(<em>unique
+occurrences</em>)<br>
 </li>
 <li>
-<strong>Thresholds_Algorithm.txt</strong> Information about the thresholds used to create the presence-absence maps for each algorithm (Presence-absence maps are created from the Threshold of complete models)<br>
+<strong>Thresholds_Algorithm.txt</strong> Information about the
+thresholds used to create the presence-absence maps for each algorithm
+(Presence-absence maps are created from the Threshold of complete
+models)<br>
 </li>
 <li>
-<strong>Moran &amp; Mess</strong> Contains information about autocorrelation and environmental similatiry between the datasets used to fit and evaluate the model</li>
+<strong>Moran &amp; Mess</strong> Contains information about
+autocorrelation and environmental similatiry between the datasets used
+to fit and evaluate the model</li>
 </ul>
 </div>
 </div>
-<div id="whats-next" class="section level2">
-<h2 class="hasAnchor">
-<a href="#whats-next" class="anchor"></a>What’s next?</h2>
-<p>We will see next several methodological advances for the Standard model and how those are incorpoated in our modelling routine.<br>
-We will also cover projection for other periods, extent and include other algorithms and produce and ensemble model!</p>
-<p><strong>Hope you understood the logic behind <strong>ENMTML</strong> and were able to produce your first models!</strong></p>
+<div class="section level2">
+<h2 id="whats-next">What’s next?<a class="anchor" aria-label="anchor" href="#whats-next"></a>
+</h2>
+<p>We will see next several methodological advances for the Standard
+model and how those are incorpoated in our modelling routine.<br>
+We will also cover projection for other periods, extent and include
+other algorithms and produce and ensemble model!</p>
+<p><strong>Hope you understood the logic behind <strong>ENMTML</strong>
+and were able to produce your first models!</strong></p>
 <p><strong>See you next time!</strong></p>
 <blockquote>
-<p>Feel free to contact us by mail (you can find the paths to André and Santiago e-mails at the end of the <a href="https://github.com/andrefaa/ENMTML">GitHub page</a>)</p>
+<p>Feel free to contact us by mail (you can find the paths to André and
+Santiago e-mails at the end of the <a href="https://github.com/andrefaa/ENMTML" class="external-link">GitHub page</a>)</p>
 </blockquote>
 </div>
   </div>
@@ -407,11 +471,13 @@ We will also cover projection for other periods, extent and include other algori
 
 
       <footer><div class="copyright">
-  <p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
+  <p></p>
+<p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>
@@ -419,6 +485,8 @@ We will also cover projection for other periods, extent and include other algori
 
   
 
+
+  
 
   </body>
 </html>

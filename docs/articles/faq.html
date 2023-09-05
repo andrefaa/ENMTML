@@ -26,6 +26,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -38,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ENMTML</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
       </span>
     </div>
 
@@ -53,7 +55,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     <span class="fas fa-book"></span>
      
     Articles
@@ -91,7 +93,7 @@
   </a>
 </li>
 <li>
-  <a href="https://github.com/andrefaa/ENMTML">
+  <a href="https://github.com/andrefaa/ENMTML" class="external-link">
     <span class="fa fa-github fa-lg"></span>
      
   </a>
@@ -106,43 +108,59 @@
 
       
 
-      </header><script src="faq_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Frequently Asked Questions</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/andrefaa/ENMTML/blob/master/vignettes/faq.Rmd"><code>vignettes/faq.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/andrefaa/ENMTML/blob/HEAD/vignettes/faq.Rmd" class="external-link"><code>vignettes/faq.Rmd</code></a></small>
       <div class="hidden name"><code>faq.Rmd</code></div>
 
     </div>
 
     
     
-<p>We present here the anwser to some questions that are more common to arise while running <code>ENMTML</code>. If you couldn’t find your issue among those questions, please <a href="https://github.com/andrefaa/ENMTML/issues">report</a> it and we will make our best to help you run the package smoothly.<br>
-At first the number fo arguments and the folder’s structure may seem a little scary, but with little time you will get the hang of it and will start running ENM models!</p>
+<p>We present here the anwser to some questions that are more common to
+arise while running <code>ENMTML</code>. If you couldn’t find your issue
+among those questions, please <a href="https://github.com/andrefaa/ENMTML/issues" class="external-link">report</a> it and we
+will make our best to help you run the package smoothly.<br>
+At first the number fo arguments and the folder’s structure may seem a
+little scary, but with little time you will get the hang of it and will
+start running ENM models!</p>
 <p><a name="Project%20Folder"> </a></p>
-<div id="project-folder" class="section level2">
-<h2 class="hasAnchor">
-<a href="#project-folder" class="anchor"></a><i class="fas fa-folder-open"></i> Project Folder</h2>
-<p>We <strong>highly</strong> recommend you to create a folder for your project!<br>
-A general overview of the Project Folder and its containing sub-folders will look similar to this:</p>
-<p>Yellow are the <em>Mandatory Folders</em>, you <strong>need</strong> them to run the package.<br>
-Green are the <em>Optional Folders</em>, only required according to your project design.<br>
-Blue are <em>Output Folders</em>, those will be created during the modeling routine.</p>
+<div class="section level2">
+<h2 id="project-folder">
+<i class="fas fa-folder-open"></i> Project Folder<a class="anchor" aria-label="anchor" href="#project-folder"></a>
+</h2>
+<p>We <strong>highly</strong> recommend you to create a folder for your
+project!<br>
+A general overview of the Project Folder and its containing sub-folders
+will look similar to this:</p>
+<p>Yellow are the <em>Mandatory Folders</em>, you <strong>need</strong>
+them to run the package.<br>
+Green are the <em>Optional Folders</em>, only required according to your
+project design.<br>
+Blue are <em>Output Folders</em>, those will be created during the
+modeling routine.</p>
 <p><img src="https://raw.githubusercontent.com/andrefaa/ENMTML/master/man/figures/folders.png" height="720"></p>
 <p><a name="Function%20Arguments"> </a></p>
 </div>
-<div id="function-arguments" class="section level2">
-<h2 class="hasAnchor">
-<a href="#function-arguments" class="anchor"></a><i class="fas fa-puzzle-piece"></i> Function Arguments</h2>
-<p><code>ENMTML</code> consists of several arguments, which will be checked at the start of the modeling routine.</p>
-<p>Take your time to check any <em>Error</em> returned during this argument check and use the <code>help</code> to correctly fill the arguments.</p>
+<div class="section level2">
+<h2 id="function-arguments">
+<i class="fas fa-puzzle-piece"></i> Function Arguments<a class="anchor" aria-label="anchor" href="#function-arguments"></a>
+</h2>
+<p><code>ENMTML</code> consists of several arguments, which will be
+checked at the start of the modeling routine.</p>
+<p>Take your time to check any <em>Error</em> returned during this
+argument check and use the <code>help</code> to correctly fill the
+arguments.</p>
 <p><a name="Occurrence%20Data"> </a></p>
 </div>
-<div id="occurrence-data" class="section level2">
-<h2 class="hasAnchor">
-<a href="#occurrence-data" class="anchor"></a><i class="fas fa-table"></i> Occurrence Data</h2>
+<div class="section level2">
+<h2 id="occurrence-data">
+<i class="fas fa-table"></i> Occurrence Data<a class="anchor" aria-label="anchor" href="#occurrence-data"></a>
+</h2>
 <ul>
 <li>
 <a href="#OccFileType">Occurrence File Type</a><br>
@@ -150,16 +168,19 @@ Blue are <em>Output Folders</em>, those will be created during the modeling rout
 <li><a href="#DataFormat">Data Format</a></li>
 </ul>
 <p><a name="OccFileType"></a></p>
-<div id="occurrence-file-type" class="section level3">
-<h3 class="hasAnchor">
-<a href="#occurrence-file-type" class="anchor"></a>Occurrence File Type</h3>
-<p><code>ENMTML</code> imports occurrence data from a <strong>TXT</strong> file with tabulation as separator <strong>(tab-separated)</strong></p>
+<div class="section level3">
+<h3 id="occurrence-file-type">Occurrence File Type<a class="anchor" aria-label="anchor" href="#occurrence-file-type"></a>
+</h3>
+<p><code>ENMTML</code> imports occurrence data from a
+<strong>TXT</strong> file with tabulation as separator
+<strong>(tab-separated)</strong></p>
 <p><a name="DataFormat"></a></p>
 </div>
-<div id="data-format" class="section level3">
-<h3 class="hasAnchor">
-<a href="#data-format" class="anchor"></a>Data Format</h3>
-<p>The <strong>TXT</strong> can have several columns, but three columns are mandatory:</p>
+<div class="section level3">
+<h3 id="data-format">Data Format<a class="anchor" aria-label="anchor" href="#data-format"></a>
+</h3>
+<p>The <strong>TXT</strong> can have several columns, but three columns
+are mandatory:</p>
 <ul>
 <li>Species name<br>
 </li>
@@ -167,13 +188,47 @@ Blue are <em>Output Folders</em>, those will be created during the modeling rout
 </li>
 <li>Latitude</li>
 </ul>
-<p>They can be named to your preference as those will be inputted in the arguments <em>sp</em>, <em>x</em>, <em>y</em> of the <code>ENMTML</code> function.</p>
+<p>They can be named to your preference as those will be inputted in the
+arguments <em>sp</em>, <em>x</em>, <em>y</em> of the <code>ENMTML</code>
+function.</p>
 <p>Here’s an example of an occurrence table for four sample species.</p>
-<pre><code>#&gt; Loading required package: ENMTML
-#&gt; Registered S3 methods overwritten by 'adehabitatMA':
-#&gt;   method                       from
-#&gt;   print.SpatialPixelsDataFrame sp  
-#&gt;   print.SpatialPixels          sp</code></pre>
+<pre><code><span><span class="co">#&gt; Loading required package: ENMTML</span></span>
+<span><span class="co">#&gt; The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span></span>
+<span><span class="co">#&gt; which was just loaded, will retire in October 2023.</span></span>
+<span><span class="co">#&gt; Please refer to R-spatial evolution reports for details, especially</span></span>
+<span><span class="co">#&gt; https://r-spatial.org/r/2023/05/15/evolution4.html.</span></span>
+<span><span class="co">#&gt; It may be desirable to make the sf package available;</span></span>
+<span><span class="co">#&gt; package maintainers should consider adding sf to Suggests:.</span></span>
+<span><span class="co">#&gt; The sp package is now running under evolution status 2</span></span>
+<span><span class="co">#&gt;      (status 2 uses the sf package in place of rgdal)</span></span>
+<span><span class="co">#&gt; Please note that rgdal will be retired during October 2023,</span></span>
+<span><span class="co">#&gt; plan transition to sf/stars/terra functions using GDAL and PROJ</span></span>
+<span><span class="co">#&gt; at your earliest convenience.</span></span>
+<span><span class="co">#&gt; See https://r-spatial.org/r/2023/05/15/evolution4.html and https://github.com/r-spatial/evolution</span></span>
+<span><span class="co">#&gt; rgdal: version: 1.6-7, (SVN revision 1203)</span></span>
+<span><span class="co">#&gt; Geospatial Data Abstraction Library extensions to R successfully loaded</span></span>
+<span><span class="co">#&gt; Loaded GDAL runtime: GDAL 3.6.2, released 2023/01/02</span></span>
+<span><span class="co">#&gt; Path to GDAL shared files: C:/Users/santi/AppData/Local/R/win-library/4.3/rgdal/gdal</span></span>
+<span><span class="co">#&gt;  GDAL does not use iconv for recoding strings.</span></span>
+<span><span class="co">#&gt; GDAL binary built with GEOS: TRUE </span></span>
+<span><span class="co">#&gt; Loaded PROJ runtime: Rel. 9.2.0, March 1st, 2023, [PJ_VERSION: 920]</span></span>
+<span><span class="co">#&gt; Path to PROJ shared files: C:/Users/santi/AppData/Local/R/win-library/4.3/rgdal/proj</span></span>
+<span><span class="co">#&gt; PROJ CDN enabled: FALSE</span></span>
+<span><span class="co">#&gt; Linking to sp version:1.6-1</span></span>
+<span><span class="co">#&gt; To mute warnings of possible GDAL/OSR exportToProj4() degradation,</span></span>
+<span><span class="co">#&gt; use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.</span></span>
+<span><span class="co">#&gt; Registered S3 methods overwritten by 'adehabitatMA':</span></span>
+<span><span class="co">#&gt;   method                       from</span></span>
+<span><span class="co">#&gt;   print.SpatialPixelsDataFrame sp  </span></span>
+<span><span class="co">#&gt;   print.SpatialPixels          sp</span></span>
+<span><span class="co">#&gt; rgeos version: 0.6-4, (SVN revision 699)</span></span>
+<span><span class="co">#&gt;  GEOS runtime version: 3.11.2-CAPI-1.17.2 </span></span>
+<span><span class="co">#&gt;  Please note that rgeos will be retired during October 2023,</span></span>
+<span><span class="co">#&gt; plan transition to sf or terra functions using GEOS at your earliest convenience.</span></span>
+<span><span class="co">#&gt; See https://r-spatial.org/r/2023/05/15/evolution4.html for details.</span></span>
+<span><span class="co">#&gt;  GEOS using OverlayNG</span></span>
+<span><span class="co">#&gt;  Linking to sp version: 2.0-0 </span></span>
+<span><span class="co">#&gt;  Polygon checking: TRUE</span></span></code></pre>
 <table class="table">
 <thead><tr class="header">
 <th align="left">species</th>
@@ -246,9 +301,10 @@ Blue are <em>Output Folders</em>, those will be created during the modeling rout
 <p><a name="Predictors"> </a></p>
 </div>
 </div>
-<div id="predictors" class="section level2">
-<h2 class="hasAnchor">
-<a href="#predictors" class="anchor"></a><i class="fas fa-database"></i> Predictors</h2>
+<div class="section level2">
+<h2 id="predictors">
+<i class="fas fa-database"></i> Predictors<a class="anchor" aria-label="anchor" href="#predictors"></a>
+</h2>
 <ul>
 <li>
 <a href="#EnvFileType">Predictor File Type</a><br>
@@ -257,36 +313,56 @@ Blue are <em>Output Folders</em>, those will be created during the modeling rout
 <li><a href="#Projections">Projections</a></li>
 </ul>
 <p><a name="EnvFileType"></a></p>
-<div id="predictor-file-type" class="section level3">
-<h3 class="hasAnchor">
-<a href="#predictor-file-type" class="anchor"></a>Predictor File Type</h3>
-<p><code>ENMTML</code> accepts predictors from several formats: <strong>TIF</strong>, <strong>BIL</strong>, <strong>ASC</strong> and <strong>TXT(tab-separated)</strong></p>
+<div class="section level3">
+<h3 id="predictor-file-type">Predictor File Type<a class="anchor" aria-label="anchor" href="#predictor-file-type"></a>
+</h3>
+<p><code>ENMTML</code> accepts predictors from several formats:
+<strong>TIF</strong>, <strong>BIL</strong>, <strong>ASC</strong> and
+<strong>TXT(tab-separated)</strong></p>
 <p><a name="FolderArrangement"></a></p>
 </div>
-<div id="folder-arrangement" class="section level3">
-<h3 class="hasAnchor">
-<a href="#folder-arrangement" class="anchor"></a>Folder Arrangement</h3>
-<p>Predictors must be within a <strong>single folder</strong>, which will be informed through the <code>pred_dir</code> argument.</p>
+<div class="section level3">
+<h3 id="folder-arrangement">Folder Arrangement<a class="anchor" aria-label="anchor" href="#folder-arrangement"></a>
+</h3>
+<p>Predictors must be within a <strong>single folder</strong>, which
+will be informed through the <code>pred_dir</code> argument.</p>
 <p><a name="Projections"></a></p>
 </div>
-<div id="projections" class="section level3">
-<h3 class="hasAnchor">
-<a href="#projections" class="anchor"></a>Projections</h3>
-<p>Projections are indicated using the <code>proj_dir</code> argument.<br>
-As it is common to usually make projections to multiple climate scenarios or extents, the arrangement of <em>Projection</em> folders consists in a major folder with different sub-folders (one for each climatic scenario or extent).<br><strong>It is essential that the name of the variables in those folder match the names of variables within the <code>pred_dir</code> folder!</strong></p>
+<div class="section level3">
+<h3 id="projections">Projections<a class="anchor" aria-label="anchor" href="#projections"></a>
+</h3>
+<p>Projections are indicated using the <code>proj_dir</code>
+argument.<br>
+As it is common to usually make projections to multiple climate
+scenarios or extents, the arrangement of <em>Projection</em> folders
+consists in a major folder with different sub-folders (one for each
+climatic scenario or extent).<br><strong>It is essential that the name of the variables in those folder
+match the names of variables within the <code>pred_dir</code>
+folder!</strong></p>
 <p><a name="Results"> </a></p>
 </div>
 </div>
-<div id="results" class="section level2">
-<h2 class="hasAnchor">
-<a href="#results" class="anchor"></a><i class="fas fa-clipboard-list"></i> Results</h2>
-<p>Results will be in a folder specified in the <code>result_dir</code> argument, or if you chose not to supply any folder <code>ENMTML</code> will create a folder named <em>Results</em> at the same level of your <code>pred_dir</code> folder (see this at the figure at the <a href="#Project%20Folder">Project Folder</a> section.</p>
-<p>Model Evaluation and information about the modelling routine can be found in several <em>txt</em> files within the Results folder.<br>
+<div class="section level2">
+<h2 id="results">
+<i class="fas fa-clipboard-list"></i> Results<a class="anchor" aria-label="anchor" href="#results"></a>
+</h2>
+<p>Results will be in a folder specified in the <code>result_dir</code>
+argument, or if you chose not to supply any folder <code>ENMTML</code>
+will create a folder named <em>Results</em> at the same level of your
+<code>pred_dir</code> folder (see this at the figure at the <a href="#Project%20Folder">Project Folder</a> section.</p>
+<p>Model Evaluation and information about the modelling routine can be
+found in several <em>txt</em> files within the Results folder.<br>
 Important sub-folders with result maps are:<br>
-- <strong>Algorithm</strong>: with <em>tif</em> present projections for the selected algorithms and the binary folders for the selected thresholds<br>
-- <strong>Ensemble</strong>: with <em>tif</em> projections for the selected ensembles.<br>
-- <strong>Projection</strong>: with <em>tif</em> projections for the different climatic scenarios/extents</p>
-<p>Other sub-folders will be created according to the modeling routine and contain masks related to pseudo-absence allocation and geographical partition of datasets.</p>
+- <strong>Algorithm</strong>: with <em>tif</em> present projections for
+the selected algorithms and the binary folders for the selected
+thresholds<br>
+- <strong>Ensemble</strong>: with <em>tif</em> projections for the
+selected ensembles.<br>
+- <strong>Projection</strong>: with <em>tif</em> projections for the
+different climatic scenarios/extents</p>
+<p>Other sub-folders will be created according to the modeling routine
+and contain masks related to pseudo-absence allocation and geographical
+partition of datasets.</p>
 </div>
   </div>
 
@@ -301,11 +377,13 @@ Important sub-folders with result maps are:<br>
 
 
       <footer><div class="copyright">
-  <p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
+  <p></p>
+<p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>
@@ -313,6 +391,8 @@ Important sub-folders with result maps are:<br>
 
   
 
+
+  
 
   </body>
 </html>

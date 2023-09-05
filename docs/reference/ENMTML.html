@@ -311,7 +311,7 @@
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">d_env</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'C:\Users\santi\Documents\GitHub\ENMTML_RStudio\docs\reference\ENMTML_example\current_env_var' already exists</span>
 <span class="r-in"><span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">env</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">d_env</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">env</span><span class="op">)</span><span class="op">)</span>, bylayer<span class="op">=</span><span class="cn">TRUE</span>, format<span class="op">=</span><span class="st">'GTiff'</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .startGDALwriting(x, filename, gdal = options, ...):</span> formal argument "sources" matched by multiple actual arguments</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> [writeStart] file exists. You can use 'overwrite=TRUE' to overwrite it</span>
 <span class="r-in"><span><span class="co"># Five bioclimatic variables for future conditions</span></span></span>
 <span class="r-in"><span><span class="co"># (for more details see predictors_future help)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"env_fut"</span><span class="op">)</span></span></span>
@@ -329,10 +329,10 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">env_fut</span><span class="op">$</span><span class="va">`2080_4.5`</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">d0</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span></span>
 <span class="r-in"><span>            <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">env_fut</span><span class="op">$</span><span class="va">`2080_4.5`</span><span class="op">)</span><span class="op">)</span>, bylayer<span class="op">=</span><span class="cn">TRUE</span>, format<span class="op">=</span><span class="st">'GTiff'</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .startGDALwriting(x, filename, gdal = options, ...):</span> formal argument "sources" matched by multiple actual arguments</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> [writeStart] file exists. You can use 'overwrite=TRUE' to overwrite it</span>
 <span class="r-in"><span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">env_fut</span><span class="op">$</span><span class="va">`2080_8.5`</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">d0</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span></span>
 <span class="r-in"><span>            <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">env_fut</span><span class="op">$</span><span class="va">`2080_8.5`</span><span class="op">)</span><span class="op">)</span>, bylayer<span class="op">=</span><span class="cn">TRUE</span>, format<span class="op">=</span><span class="st">'GTiff'</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .startGDALwriting(x, filename, gdal = options, ...):</span> formal argument "sources" matched by multiple actual arguments</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> [writeStart] file exists. You can use 'overwrite=TRUE' to overwrite it</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Polygon of terrestrial ecoregions</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ecoregions"</span><span class="op">)</span></span></span>
@@ -416,12 +416,30 @@
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Checking for function arguments ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Loading environmental variables ...</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>GDAL support is provided by the sf and terra packages among others</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> RasterBrick successfully created!</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Performing a reduction of variables collinearity ...</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'C:\Users\santi\Documents\GitHub\ENMTML_RStudio\docs\reference\ENMTML_example\current_env_var\PCA' already exists</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'C:\Users\santi\Documents\GitHub\ENMTML_RStudio\docs\reference\ENMTML_example\current_env_var\PCA\Tables' already exists</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .startGDALwriting(x, filename, gdal = options, ...):</span> formal argument "sources" matched by multiple actual arguments</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Loading and processing species occurrence data ...</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Result folder already exists, files may be overwritten!</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Results can be found at:  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> C:/Users/santi/Documents/GitHub/ENMTML_RStudio/docs/reference/ENMTML_example/Result</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Generating masks for species acessible area  ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GeoMasks already exist for all species! Using already-created restrictions!</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Performing partition of species occurrence data ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adjusting fold....1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total species to be modeled 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fitting Models....</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Models fitted!</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adjusting fold....2</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total species to be modeled 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fitting Models....</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Models fitted!</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Performing Ensemble....</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Ensemble created!</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Models were created successfully! </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Outputs are in: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  C:/Users/santi/Documents/GitHub/ENMTML_RStudio/docs/reference/ENMTML_example/Result</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># ENMTML function will create a folder named Result a directory</span></span></span>
 <span class="r-in"><span><span class="co"># prior to the directory specified in the pred_dir argument</span></span></span>
