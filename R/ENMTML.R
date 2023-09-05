@@ -259,6 +259,8 @@
 #' @import dismo
 #' @import rgdal
 #' @import foreach
+#' @importFrom terra predict
+#' @importFrom terra rast
 #' @importFrom ade4 dudi.pca
 #' @importFrom adehabitatHS madifa
 #' @importFrom caret filterVarImp
@@ -283,10 +285,10 @@
 #' @importFrom dplyr group_by
 #' @importFrom dplyr summarise_all
 #' @importFrom dplyr funs
+#' @importFrom dplyr %>%
 #' @importFrom randomForest randomForest
 #' @importFrom randomForest tuneRF
 #' @importFrom randomForest importance
-#' @importFrom RStoolbox rasterPCA
 #' @importFrom sp gridded
 #' @importFrom sp over
 #' @importFrom spThin thin
@@ -508,8 +510,7 @@ ENMTML <- function(pred_dir,
   cat("Loading environmental variables ...\n")
   
   #Prevent Auxiliary files from rgdal
-  rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
-
+  suppressWarnings(rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE"))
   options(warn = 1)
   # setwd(pred_dir)
 
@@ -582,7 +583,7 @@ ENMTML <- function(pred_dir,
       form <- c('bil','asc','txt','tif')
       ProjT <- ProjT[ProjT%in%form]
       if(ProjT=="txt"){
-        FutN[[i]] <- colnames(read.table(list.files(Pfol[[i]],pattern=ProjT,full.names = T), sep="\t",h=T))[-c(1,2)]
+        FutN[[i]] <- colnames(read.table(list.files(Pfol[[i]],pattern=ProjT,full.names = T), sep="\t", h=T))[-c(1,2)]
       }else{
         FutN[[i]] <- tools::file_path_sans_ext(list.files(Pfol[[i]], pattern=ProjT))
       }
@@ -597,8 +598,9 @@ ENMTML <- function(pred_dir,
     #3.1.1.VIF----
     if(colin_var["method"]%in%"VIF") {
       cat("Performing a reduction of variables collinearity ...\n")
-      VF <- usdm::vifstep(envT, th = 10)
-      envT <- usdm::exclude(envT, VF)
+      VF <- usdm::vifstep(terra::rast(envT), th = 10)
+      envT <- usdm::exclude(terra::rast(envT), VF)
+      envT <- raster::brick(envT)
       if (!is.null(proj_dir)) {
         RasM <- colMeans(stats::na.omit(values(envT)))
         RasSTD <- apply(stats::na.omit(values(envT)), 2, stats::sd)
@@ -640,11 +642,21 @@ ENMTML <- function(pred_dir,
       cat("Performing a reduction of variables collinearity ...\n")
       #Projection PCA
       if(!is.null(proj_dir)){
-        EnvF <- PCAFuturo(Env=envT,Dir=pred_dir,DirP=Pfol,Save="Y")
-        names(EnvF) <- PfolN
-        envT <- raster::brick(raster::stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
+        envT <- pca_raster(
+          env_layer = envT,
+          Dir = pred_dir,
+          DirP = Pfol
+        )$env_layer
+        EnvF <- list.dirs(file.path(dirname(pred_dir), 'Projection_PCA'), recursive = FALSE)
+        EnvF <- lapply(as.list(EnvF), function(x) {
+          x <- list.files(x, full.names=TRUE, patter = ".tif$") 
+          raster::brick(raster::stack(x))
+        })
+        names(EnvF) <- basename(Pfol)
+        # names(EnvF) <- PfolN
+        # raster::brick(raster::stack(list.files(file.path(pred_dir,"PCA"),pattern='PC',full.names = T)))
       }else{
-        envT<-PCA_env_TMLA(env = envT, Dir = pred_dir)
+        envT <- pca_raster(env_layer = envT, Dir = pred_dir)$env_layer
       }
     }
 
@@ -1034,8 +1046,9 @@ ENMTML <- function(pred_dir,
     if (!is.null(sp_accessible_area)) {
       if(length(file.path(DirM, list.files(DirM)))>1){
         Ms <- raster::stack(file.path(DirM, list.files(DirM, pattern = ".tif$")))
-        flt <- gsub(".tif$", "", list.files(DirM, pattern = ".tif$"))
-        Ms <- Ms[[flt%in%spN]]
+        # flt <- gsub(".tif$", "", list.files(DirM, pattern = ".tif$"))
+        # flt%in%spN
+        # Ms <- Ms[[flt%in%spN]]
         Cs <-
           raster::stack(file.path(DirB, list.files(DirB, pattern = ".tif$")))
       }else{

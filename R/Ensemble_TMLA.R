@@ -12,15 +12,15 @@ Ensemble_TMLA <- function(DirR,
                           ensemble_metric = NULL) {
   
   #Start Cluster----
-  if (Sys.getenv("RSTUDIO") == "1" &&
-      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-      Sys.info()["sysname"] == "Darwin" &&
-      as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-        cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-      }else{
-        cl <- parallel::makeCluster(cores,outfile="")
-      }
-  doParallel::registerDoParallel(cl)
+  # if (Sys.getenv("RSTUDIO") == "1" &&
+  #     !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+  #     Sys.info()["sysname"] == "Darwin" &&
+  #     as.numeric(gsub('[.]', '', getRversion())) >= 360) {
+  #       cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
+  #     }else{
+  #       cl <- parallel::makeCluster(cores,outfile="")
+  #     }
+  # doParallel::registerDoParallel(cl)
 
   #Create Folders----
   DirENS <- paste(DirR, "Ensemble", sep = "/")
@@ -82,18 +82,19 @@ Ensemble_TMLA <- function(DirR,
   names(ListSummary) <- PredictType
 
   #Species Loop----
-  result <- foreach(
-    s = 1:length(spN),
-    .packages = c("raster", "dismo",
-                  "plyr", "RStoolbox",'rgdal'),
-    .export = c(
-      "PCA_ENS_TMLA",
-      "STANDAR",
-      "STANDAR_FUT",
-      "Eval_Jac_Sor_TMLA",
-      "Thresholds_TMLA"
-    )
-  ) %dopar% {
+  # result <- foreach(
+  #   s = 1:length(spN),
+  #   .packages = c("raster", "dismo",
+  #                 "plyr", 'rgdal'),
+  #   .export = c(
+  #     "one_layer_pca",
+  #     "STANDAR",
+  #     "STANDAR_FUT",
+  #     "Eval_Jac_Sor_TMLA",
+  #     "Thresholds_TMLA"
+  #   )
+  # ) %dopar% {
+  for(s in 1:length(spN)){
     
     #Prevent Auxiliary files from rgdal
     rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
@@ -382,7 +383,7 @@ Ensemble_TMLA <- function(DirR,
     # With PCA ------
     if (any(PredictType == 'PCA')) {
       Final <- raster::brick(raster::stack(ListRaster))
-      Final <- PCA_ENS_TMLA(Final)
+      Final <- one_layer_pca(Final)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
       PredPoint <-
         data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
@@ -424,7 +425,7 @@ Ensemble_TMLA <- function(DirR,
         for (p in 1:length(ListFut)) {
           Final <- raster::brick(raster::stack(ListFut[[p]]))
           # Final <- ListFut[[p]]
-          Final <- PCA_ENS_TMLA(Final)
+          Final <- one_layer_pca(Final)
 
           raster::writeRaster(
             Final,
@@ -460,7 +461,7 @@ Ensemble_TMLA <- function(DirR,
       ListRaster2 <- raster::brick(raster::stack(ListRaster))
       names(ListRaster2) <- nom
       Final <- raster::subset(ListRaster2, subset = W)
-      Final <- PCA_ENS_TMLA(Final)
+      Final <- one_layer_pca(Final)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
       PredPoint <-
         data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
@@ -503,7 +504,7 @@ Ensemble_TMLA <- function(DirR,
           ListFut[[p]] <- raster::brick(raster::stack(ListFut[[p]]))
           names(ListFut[[p]]) <- nom
           Final <- raster::subset(ListFut[[p]], subset = W)
-          Final <- PCA_ENS_TMLA(Final)
+          Final <- one_layer_pca(Final)
 
           raster::writeRaster(
             Final,
@@ -540,7 +541,7 @@ Ensemble_TMLA <- function(DirR,
         FinalSp[FinalSp < ValidTHR[k]] <- 0
         Final[[k]] <- FinalSp
       }
-      Final <- PCA_ENS_TMLA(Final)
+      Final <- one_layer_pca(Final)
       PredPoint <- raster::extract(Final, SpData[, c("x", "y")])
       PredPoint <-
         data.frame(PresAbse = SpData[, "PresAbse"], PredPoint)
@@ -584,18 +585,19 @@ Ensemble_TMLA <- function(DirR,
       if (!is.null(Proj)) {
         for (p in 1:length(ListFut)) {
           Final <- raster::brick(raster::stack(ListFut[[p]]))
-
+          
           #Select only values above the Threshold
           for (k in 1:raster::nlayers(ListRaster)) {
             FinalSp <- Final[[k]]
             FinalSp[FinalSp < ValidTHR[k]] <- 0
-            if (all(parallel::makeCluster(FinalSp[]) == 0)) {
-              Final[Final[[k]]] <- NULL
-            } else{
+            # if (all(FinalSp[]) == 0)) {
+              # Final[Final[[k]]] <- NULL
+            # } else{
               Final[[k]] <- FinalSp
-            }
+            # }
           }
-          Final <- PCA_ENS_TMLA(Final)
+          
+          Final <- one_layer_pca(env_layer = Final)
 
           raster::writeRaster(
             Final,
@@ -624,7 +626,7 @@ Ensemble_TMLA <- function(DirR,
 
     #Final Data Frame Results
     result <- ldply(ListSummary, data.frame, .id = NULL)
-    return(result)
+    # return(result)
   }
   # Save .txt with the models performance----
   FinalSummary <- do.call("rbind", result)
@@ -635,5 +637,5 @@ Ensemble_TMLA <- function(DirR,
     col.names = T,
     row.names = F
   )
-  parallel::stopCluster(cl)
+  # parallel::stopCluster(cl)
 }

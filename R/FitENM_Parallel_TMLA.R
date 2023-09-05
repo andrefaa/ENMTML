@@ -135,8 +135,15 @@ FitENM_TMLA_Parallel <- function(RecordsData,
        names(RecordsDataM) <- spN
        rm(RecordsDataMt)
 
-       ab.0 <- foreach (i= 1:length(names(RecordsDataM)),.packages=c("dismo","raster","plyr"), .export = 'OptimRandomPoints')%dopar%{
-        msk <- raster(paste(DirMask,paste(spN[i],".tif",sep=""),sep="/"))
+       # ab.0 <- foreach (
+       #   i = 1:length(names(RecordsDataM)),
+       #   .packages = c("dismo", "raster", "plyr"),
+       #   .export = 'OptimRandomPoints'
+       # ) %dopar% {
+       ab.00 <- list()
+       for (i in 1:length(names(RecordsDataM))) {
+         msk <- raster(paste(DirMask, paste(spN[i], ".tif", sep = ""), sep = "/"))
+         
          if(Part=="BOOT"||Part=="KFOLD"){
            NM <- 1
            RecordsDataM[[i]] <- rbind(RecordsDataM[[i]],RecordsData[RecordsData$sp==i & RecordsData$Partition==2 & RecordsData$PresAbse==0 ,])
@@ -159,23 +166,24 @@ FitENM_TMLA_Parallel <- function(RecordsData,
              #   dismo::randomPoints(msk2, p=RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1, c("x", "y")],abs(NCell - nrow(RecordsDataM[[i]][RecordsDataM[[i]]$PresAbse==1,])))
              var.0 <- data.frame(raster::extract(Variables, ab.0))
            }
-           ab.0 <- cbind(rep(spN[i],nrow(ab.0)),ab.0,rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
+           ab.0 <- data.frame(rep(spN[i], nrow(ab.0)), ab.0, rep(x,nrow(ab.0)),rep(0,nrow(ab.0)),var.0)
            colnames(ab.0) <- colnames(RecordsData)
            ab0L[[x]] <- stats::na.omit(ab.0)
            rm(var.0)
            # RecordsDataM <- rbind(RecordsDataM[[i]],ab.0)
            # rm(ab.0)
          }
-        ab.0 <- plyr::ldply(ab0L,data.frame,.id=NULL)
-        return(ab.0)
+         ab.00[[i]] <- plyr::ldply(ab0L,data.frame,.id=NULL)
+        # return(ab.0)
        }
-
+       ab.0 <- ab.00
+       rm(ab.00)
        RecordsDataM <- lapply(seq_along(RecordsDataM), function(x) rbind(RecordsDataM[[x]], ab.0[[x]]))
        RecordsDataM <- plyr::ldply(RecordsDataM,data.frame,.id=NULL)
        cols <-  c("x","y","Partition","PresAbse",names(Variables))
        RecordsDataM[,cols] <-  apply(RecordsDataM[,cols], 2, function(x) as.numeric(as.character(x)))
      }
-   }else{
+   } else {
      if (any(c("MXD","MXS","MLK","ENF","SVM-B") %in% Algorithm)) {
       RecordsDataM <- split(RecordsData,f=RecordsData$sp)
       RecordsDataMt <- list()
@@ -286,10 +294,10 @@ FitENM_TMLA_Parallel <- function(RecordsData,
   results <- foreach(s = 1:length(spN),
                    .packages = c("raster", "dismo",
                                  "kernlab", "randomForest", "maxnet", "maxlike",
-                                 "plyr", "mgcv", "RStoolbox", "adehabitatHS",
+                                 "plyr", "mgcv", "adehabitatHS",
                                  "caret", "glmnet", "gbm",'rgdal'),
                      .export = c( "Validation2_0", "maxnet2","madifa2",
-                                  "PCA_ENS_TMLA", "predict.maxnet", "boycei"
+                                  "predict.maxnet", "boycei"
                                   ,"STANDAR", "STANDAR_FUT", "Eval_Jac_Sor_TMLA",
                                   "Validation_Table_TMLA",
                                   "Thresholds_TMLA", "VarImp_RspCurv",
@@ -299,7 +307,7 @@ FitENM_TMLA_Parallel <- function(RecordsData,
                                   "cov.SE","d0","d1","d2","d3","psiline","psi",
                                   "cov.SE.d1","predict.graf.raster","predict.graf","pred")) %dopar% {
     #Prevent Auxiliary files from rgdal
-    rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")                                    
+    rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
                                     
     #Results Lists
     ListRaster <- as.list(Algorithm)

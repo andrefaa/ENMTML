@@ -22,13 +22,13 @@ OccsThin <- function(occ,
     #Check if there is a PC
     if (!is.null(VarColin)) {
       if (VarColin != "PCA" && names(envT)[1] != "PC1") {
-        pc1 <- RStoolbox::rasterPCA(envT, spca = T,nComp = 1)$map
+        pc1 <- one_layer_pca(env_layer = envT)
       } else{
         pc1 <- envT[[1]]
       }
     }else{
       if (names(envT)[1] != "PC1") {
-        pc1 <- RStoolbox::rasterPCA(envT, spca = T,nComp = 1)$map
+        pc1 <- one_layer_pca(env_layer = envT)
       }
     }
     

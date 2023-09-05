@@ -7,8 +7,8 @@
 
 ### Installation
 ```ruby
-if (!"devtools"%in%installed.packages()){install.packages("devtools")}  
-devtools::install_github("andrefaa/ENMTML")  
+if (!"remotes"%in%installed.packages()){install.packages("remotes")}  
+remotes::install_github("andrefaa/ENMTML")  
 ```
 ### Why **ENMTML**?  
 **ENMTML** stands for **E**cological **N**iche **M**odelling within **T**he **M**eta**L**and EcologyLab.  
@@ -60,4 +60,3 @@ We attempted to present a solid background for all methodological alternatives i
   
   
 > Please report bugs [here](https://github.com/andrefaa/ENMTML/issues) or send an e-mail to andrefaandrade@gmail.com or sjevelazco@gmail.com! 
-

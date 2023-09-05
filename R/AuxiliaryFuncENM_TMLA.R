@@ -22,7 +22,7 @@ rem_out <- function(r) {
   return(r)
 }
 
-# Prediction for Mahalanobis and Domaint------
+# Prediction for Mahalanobis and Domain ------
 PREDICT_DomainMahal <- function(mod, variables) {
   df <- stats::na.omit(raster::rasterToPoints(variables))
   pred <- dismo::predict(mod, df[, -c(1:2)])
@@ -501,4 +501,38 @@ OptimRandomPoints <- function(r, n, p) {
   v <- sample(v, n)
   v <- raster::xyFromCell(r, v)
   return(v)
+}
+
+
+##%######################################################%##
+#                                                          #
+####      function to replace RStoolbox::rasterPCA      ####
+#                                                          #
+##%######################################################%##
+one_layer_pca <- function(env_layer){
+  if(all(grepl("PC", names(env_layer)))){
+    result <- env_layer[[1]]
+  } else {
+    # mean
+    means <- raster::cellStats(env_layer, mean)
+    # SD
+    stds <- raster::cellStats(env_layer, sd)
+    # Standardize values
+    env_layer <- raster::scale(env_layer, center = means, scale = stds)
+    
+    # Remove layer turned NA becaus lack of variability 
+    filt <- raster::cellStats(env_layer, mean)
+    filt <- which(!is.na(filt))
+    env_layer <- env_layer[[filt]]
+    
+    p0 <- raster::as.data.frame(env_layer, xy = FALSE, na.rm = TRUE)
+    p0 <- stats::prcomp(p0,
+                       retx = TRUE,
+                       scale. = FALSE,
+                       center = FALSE,
+                       rank. = 1 # one PC
+    )
+    result <- raster::predict(env_layer, p0)
+  }
+  return(result)
 }

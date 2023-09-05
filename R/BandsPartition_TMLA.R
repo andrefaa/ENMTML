@@ -18,15 +18,15 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
 
   # Development
   # Start Cluster
-  if (Sys.getenv("RSTUDIO") == "1" &&
-    !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-    Sys.info()["sysname"] == "Darwin" &&
-    as.numeric(gsub("[.]", "", getRversion())) >= 360) {
-    cl <- parallel::makeCluster(cores, outfile = "", setup_strategy = "sequential")
-  } else {
-    cl <- parallel::makeCluster(cores, outfile = "")
-  }
-  doParallel::registerDoParallel(cl)
+  # if (Sys.getenv("RSTUDIO") == "1" &&
+  #   !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+  #   Sys.info()["sysname"] == "Darwin" &&
+  #   as.numeric(gsub("[.]", "", getRversion())) >= 360) {
+  #   cl <- parallel::makeCluster(cores, outfile = "", setup_strategy = "sequential")
+  # } else {
+  #   cl <- parallel::makeCluster(cores, outfile = "")
+  # }
+  # doParallel::registerDoParallel(cl)
 
 
   # Separate data by groups
@@ -47,25 +47,27 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
   grid <- seq(2, 20, 2)
 
   # Start species loop----
-  results <- foreach(
-    x = 1:length(RecordsData),
-    .packages = c("raster", "dismo", "plyr", "rgdal"),
-    .export = c(
-      "Moran_for_Quadrants_Pair_TMLA", "inv_bio", "inv_geo",
-      "KM", "OptimRandomPoints"
-    )
-  ) %dopar% {
+  results <- list()
+  #   foreach(
+  #   x = 1:length(RecordsData),
+  #   .packages = c("raster", "dismo", "plyr", "rgdal"),
+  #   .export = c(
+  #     "Moran_for_Quadrants_Pair_TMLA", "inv_bio", "inv_geo",
+  #     "KM", "OptimRandomPoints"
+  #   )
+  # ) %dopar% 
+    for (x in  1:length(RecordsData)){
 
     # Prevent Auxiliary files from rgdal
-    rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
+    # rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
 
     opt <- NULL
-    print(names(RecordsData)[x])
+    # print(names(RecordsData)[x])
     RecordsData.s <- RecordsData[[x]]
 
     for (quad in seq(2, 20, 2)) {
       RecordsData.st <- RecordsData.s
-      print(paste(quad, "Quadrants", sep = " "))
+      # print(paste(quad, "Quadrants", sep = " "))
 
       # Bands----
       for (segm in 1:quad) {
@@ -85,7 +87,7 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       colnames(RecordsData.st) <- c("x", "y", "Seg", "Partition")
 
       # Moran's I----
-      pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T, nComp = 1)$map
+      pc1 <- one_layer_pca(env_layer = evnVariables)
       Moran <-
         Moran_for_Quadrants_Pair_TMLA(
           occ = RecordsData.st,
@@ -587,7 +589,8 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
       ResultList = RecordsData.s,
       ResOptm = resOpt
     )
-    return(out)
+    # return(out)
+    results[[x]] <- out
   }
 
   FinalResult <- dplyr::bind_rows(lapply(results, function(x) x[[1]]))
@@ -605,6 +608,6 @@ BandsPartition_TMLA <- function(evnVariables = NULL,
     sep = "\t",
     row.names = F
   )
-  parallel::stopCluster(cl)
+  # parallel::stopCluster(cl)
   return(FinalResult)
 }

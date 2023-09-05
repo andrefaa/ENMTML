@@ -62,7 +62,7 @@ data("env")
 d_env <- file.path(d_ex, 'current_env_var')
 dir.create(d_env)
 raster::writeRaster(env, file.path(d_env, names(env)), bylayer=TRUE, 
-                    overwrite=T, format='GTiff')
+                    overwrite=TRUE, format='GTiff')
 
 # shell.exec(d_ex) # open the directory and folders created
 rm(list = c('env','occ'))

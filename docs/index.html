@@ -26,6 +26,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -38,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">ENMTML</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
       </span>
     </div>
 
@@ -53,7 +55,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     <span class="fas fa-book"></span>
      
     Articles
@@ -91,7 +93,7 @@
   </a>
 </li>
 <li>
-  <a href="https://github.com/andrefaa/ENMTML">
+  <a href="https://github.com/andrefaa/ENMTML" class="external-link">
     <span class="fa fa-github fa-lg"></span>
      
   </a>
@@ -108,37 +110,40 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="enmtml-" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#enmtml-" class="anchor"></a><strong>ENMTML</strong> <img src="https://github.com/andrefaa/ENMTML/blob/master/man/figures/logo.png" align="right" width="170">
+<div class="section level1">
+<div class="page-header"><h1 id="enmtml-">
+<strong>ENMTML</strong> <img src="https://github.com/andrefaa/ENMTML/blob/master/man/figures/logo.png" align="right" width="170"><a class="anchor" aria-label="anchor" href="#enmtml-"></a>
 </h1></div>
-
-<div id="an-r-package-for-an-integrated-construction-of-ecological-niche-models" class="section level2">
-<h2 class="hasAnchor">
-<a href="#an-r-package-for-an-integrated-construction-of-ecological-niche-models" class="anchor"></a>An R package for an integrated construction of Ecological Niche Models</h2>
+<p><a href="https://doi.org/10.1016/j.envsoft.2019.104615" class="external-link"><img src="https://zenodo.org/badge/DOI/10.1016/j.envsoft.2019.104615.svg" alt="DOI"></a> <a href="http://www.gnu.org/licenses/gpl-3.0.html" class="external-link"><img src="https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat" alt="License"></a> <a href="https://www.tidyverse.org/lifecycle/#manturing" class="external-link"><img src="https://img.shields.io/badge/lifecycle-manturing-blue.svg" alt="Lifecycle:manturing"></a></p>
+<div class="section level2">
+<h2 id="an-r-package-for-an-integrated-construction-of-ecological-niche-models">An R package for an integrated construction of Ecological Niche Models<a class="anchor" aria-label="anchor" href="#an-r-package-for-an-integrated-construction-of-ecological-niche-models"></a>
+</h2>
 </div>
-<div id="-installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#-installation" class="anchor"></a><i class="fas fa-cogs"></i> Installation</h2>
+<div class="section level2">
+<h2 id="id_-installation">
+<i class="fas fa-cogs"></i> Installation<a class="anchor" aria-label="anchor" href="#id_-installation"></a>
+</h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="st">"devtools"</span><span class="op">%in%</span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span><span class="op">}</span>  
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"andrefaa/ENMTML"</span><span class="op">)</span>  </code></pre></div>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="st">"remotes"</span><span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span><span class="op">}</span>  </span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"andrefaa/ENMTML"</span><span class="op">)</span>  </span></code></pre></div>
 </div>
-<div id="-why-enmtml" class="section level2">
-<h2 class="hasAnchor">
-<a href="#-why-enmtml" class="anchor"></a><i class="far fa-question-circle"></i> Why <strong>ENMTML</strong>?</h2>
-<p><a href="https://andrefaa.github.io/ENMTML/">ENMTML</a> stands for <strong>E</strong>cological <strong>N</strong>iche <strong>M</strong>odelling at <strong>T</strong>he <strong>M</strong>eta<strong>L</strong>and EcologyLab.<br>
-It is a product from the <a href="https://themetaland.wixsite.com/themetaland">Prof. Paulo De Marco’s lab in Universidade Federal de Goiás, Brasil</a>.</p>
+<div class="section level2">
+<h2 id="id_-why-enmtml">
+<i class="far fa-question-circle"></i> Why <strong>ENMTML</strong>?<a class="anchor" aria-label="anchor" href="#id_-why-enmtml"></a>
+</h2>
+<p><a href="https://andrefaa.github.io/ENMTML/" class="external-link">ENMTML</a> stands for <strong>E</strong>cological <strong>N</strong>iche <strong>M</strong>odelling at <strong>T</strong>he <strong>M</strong>eta<strong>L</strong>and EcologyLab.<br>
+It is a product from the <a href="https://themetaland.wixsite.com/themetaland" class="external-link">Prof. Paulo De Marco’s lab in Universidade Federal de Goiás, Brasil</a>.</p>
 <p>It puts together a lot of our work with ENM’s in the past years in a single package, with the objective of making it easy to use but also covering the complex methodological development that exists in the field.</p>
 </div>
-<div id="package-website" class="section level2">
-<h2 class="hasAnchor">
-<a href="#package-website" class="anchor"></a>Package website</h2>
-<p>See <a href="https://andrefaa.github.io/ENMTML/">ENMTML</a> package website (<a href="https://andrefaa.github.io/ENMTML" class="uri">https://andrefaa.github.io/ENMTML</a>) for further details of <a href="https://andrefaa.github.io/ENMTML/articles/ENMTML.html">functions</a> and examples</p>
+<div class="section level2">
+<h2 id="package-website">Package website<a class="anchor" aria-label="anchor" href="#package-website"></a>
+</h2>
+<p>See <a href="https://andrefaa.github.io/ENMTML/" class="external-link">ENMTML</a> package website (<a href="https://andrefaa.github.io/ENMTML" class="external-link uri">https://andrefaa.github.io/ENMTML</a>) for further details of <a href="https://andrefaa.github.io/ENMTML/articles/ENMTML.html" class="external-link">functions</a> and examples</p>
 </div>
-<div id="-what-is-the-main-objective-of-enmtml" class="section level2">
-<h2 class="hasAnchor">
-<a href="#-what-is-the-main-objective-of-enmtml" class="anchor"></a><i class="fas fa-bullseye"></i> What is the main objective of <strong>ENMTML</strong>?</h2>
+<div class="section level2">
+<h2 id="id_-what-is-the-main-objective-of-enmtml">
+<i class="fas fa-bullseye"></i> What is the main objective of <strong>ENMTML</strong>?<a class="anchor" aria-label="anchor" href="#id_-what-is-the-main-objective-of-enmtml"></a>
+</h2>
 <p>We believe there is a division within ENM/SDM.</p>
 <p>Developers are constantly coming up with better methods, which causes those improvements to be scattered throughout literature and not always reach users.<br>
 This effect is potentialized as novelties are sometimes built within different R-packages, which demand users to also have some comprehension of programming.</p>
@@ -163,34 +168,36 @@ This effect is potentialized as novelties are sometimes built within different R
 <li>Evaluation metrics<br>
 </li>
 <li>
-<a href="https://github.com/sjevelazco/MSDM">Deal with overprediction (MSDM)</a><br>
+<a href="https://github.com/sjevelazco/MSDM" class="external-link">Deal with overprediction (MSDM)</a><br>
 </li>
 <li>Ensemble models<br>
 </li>
 <li>Projection to a different time period/spatial extent (MOP calculation included)</li>
 </ul>
 </div>
-<div id="-what-if-i-couldnt-find-what-i-was-looking-for-in-enmtml" class="section level2">
-<h2 class="hasAnchor">
-<a href="#-what-if-i-couldnt-find-what-i-was-looking-for-in-enmtml" class="anchor"></a><i class="fas fa-search"></i> What if I couldn’t find what I was looking for in <strong>ENMTML</strong>?</h2>
-<div id="please-let-us-know" class="section level4">
-<h4 class="hasAnchor">
-<a href="#please-let-us-know" class="anchor"></a>Please let us know!</h4>
+<div class="section level2">
+<h2 id="id_-what-if-i-couldnt-find-what-i-was-looking-for-in-enmtml">
+<i class="fas fa-search"></i> What if I couldn’t find what I was looking for in <strong>ENMTML</strong>?<a class="anchor" aria-label="anchor" href="#id_-what-if-i-couldnt-find-what-i-was-looking-for-in-enmtml"></a>
+</h2>
+<div class="section level4">
+<h4 id="please-let-us-know">Please let us know!<a class="anchor" aria-label="anchor" href="#please-let-us-know"></a>
+</h4>
 <p>We are regularly working on the package and are very interested in incorporating new functionalities to the package.</p>
 </div>
 </div>
-<div id="-last-but-not-least" class="section level2">
-<h2 class="hasAnchor">
-<a href="#-last-but-not-least" class="anchor"></a><i class="fas fa-exclamation-circle"></i> Last but not least</h2>
+<div class="section level2">
+<h2 id="id_-last-but-not-least">
+<i class="fas fa-exclamation-circle"></i> Last but not least<a class="anchor" aria-label="anchor" href="#id_-last-but-not-least"></a>
+</h2>
 <p><strong>There are no defaults!</strong></p>
 <p>We believe <strong>every ENM should be carefully planned and every decision matters!</strong></p>
 <p>We attempted to present a solid background for all methodological alternatives in our package, you can find in our article specific details on where to find a detailed description of the included methods.</p>
-<div id="citation" class="section level3">
-<h3 class="hasAnchor">
-<a href="#citation" class="anchor"></a>CITATION:</h3>
-<p><strong>Andrade, A.F.A., Velazco, S.J.E., De Marco Jr, P., 2020. ENMTML: An R package for a straightforward construction of complex ecological niche models. Environmental Modelling &amp; Software 125, 104615. <a href="https://doi.org/10.1016/j.envsoft.2019.104615" class="uri">https://doi.org/10.1016/j.envsoft.2019.104615</a></strong></p>
+<div class="section level3">
+<h3 id="citation">CITATION:<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h3>
+<p><strong>Andrade, A.F.A., Velazco, S.J.E., De Marco Jr, P., 2020. ENMTML: An R package for a straightforward construction of complex ecological niche models. Environmental Modelling &amp; Software 125, 104615. <a href="https://doi.org/10.1016/j.envsoft.2019.104615" class="external-link uri">https://doi.org/10.1016/j.envsoft.2019.104615</a></strong></p>
 <blockquote>
-<p>Please report bugs <a href="https://github.com/andrefaa/ENMTML/issues">here</a> or send an e-mail to <a href="mailto:andrefaandrade@gmail.com" class="email">andrefaandrade@gmail.com</a> or <a href="mailto:sjevelazco@gmail.com" class="email">sjevelazco@gmail.com</a>!</p>
+<p>Please report bugs <a href="https://github.com/andrefaa/ENMTML/issues" class="external-link">here</a> or send an e-mail to <a href="mailto:andrefaandrade@gmail.com" class="email">andrefaandrade@gmail.com</a> or <a href="mailto:sjevelazco@gmail.com" class="email">sjevelazco@gmail.com</a>!</p>
 </blockquote>
 </div>
 </div>
@@ -199,53 +206,51 @@ This effect is potentialized as novelties are sometimes built within different R
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Browse source code at <br><a href="https://github.com/andrefaa/ENMTML/">https://​github.com/​andrefaa/​ENMTML/​</a>
-</li>
-<li>Report a bug at <br><a href="https://github.com/andrefaa/ENMTML/issues">https://​github.com/​andrefaa/​ENMTML/​issues</a>
-</li>
+<li><a href="https://github.com/andrefaa/ENMTML/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/andrefaa/ENMTML/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
+
 <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>GPL (&gt;= 2)</li>
 </ul>
 </div>
+
+
 <div class="citation">
-<h2>Citation</h2>
+<h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html">Citing ENMTML</a></li>
-</ul>
-</div>
-<div class="developers">
-<h2>Developers</h2>
-<ul class="list-unstyled">
-<li>André F.A. Andrade <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-6134-3176" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Santiago J.E. Velazco <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-7527-0967" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Paulo De Marco  <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-3628-6405" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li><a href="authors.html#citation">Citing ENMTML</a></li>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
+<div class="developers">
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li><a href="https://doi.org/10.1016/j.envsoft.2019.104615"><img src="https://zenodo.org/badge/DOI/10.1016/j.envsoft.2019.104615.svg" alt="DOI"></a></li>
-<li><a href="http://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/license-GPL%20%28%3E=%203%29-lightgrey.svg?style=flat" alt="License"></a></li>
-<li><a href="https://www.tidyverse.org/lifecycle/#manturing"><img src="https://img.shields.io/badge/lifecycle-manturing-blue.svg" alt="Lifecycle:manturing"></a></li>
+<li>André F.A. Andrade <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-6134-3176" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Santiago J.E. Velazco <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-7527-0967" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Paulo De Marco  <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-3628-6405" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 </ul>
 </div>
-</div>
+
+
+
+  </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
+  <p></p>
+<p>Developed by André F.A. Andrade, Santiago J.E. Velazco, Paulo De Marco .</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>
@@ -253,6 +258,8 @@ This effect is potentialized as novelties are sometimes built within different R
 
   
 
+
+  
 
   </body>
 </html>

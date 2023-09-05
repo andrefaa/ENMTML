@@ -7,8 +7,8 @@
 
 ## <i class="fas fa-cogs"></i> Installation
 ```ruby
-if (!"devtools"%in%installed.packages()){install.packages("devtools")}  
-devtools::install_github("andrefaa/ENMTML")  
+if (!"remotes"%in%installed.packages()){install.packages("remotes")}  
+remotes::install_github("andrefaa/ENMTML")  
 ```
 ## <i class="far fa-question-circle"></i> Why **ENMTML**?
 [ENMTML](https://andrefaa.github.io/ENMTML/) stands for **E**cological **N**iche **M**odelling at **T**he **M**eta**L**and EcologyLab.  

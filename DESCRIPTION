@@ -22,7 +22,7 @@ Depends: R (>= 3.5.0)
 Imports: ade4, adehabitatHS, caret, dismo,  
          flexclust, foreach, gbm, glmnet, igraph, kernlab, 
          maxlike, maxnet, methods, mgcv, parallel, pgirmess, doParallel, dplyr, plyr, 
-         randomForest, raster, rgdal, rgeos, RStoolbox, sp, 
+         randomForest, raster, terra, rgdal, rgeos, sp, 
          spThin, tools, usdm
 URL: https://github.com/andrefaa/ENMTML
 BugReports: https://github.com/andrefaa/ENMTML/issues

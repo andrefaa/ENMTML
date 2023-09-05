@@ -38,33 +38,32 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
   e <- raster::extent(mask)
   
   # Loop for each species-----
-  # ResultList <- rep(list(NULL),length(RecordsData))
   SpNames <- names(RecordsData)
-  # BestGridList <- rep(list(NULL),length(RecordsData))
   
   #Start Cluster
-  if (Sys.getenv("RSTUDIO") == "1" &&
-      !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
-      Sys.info()["sysname"] == "Darwin" &&
-      as.numeric(gsub('[.]', '', getRversion())) >= 360) {
-    cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
-  }else{
-    cl <- parallel::makeCluster(cores,outfile="")
-  }
-  doParallel::registerDoParallel(cl)
+  # if (Sys.getenv("RSTUDIO") == "1" &&
+  #     !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
+  #     Sys.info()["sysname"] == "Darwin" &&
+  #     as.numeric(gsub('[.]', '', getRversion())) >= 360) {
+  #   cl <- parallel::makeCluster(cores,outfile="", setup_strategy = "sequential")
+  # }else{
+  #   cl <- parallel::makeCluster(cores,outfile="")
+  # }
+  # doParallel::registerDoParallel(cl)
   
   # LOOP----
-  results <-
-    foreach(
-      s = 1:length(RecordsData),
-      .packages = c("raster", "dismo",'rgdal'),
-      .export = c("inv_bio", "inv_geo", "KM_BLOCK", "OptimRandomPoints")
-    ) %dopar% {
+  results <- list()
+    # foreach(
+    #   s = 1:length(RecordsData),
+    #   .packages = c("raster", "dismo",'rgdal'),
+    #   .export = c("inv_bio", "inv_geo", "KM_BLOCK", "OptimRandomPoints")
+    # ) %dopar% 
+      for(s in 1:length(RecordsData)){
       
       #Prevent Auxiliary files from rgdal
-      rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE")
+        suppressWarnings(rgdal::setCPLConfigOption("GDAL_PAM_ENABLED", "FALSE"))
       
-      print(paste(s, SpNames[s]))
+      # print(paste(s, SpNames[s]))
       # Extract coordinates----
       presences <- RecordsData[[s]]
       mask2 <- mask
@@ -160,7 +159,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       if(grepl("PC",names(evnVariables)[1])){
         pc1 <- evnVariables[[1]]
       } else{
-        pc1 <- RStoolbox::rasterPCA(evnVariables, spca = T,nComp = 1)$map
+        pc1 <- one_layer_pca(env_layer = evnVariables)
       }
       Imoran.Grid.P <- rep(NA, length(part2))
       for (p in 1:length(part2)) {
@@ -299,7 +298,7 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       }
       
       # Optimum size for presences
-      print(Opt2)
+      # print(Opt2)
       presences <- data.frame(Partition = as.numeric(part[, Opt2$N.grid]), presences)
       
       #Save blocks raster
@@ -606,10 +605,11 @@ BlockPartition_TMLA <- function(evnVariables = NULL,
       out <- list(ResultList = result,
                   BestGridList = Opt2)
       # utils::write.table(result,paste(DirSave, paste0(SpNames[s],".txt"), sep="\\"), sep="\t",row.names=F)
-      return(out)
+      # return(out)
+      results[[s]] <- out
     }
   
-  parallel::stopCluster(cl)
+  # parallel::stopCluster(cl)
   FinalResult <- dplyr::bind_rows(lapply(results, function(x) x[[1]]))
   FinalInfoGrid <- dplyr::bind_rows(lapply(results, function(x) x[[2]]))
   
