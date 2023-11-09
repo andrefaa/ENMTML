@@ -8,7 +8,9 @@
 
 ## <i class="fas fa-cogs"></i> Installation
 ```ruby
-if (!"remotes"%in%installed.packages()){install.packages("remotes")}  
+if (!"remotes"%in%installed.packages()){install.packages("remotes")}
+remotes::install_github("cran/rgeos")
+remotes::install_github("cran/rgdal")
 remotes::install_github("andrefaa/ENMTML")  
 ```
 ## <i class="far fa-question-circle"></i> Why **ENMTML**?
