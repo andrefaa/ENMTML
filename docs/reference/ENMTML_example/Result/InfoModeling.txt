@@ -89,3 +89,29 @@ Resuls in: C:/Users/santi/Documents/GitHub/ENMTML_RStudio/docs/reference/ENMTML_
 No species: 5
 Threshold: MAX_TSS
 Sp_14	Sp_17	Sp_18	Sp_34	Sp_39
+###########################################################
+Start date : 2023-11-09 13:58:40.074807
+End date : 2023-11-09 13:59:31.154807
+Algorithm:	MXD	SVM	RDF
+Ensemble:	PCA
+Partition Method:	KFOLD
+Train percentage (random partition only):	1
+PA Mask: C:/Users/santi/Documents/GitHub/ENMTML_RStudio/docs/reference/ENMTML_example/Result/Extent_Masks
+MSDM: 
+Resuls in: C:/Users/santi/Documents/GitHub/ENMTML_RStudio/docs/reference/ENMTML_example/Result
+No species: 5
+Threshold: MAX_TSS
+Sp_14	Sp_17	Sp_18	Sp_34	Sp_39
+###########################################################
+Start date : 2023-11-09 13:59:39.47892
+End date : 2023-11-09 14:00:06.686158
+Algorithm:	MXD	SVM	RDF
+Ensemble:	PCA
+Partition Method:	KFOLD
+Train percentage (random partition only):	1
+PA Mask: C:/Users/santi/Documents/GitHub/ENMTML_RStudio/docs/reference/ENMTML_example/Result/Extent_Masks
+MSDM: 
+Resuls in: C:/Users/santi/Documents/GitHub/ENMTML_RStudio/docs/reference/ENMTML_example/Result
+No species: 5
+Threshold: MAX_TSS
+Sp_14	Sp_17	Sp_18	Sp_34	Sp_39

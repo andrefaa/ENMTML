@@ -8,6 +8,8 @@
 ### Installation
 ```ruby
 if (!"remotes"%in%installed.packages()){install.packages("remotes")}  
+remotes::install_github("cran/rgeos")
+remotes::install_github("cran/rgdal")
 remotes::install_github("andrefaa/ENMTML")  
 ```
 ### Why **ENMTML**?  
